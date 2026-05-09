@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор ROI автоматизации</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6fa;
+    color: #1c2330;
+    margin: 0;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+  }
+  .container {
+    width: 100%;
+    max-width: 720px;
+  }
+  h1 {
+    font-size: 24px;
+    margin: 0 0 8px;
+  }
+  .subtitle {
+    color: #6b7280;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    margin: 0 0 12px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 520px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .hint {
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 400;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  input[type="number"]:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+  }
+  .results {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: #fff;
+  }
+  .results .section-title {
+    color: rgba(255,255,255,0.75);
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+  .result-row:last-child {
+    border-bottom: none;
+  }
+  .result-label {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+  .result-value {
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .result-value.big {
+    font-size: 28px;
+  }
+  .currency {
+    font-size: 14px;
+    opacity: 0.75;
+    margin-left: 4px;
+    font-weight: 400;
+  }
+  .negative .result-value {
+    color: #fecaca;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Калькулятор ROI автоматизации</h1>
+  <p class="subtitle">Оцените, сколько времени и денег экономит автоматизация рутины.</p>
+
+  <div class="card">
+    <h2 class="section-title">Параметры</h2>
+    <div class="grid">
+      <div>
+        <label>Время на одну задачу сейчас <span class="hint">(минут)</span>
+          <input type="number" id="timeBefore" value="30" min="0" step="1">
+        </label>
+      </div>
+      <div>
+        <label>Время после внедрения <span class="hint">(минут)</span>
+          <input type="number" id="timeAfter" value="5" min="0" step="1">
+        </label>
+      </div>
+      <div>
+        <label>Задач в неделю <span class="hint">(шт.)</span>
+          <input type="number" id="tasksPerWeek" value="40" min="0" step="1">
+        </label>
+      </div>
+      <div>
+        <label>Стоимость часа работы <span class="hint">(₽)</span>
+          <input type="number" id="hourlyRate" value="1500" min="0" step="50">
+        </label>
+      </div>
+      <div>
+        <label>Стоимость внедрения <span class="hint">(₽, разово)</span>
+          <input type="number" id="implCost" value="100000" min="0" step="1000">
+        </label>
+      </div>
+      <div>
+        <label>Поддержка <span class="hint">(₽ в месяц)</span>
+          <input type="number" id="monthlyCost" value="5000" min="0" step="500">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card results" id="results">
+    <h2 class="section-title">Результат</h2>
+    <div class="result-row">
+      <span class="result-label">Экономия времени</span>
+      <span><span class="result-value" id="hoursPerMonth">0</span><span class="currency">ч/мес</span></span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">За год</span>
+      <span><span class="result-value" id="hoursPerYear">0</span><span class="currency">ч/год</span></span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">Экономия в деньгах</span>
+      <span><span class="result-value" id="moneyPerMonth">0</span><span class="currency">₽/мес</span></span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">За год (нетто)</span>
+      <span><span class="result-value big" id="moneyPerYear">0</span><span class="currency">₽</span></span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">Срок окупаемости</span>
+      <span><span class="result-value" id="payback">—</span></span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">ROI за год</span>
+      <span><span class="result-value" id="roi">0%</span></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const ids = ["timeBefore","timeAfter","tasksPerWeek","hourlyRate","implCost","monthlyCost"];
+
+const fmt = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
+const fmt1 = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 1 });
+
+function calc() {
+  const v = Object.fromEntries(ids.map(id => [id, parseFloat(document.getElementById(id).value) || 0]));
+
+  const minutesSavedPerTask = Math.max(0, v.timeBefore - v.timeAfter);
+  const tasksPerMonth = v.tasksPerWeek * 4.345;
+  const hoursPerMonth = (minutesSavedPerTask * tasksPerMonth) / 60;
+  const hoursPerYear = hoursPerMonth * 12;
+
+  const moneyPerMonthGross = hoursPerMonth * v.hourlyRate;
+  const moneyPerMonthNet = moneyPerMonthGross - v.monthlyCost;
+  const moneyPerYearNet = moneyPerMonthNet * 12 - v.implCost;
+
+  document.getElementById("hoursPerMonth").textContent = fmt1.format(hoursPerMonth);
+  document.getElementById("hoursPerYear").textContent = fmt.format(hoursPerYear);
+  document.getElementById("moneyPerMonth").textContent = fmt.format(moneyPerMonthNet);
+  document.getElementById("moneyPerYear").textContent = fmt.format(moneyPerYearNet);
+
+  const paybackEl = document.getElementById("payback");
+  if (moneyPerMonthNet > 0) {
+    const months = v.implCost / moneyPerMonthNet;
+    paybackEl.textContent = months < 1
+      ? "< 1 мес"
+      : fmt1.format(months) + " мес";
+  } else {
+    paybackEl.textContent = "не окупается";
+  }
+
+  const totalCostYear = v.implCost + v.monthlyCost * 12;
+  const grossYear = moneyPerMonthGross * 12;
+  const roi = totalCostYear > 0 ? ((grossYear - totalCostYear) / totalCostYear) * 100 : 0;
+  document.getElementById("roi").textContent = fmt.format(roi) + "%";
+}
+
+ids.forEach(id => document.getElementById(id).addEventListener("input", calc));
+calc();
+</script>
+</body>
+</html>
