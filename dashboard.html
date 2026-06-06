@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turon Tourism — Дашборд</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0F2545;
+      color: #E8EDF5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #1A56BB55; border-radius: 3px; }
+
+    /* ── Layout ── */
+    .dashboard { max-width: 1440px; margin: 0 auto; padding: 0 24px 48px; }
+
+    /* ── Card ── */
+    .card {
+      background: #142952;
+      border-radius: 14px;
+      border: 1px solid rgba(201,168,76,0.1);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.28);
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+      margin-bottom: 24px;
+      position: sticky;
+      top: 0;
+      background: #0F2545;
+      z-index: 100;
+    }
+    .logo {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #C9A84C;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      margin-right: 4px;
+    }
+    .logo span { color: #E8EDF5; font-weight: 400; }
+    .h-divider { width: 1px; height: 22px; background: rgba(143,163,192,0.2); flex-shrink: 0; }
+
+    /* ── Toggle/segmented ── */
+    .seg {
+      display: inline-flex;
+      background: rgba(15,37,69,0.7);
+      border: 1px solid rgba(143,163,192,0.18);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .seg button {
+      padding: 5px 13px;
+      background: transparent;
+      border: none;
+      color: #8FA3C0;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.14s;
+      white-space: nowrap;
+    }
+    .seg button.active { background: #C9A84C; color: #0F2545; }
+    .seg.blue button.active { background: rgba(26,86,187,0.35); color: #E8EDF5; }
+
+    /* ── Inputs ── */
+    .inp {
+      background: rgba(15,37,69,0.6);
+      border: 1px solid rgba(143,163,192,0.2);
+      border-radius: 8px;
+      color: #E8EDF5;
+      padding: 6px 11px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .inp:focus { border-color: rgba(201,168,76,0.5); box-shadow: 0 0 0 2px rgba(201,168,76,0.1); }
+    .inp::placeholder { color: #4A6080; }
+    select.inp { cursor: pointer; }
+    option { background: #142952; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 15px; border-radius: 8px; border: none;
+      cursor: pointer; font-size: 13px; font-weight: 500;
+      transition: all 0.14s; white-space: nowrap;
+    }
+    .btn-gold { background: #C9A84C; color: #0F2545; }
+    .btn-gold:hover { background: #d6b55e; box-shadow: 0 4px 14px rgba(201,168,76,0.28); transform: translateY(-1px); }
+    .btn-outline { background: rgba(26,86,187,0.15); color: #C8D4E3; border: 1px solid rgba(26,86,187,0.35); }
+    .btn-outline:hover { background: rgba(26,86,187,0.28); }
+    .btn-ghost { background: transparent; color: #8FA3C0; border: 1px solid rgba(143,163,192,0.18); }
+    .btn-ghost:hover { color: #E8EDF5; border-color: rgba(143,163,192,0.35); }
+    .btn-danger { background: rgba(231,76,60,0.12); color: #E74C3C; border: 1px solid rgba(231,76,60,0.2); }
+    .btn-danger:hover { background: rgba(231,76,60,0.22); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+    /* ── KPI grid ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      padding: 22px 22px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 14px 14px 0 0;
+    }
+    .kpi-card.k-gold::after  { background: linear-gradient(90deg, #C9A84C, #e6c96a); }
+    .kpi-card.k-blue::after  { background: linear-gradient(90deg, #1A56BB, #3d7fe0); }
+    .kpi-card.k-green::after { background: linear-gradient(90deg, #10B981, #34d399); }
+    .kpi-card.k-purple::after{ background: linear-gradient(90deg, #7C3AED, #a855f7); }
+
+    .kpi-label { font-size: 11px; color: #8FA3C0; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .kpi-value { font-size: 2rem; font-weight: 700; line-height: 1.15; margin-bottom: 10px; }
+    .kpi-sub   { font-size: 12px; color: #8FA3C0; }
+
+    .prog-wrap { background: rgba(15,37,69,0.7); border-radius: 4px; height: 5px; overflow: hidden; margin: 6px 0 8px; }
+    .prog-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg,#C9A84C,#f0d47a); transition: width 0.7s ease; }
+
+    /* ── Middle row ── */
+    .mid-row {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+      align-items: start;
+    }
+
+    /* ── Funnel ── */
+    .funnel-card { padding: 22px; }
+    .block-title { font-size: 15px; font-weight: 700; color: #E8EDF5; margin-bottom: 18px; }
+    .funnel-stage { margin-bottom: 3px; }
+    .funnel-conv  { font-size: 10px; color: #8FA3C0; text-align: right; padding-right: 2px; margin-bottom: 2px; }
+    .funnel-row {
+      position: relative;
+      height: 38px;
+      border-radius: 6px;
+      background: rgba(15,37,69,0.4);
+      overflow: hidden;
+    }
+    .funnel-fill {
+      height: 100%;
+      display: flex; align-items: center;
+      padding: 0 10px;
+      transition: width 0.55s ease;
+    }
+    .funnel-count {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      font-size: 13px; font-weight: 700; color: #E8EDF5;
+    }
+    .funnel-others {
+      display: flex; gap: 10px; margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(143,163,192,0.08);
+    }
+    .funnel-other-box {
+      flex: 1; border-radius: 8px; padding: 10px 12px; text-align: center;
+    }
+
+    /* ── Managers ── */
+    .managers-card { padding: 22px; }
+    .managers-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .mgr-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+    .mgr-box {
+      background: rgba(15,37,69,0.45);
+      border: 1px solid rgba(143,163,192,0.09);
+      border-radius: 10px;
+      padding: 14px;
+      transition: border-color 0.15s;
+    }
+    .mgr-box:hover { border-color: rgba(201,168,76,0.22); }
+    .mgr-rank  { font-size: 11px; font-weight: 700; margin-bottom: 3px; }
+    .mgr-name  { font-size: 15px; font-weight: 600; color: #E8EDF5; margin-bottom: 6px; }
+    .mgr-rev   { font-size: 1.15rem; font-weight: 700; color: #C9A84C; margin-bottom: 8px; }
+    .mgr-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
+    .mgr-stat  { font-size: 11px; color: #8FA3C0; line-height: 1.3; }
+    .mgr-stat strong { display: block; font-size: 13px; font-weight: 600; color: #C8D4E3; }
+
+    /* ── Chart ── */
+    .chart-card { padding: 22px; margin-bottom: 20px; }
+    .chart-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .chart-wrap { height: 200px; position: relative; }
+
+    /* ── Deals table ── */
+    .deals-card { padding: 22px; }
+    .deals-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+    .deals-filters { display: flex; gap: 8px; align-items: center; }
+    .count-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(26,86,187,0.18);
+      color: #8FA3C0; font-size: 11px;
+      padding: 2px 8px; border-radius: 20px; margin-left: 8px;
+    }
+    .tbl-wrap { overflow-x: auto; max-height: 420px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: #8FA3C0;
+      padding: 8px 12px; text-align: left;
+      border-bottom: 1px solid rgba(143,163,192,0.1);
+      position: sticky; top: 0; background: #142952; z-index: 1;
+    }
+    tbody td { padding: 9px 12px; border-bottom: 1px solid rgba(143,163,192,0.055); font-size: 13px; }
+    tbody tr:hover td { background: rgba(26,86,187,0.055); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    /* ── Stage badge ── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 9px; border-radius: 20px;
+      font-size: 11px; font-weight: 500;
+    }
+
+    /* ── No data ── */
+    .empty { text-align: center; padding: 40px; color: #4A6080; font-size: 13px; }
+
+    /* ── Modal ── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(5,15,35,0.75);
+      backdrop-filter: blur(5px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: #142952;
+      border-radius: 16px;
+      border: 1px solid rgba(201,168,76,0.18);
+      padding: 30px;
+      width: 480px;
+      max-width: 94vw;
+      box-shadow: 0 24px 56px rgba(0,0,0,0.5);
+      animation: pop .18s ease;
+    }
+    @keyframes pop { from { opacity:0; transform:scale(.97) translateY(-6px); } to { opacity:1; transform:none; } }
+    .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 22px; }
+    .field { margin-bottom: 15px; }
+    .flabel { display: block; font-size: 11px; color: #8FA3C0; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+
+    .mgr-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 0; border-bottom: 1px solid rgba(143,163,192,0.08);
+    }
+    .mgr-item:last-child { border-bottom: none; }
+
+    /* ── Misc ── */
+    .lbl { font-size: 12px; color: #8FA3C0; }
+    .green { color: #10B981; }
+    .red   { color: #E74C3C; }
+    .gold  { color: #C9A84C; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+// ═══════════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════════
+
+const STAGES = [
+  { id:'new',       label:'Новый лид',         color:'#3B82F6', bg:'rgba(59,130,246,0.18)',   funnel:true,  order:1 },
+  { id:'contact',   label:'Требует контакта',  color:'#8B5CF6', bg:'rgba(139,92,246,0.18)',   funnel:true,  order:2 },
+  { id:'informed',  label:'Проинформирован',   color:'#F59E0B', bg:'rgba(245,158,11,0.18)',   funnel:true,  order:3 },
+  { id:'office',    label:'Визит в офис',      color:'#10B981', bg:'rgba(16,185,129,0.18)',   funnel:true,  order:4 },
+  { id:'paid',      label:'Оплачено',          color:'#C9A84C', bg:'rgba(201,168,76,0.2)',    funnel:true,  order:5 },
+  { id:'postponed', label:'Отложенные',        color:'#6B7280', bg:'rgba(107,114,128,0.18)', funnel:false, order:6 },
+  { id:'invalid',   label:'Нецелевой',         color:'#EF4444', bg:'rgba(239,68,68,0.15)',   funnel:false, order:7 },
+];
+const SMAP = Object.fromEntries(STAGES.map(s => [s.id, s]));
+const DEF_MANAGERS = ['Муслим','Абдулкарим','Сарвинос','Азиза'];
+const uid = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
+
+// Demo deals — June 2026
+const DEMO = [
+  { id:uid(), manager:'Муслим',     stage:'paid',      amount:12500000, date:'2026-06-01', direction:'Дубай'    },
+  { id:uid(), manager:'Муслим',     stage:'paid',      amount:8700000,  date:'2026-06-03', direction:'Турция'   },
+  { id:uid(), manager:'Муслим',     stage:'paid',      amount:11000000, date:'2026-06-06', direction:'ОАЭ'      },
+  { id:uid(), manager:'Муслим',     stage:'office',    amount:14000000, date:'2026-06-05', direction:'Мальдивы' },
+  { id:uid(), manager:'Муслим',     stage:'informed',  amount:12000000, date:'2026-06-06', direction:'Турция'   },
+  { id:uid(), manager:'Муслим',     stage:'new',       amount:0,        date:'2026-06-06', direction:'Дубай'    },
+  { id:uid(), manager:'Муслим',     stage:'invalid',   amount:0,        date:'2026-06-01', direction:'—'        },
+  { id:uid(), manager:'Абдулкарим', stage:'paid',      amount:15200000, date:'2026-06-02', direction:'Мальдивы' },
+  { id:uid(), manager:'Абдулкарим', stage:'paid',      amount:7300000,  date:'2026-06-04', direction:'Таиланд'  },
+  { id:uid(), manager:'Абдулкарим', stage:'office',    amount:9500000,  date:'2026-06-04', direction:'Дубай'    },
+  { id:uid(), manager:'Абдулкарим', stage:'contact',   amount:6000000,  date:'2026-06-06', direction:'Таиланд'  },
+  { id:uid(), manager:'Абдулкарим', stage:'postponed', amount:8500000,  date:'2026-06-02', direction:'Мальдивы' },
+  { id:uid(), manager:'Сарвинос',   stage:'paid',      amount:6400000,  date:'2026-06-04', direction:'Египет'   },
+  { id:uid(), manager:'Сарвинос',   stage:'office',    amount:7800000,  date:'2026-06-06', direction:'Испания'  },
+  { id:uid(), manager:'Сарвинос',   stage:'informed',  amount:8200000,  date:'2026-06-05', direction:'ОАЭ'      },
+  { id:uid(), manager:'Сарвинос',   stage:'new',       amount:0,        date:'2026-06-06', direction:'Мальдивы' },
+  { id:uid(), manager:'Сарвинос',   stage:'invalid',   amount:0,        date:'2026-06-02', direction:'—'        },
+  { id:uid(), manager:'Азиза',      stage:'paid',      amount:9800000,  date:'2026-06-05', direction:'Турция'   },
+  { id:uid(), manager:'Азиза',      stage:'informed',  amount:5500000,  date:'2026-06-03', direction:'Египет'   },
+  { id:uid(), manager:'Азиза',      stage:'contact',   amount:4500000,  date:'2026-06-05', direction:'Турция'   },
+  { id:uid(), manager:'Азиза',      stage:'new',       amount:5000000,  date:'2026-06-04', direction:'Испания'  },
+  { id:uid(), manager:'Азиза',      stage:'postponed', amount:6200000,  date:'2026-06-03', direction:'Турция'   },
+];
+
+// ═══════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════
+
+const fmt = (n, cur, rate) => {
+  if (cur === 'usd') {
+    const u = n / rate;
+    return u >= 1000 ? `$${(u/1000).toFixed(1)}k` : `$${Math.round(u).toLocaleString()}`;
+  }
+  if (n >= 1e9)  return (n/1e9).toFixed(2)  + ' млрд';
+  if (n >= 1e6)  return (n/1e6).toFixed(1)  + ' млн';
+  if (n >= 1000) return (n/1000).toFixed(0) + ' тыс';
+  return n + '';
+};
+
+const fmtFull = (n, cur, rate) => {
+  if (cur === 'usd') return '$' + Math.round(n/rate).toLocaleString();
+  return Math.round(n).toLocaleString() + ' сум';
+};
+
+const periodBounds = (period, customFrom, customTo) => {
+  const now = new Date('2026-06-06');
+  if (period === 'current') {
+    return { from: new Date(now.getFullYear(), now.getMonth(), 1),
+             to:   new Date(now.getFullYear(), now.getMonth()+1, 0) };
+  }
+  if (period === 'previous') {
+    return { from: new Date(now.getFullYear(), now.getMonth()-1, 1),
+             to:   new Date(now.getFullYear(), now.getMonth(), 0) };
+  }
+  return {
+    from: customFrom ? new Date(customFrom) : new Date(now.getFullYear(), now.getMonth(), 1),
+    to:   customTo   ? new Date(customTo)   : now,
+  };
+};
+
+const inPeriod = (dateStr, {from, to}) => {
+  const d = new Date(dateStr);
+  return d >= from && d <= to;
+};
+
+const fmtDate = s => {
+  if (!s) return '—';
+  const [y,m,d] = s.split('-');
+  return `${d}.${m}.${y}`;
+};
+
+// ═══════════════════════════════════════════════════
+//  MODAL: DEAL FORM
+// ═══════════════════════════════════════════════════
+
+function DealModal({ deal, managers, onSave, onClose }) {
+  const today = new Date('2026-06-06').toISOString().slice(0,10);
+  const [f, setF] = useState(deal || {
+    manager: managers[0] || '',
+    stage: 'new',
+    amount: '',
+    date: today,
+    direction: '',
+  });
+  const set = (k,v) => setF(p => ({...p,[k]:v}));
+
+  const save = () => {
+    if (!f.manager || !f.stage || !f.date) return;
+    onSave({ ...f, id: deal?.id || uid(), amount: Number(f.amount)||0 });
+    onClose();
+  };
+
+  return (
+    <div className="overlay" onClick={e => e.target===e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-title">{deal ? '✎ Редактировать сделку' : '+ Новая сделка'}</div>
+
+        <div className="field">
+          <label className="flabel">Менеджер</label>
+          <select className="inp" style={{width:'100%'}} value={f.manager} onChange={e=>set('manager',e.target.value)}>
+            {managers.map(m=><option key={m} value={m}>{m}</option>)}
+          </select>
+        </div>
+
+        <div className="field">
+          <label className="flabel">Стадия</label>
+          <select className="inp" style={{width:'100%'}} value={f.stage} onChange={e=>set('stage',e.target.value)}>
+            {STAGES.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}
+          </select>
+        </div>
+
+        <div className="row2">
+          <div className="field">
+            <label className="flabel">Сумма (сум)</label>
+            <input type="number" className="inp" style={{width:'100%'}} min="0"
+              value={f.amount} onChange={e=>set('amount',e.target.value)} placeholder="0" />
+          </div>
+          <div className="field">
+            <label className="flabel">Дата</label>
+            <input type="date" className="inp" style={{width:'100%'}}
+              value={f.date} onChange={e=>set('date',e.target.value)} />
+          </div>
+        </div>
+
+        <div className="field">
+          <label className="flabel">Направление</label>
+          <input type="text" className="inp" style={{width:'100%'}}
+            value={f.direction} onChange={e=>set('direction',e.target.value)}
+            placeholder="Дубай, Турция, Мальдивы…" />
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Отмена</button>
+          <button className="btn btn-gold" onClick={save}>{deal ? 'Сохранить' : 'Добавить'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+//  MODAL: MANAGERS
+// ═══════════════════════════════════════════════════
+
+function ManagersModal({ managers, onSave, onClose }) {
+  const [list, setList] = useState([...managers]);
+  const [newName, setNewName] = useState('');
+
+  const add = () => {
+    const n = newName.trim();
+    if (n && !list.includes(n)) { setList([...list, n]); setNewName(''); }
+  };
+  const remove = m => setList(list.filter(x=>x!==m));
+
+  return (
+    <div className="overlay" onClick={e => e.target===e.currentTarget && onClose()}>
+      <div className="modal" style={{width:400}}>
+        <div className="modal-title">Менеджеры отдела</div>
+
+        <div style={{maxHeight:280,overflowY:'auto'}}>
+          {list.map(m => (
+            <div key={m} className="mgr-item">
+              <span style={{fontWeight:500}}>{m}</span>
+              <button className="btn btn-danger btn-sm" onClick={()=>remove(m)}>Удалить</button>
+            </div>
+          ))}
+        </div>
+
+        <div style={{display:'flex',gap:8,marginTop:16}}>
+          <input type="text" className="inp" style={{flex:1}} value={newName}
+            onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}
+            placeholder="Имя нового менеджера" />
+          <button className="btn btn-gold" onClick={add}>+ Добавить</button>
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Отмена</button>
+          <button className="btn btn-gold" onClick={()=>{onSave(list);onClose();}}>Сохранить</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+//  KPI BLOCK
+// ═══════════════════════════════════════════════════
+
+function KPIBlock({ deals, pDeals, currency, rate, goal, setGoal }) {
+  const revenue = pDeals.filter(d=>d.stage==='paid').reduce((s,d)=>s+d.amount, 0);
+  const goalPct  = goal>0 ? Math.min(100,Math.round(revenue/goal*100)) : 0;
+
+  const activeStages = new Set(['new','contact','informed','office']);
+  const stuck = deals.filter(d=>activeStages.has(d.stage)).length;
+
+  const totalFunnel = pDeals.filter(d=>d.stage!=='postponed').length;
+  const paidCnt     = pDeals.filter(d=>d.stage==='paid').length;
+  const conv        = totalFunnel>0 ? Math.round(paidCnt/totalFunnel*100) : 0;
+
+  const byMgr = {};
+  pDeals.filter(d=>d.stage==='paid').forEach(d=>{byMgr[d.manager]=(byMgr[d.manager]||0)+d.amount;});
+  const sorted  = Object.entries(byMgr).sort((a,b)=>b[1]-a[1]);
+  const leader  = sorted[0]?.[0] || '—';
+  const laggard = sorted.length>1 ? sorted[sorted.length-1][0] : '—';
+
+  const convColor = conv>=40?'#10B981':conv>=20?'#F59E0B':'#E74C3C';
+
+  return (
+    <div className="kpi-grid">
+      {/* Revenue */}
+      <div className="card kpi-card k-gold">
+        <div className="kpi-label">Выручка за период</div>
+        <div className="kpi-value gold">{fmt(revenue,currency,rate)}</div>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <div style={{flex:1}}>
+            <div className="prog-wrap">
+              <div className="prog-fill" style={{width:goalPct+'%'}}/>
+            </div>
+          </div>
+          <span style={{fontSize:12,fontWeight:700,color:goalPct>=100?'#10B981':'#C9A84C'}}>{goalPct}%</span>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:6,marginTop:6}}>
+          <span className="lbl">Цель:</span>
+          <input type="number" value={goal} onChange={e=>setGoal(Number(e.target.value)||0)}
+            style={{background:'transparent',border:'none',borderBottom:'1px solid rgba(201,168,76,0.3)',
+              color:'#8FA3C0',fontSize:12,width:110,outline:'none',padding:'0 2px'}} />
+          <span className="lbl">сум</span>
+        </div>
+      </div>
+
+      {/* Stuck */}
+      <div className="card kpi-card k-blue">
+        <div className="kpi-label">Зависших лидов</div>
+        <div className="kpi-value" style={{color:stuck>10?'#EF4444':'#E8EDF5'}}>{stuck}</div>
+        <div className="kpi-sub">
+          В активных стадиях сейчас
+          {stuck>0&&<span style={{marginLeft:6,color:stuck>10?'#EF4444':'#F59E0B'}}>
+            {stuck>10?'▲ Много':'↔ Умеренно'}
+          </span>}
+        </div>
+      </div>
+
+      {/* Conversion */}
+      <div className="card kpi-card k-green">
+        <div className="kpi-label">Конверсия отдела</div>
+        <div className="kpi-value" style={{color:convColor}}>{conv}%</div>
+        <div className="kpi-sub">{paidCnt} оплат из {totalFunnel} сделок в периоде</div>
+      </div>
+
+      {/* Leader/Laggard */}
+      <div className="card kpi-card k-purple">
+        <div className="kpi-label">Лидер / Отстающий</div>
+        <div style={{display:'flex',alignItems:'center',gap:8,margin:'6px 0 8px'}}>
+          <span style={{fontSize:22}}>🥇</span>
+          <span style={{fontSize:'1.35rem',fontWeight:700,color:'#C9A84C'}}>{leader}</span>
+        </div>
+        {laggard!=='—'&&(
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <span style={{fontSize:16,color:'#8FA3C0'}}>↓</span>
+            <span style={{fontSize:'1rem',fontWeight:600,color:'#8FA3C0'}}>{laggard}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+//  FUNNEL
+// ═══════════════════════════════════════════════════
+
+function FunnelBlock({ pDeals }) {
+  const funnel = STAGES.filter(s=>s.funnel);
+  const other  = STAGES.filter(s=>!s.funnel);
+  const cnt = {};
+  pDeals.forEach(d=>{ cnt[d.stage]=(cnt[d.stage]||0)+1; });
+  const maxCnt = Math.max(1,...funnel.map(s=>cnt[s.id]||0));
+
+  return (
+    <div className="card funnel-card">
+      <div className="block-title">Воронка продаж</div>
+      {funnel.map((s,i)=>{
+        const c   = cnt[s.id]||0;
+        const prv = i>0 ? (cnt[funnel[i-1].id]||0) : null;
+        const cvr = prv!=null && prv>0 ? Math.round(c/prv*100) : null;
+        const w   = Math.max(28, Math.round(c/maxCnt*100));
+        return (
+          <div key={s.id} className="funnel-stage">
+            {cvr!=null && (
+              <div className="funnel-conv">↓ {cvr}% переходят</div>
+            )}
+            <div className="funnel-row">
+              <div className="funnel-fill" style={{
+                width:w+'%',
+                background:`linear-gradient(90deg,${s.bg},${s.color}1A)`,
+                borderRight:`2px solid ${s.color}`,
+              }}>
+                <span style={{fontSize:11,fontWeight:500,color:s.color,whiteSpace:'nowrap'}}>{s.label}</span>
+              </div>
+              <span className="funnel-count">{c}</span>
+            </div>
+          </div>
+        );
+      })}
+
+      <div className="funnel-others">
+        {other.map(s=>(
+          <div key={s.id} className="funnel-other-box"
+            style={{background:s.bg,border:`1px solid ${s.color}33`}}>
+            <div style={{fontSize:10,color:s.color,marginBottom:4}}>{s.label}</div>
+            <div style={{fontSize:'1.3rem',fontWeight:700}}>{cnt[s.id]||0}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+//  MANAGERS RANKING
+// ═══════════════════════════════════════════════════
+
+function ManagersBlock({ managers, pDeals, currency, rate, onEdit }) {
+  const RANKS = ['🥇 Лидер','🥈 2-е место','🥉 3-е место'];
+  const RANK_COLORS = ['#C9A84C','#9FA3A8','#CD7F32'];
+
+  const stats = managers.map(name=>{
+    const md    = pDeals.filter(d=>d.manager===name);
+    const paid  = md.filter(d=>d.stage==='paid');
+    const rev   = paid.reduce((s,d)=>s+d.amount,0);
+    const total = md.filter(d=>d.stage!=='postponed').length;
+    return {
+      name, revenue:rev,
+      count:md.length, paidCount:paid.length,
+      conv: total>0 ? Math.round(paid.length/total*100) : 0,
+      avg:  paid.length>0 ? Math.round(rev/paid.length) : 0,
+    };
+  }).sort((a,b)=>b.revenue-a.revenue);
+
+  return (
+    <div className="card managers-card">
+      <div className="managers-head">
+        <div className="block-title" style={{marginBottom:0}}>Рейтинг менеджеров</div>
+        <button className="btn btn-ghost btn-sm" onClick={onEdit}>⚙ Состав</button>
+      </div>
+      <div className="mgr-grid">
+        {stats.map((m,i)=>(
+          <div key={m.name} className="mgr-box">
+            <div className="mgr-rank" style={{color:RANK_COLORS[i]||'#8FA3C0'}}>
+              {RANKS[i]||`#${i+1}`}
+            </div>
+            <div className="mgr-name">{m.name}</div>
+            <div className="mgr-rev">{m.revenue>0?fmt(m.revenue,currency,rate):'—'}</div>
+            <div className="mgr-stats">
+              <div className="mgr-stat"><strong>{m.count}</strong>Сделок</div>
+              <div className="mgr-stat"><strong>{m.conv}%</strong>Конверсия</div>
+              <div className="mgr-stat"><strong>{m.paidCount}</strong>Оплат</div>
+              <div className="mgr-stat"><strong>{m.avg>0?fmt(m.avg,currency,rate):'—'}</strong>Ср. чек</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+//  DYNAMICS CHART
+// ═══════════════════════════════════════════════════
+
+function DynamicsChart({ pDeals, currency, rate }) {
+  const canvasRef = useRef(null);
+  const chartRef  = useRef(null);
+  const [mode, setMode] = useState('day');
+
+  useEffect(()=>{
+    if (!canvasRef.current) return;
+    const paid = pDeals.filter(d=>d.stage==='paid');
+
+    const byKey = {};
+    paid.forEach(d=>{
+      const k = mode==='week' ? weekKey(d.date) : d.date;
+      byKey[k] = (byKey[k]||0) + d.amount;
+    });
+
+    const keys = Object.keys(byKey).sort();
+    const labels = keys.map(k => {
+      if (k.startsWith('W')) return k;
+      const [,m,d] = k.split('-'); return `${d}.${m}`;
+    });
+    const data = keys.map(k => currency==='usd' ? Math.round(byKey[k]/rate) : byKey[k]/1e6);
+
+    if (chartRef.current) { chartRef.current.destroy(); chartRef.current=null; }
+
+    const ctx = canvasRef.current.getContext('2d');
+    const grad = ctx.createLinearGradient(0,0,0,200);
+    grad.addColorStop(0,'rgba(201,168,76,0.35)');
+    grad.addColorStop(1,'rgba(201,168,76,0.02)');
+
+    chartRef.current = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels.length ? labels : ['—'],
+        datasets: [{
+          data: data.length ? data : [0],
+          backgroundColor: grad,
+          borderColor: '#C9A84C',
+          borderWidth: 2,
+          borderRadius: 5,
+          borderSkipped: false,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display:false },
+          tooltip: {
+            backgroundColor:'#142952',
+            borderColor:'rgba(201,168,76,0.3)',
+            borderWidth:1,
+            titleColor:'#C9A84C',
+            bodyColor:'#E8EDF5',
+            padding:12,
+            callbacks: {
+              label: c => currency==='usd'
+                ? ` $${c.parsed.y.toLocaleString()}`
+                : ` ${c.parsed.y.toFixed(1)} млн сум`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { color:'rgba(143,163,192,0.05)' },
+            ticks: { color:'#8FA3C0', font:{size:11} },
+            border: { color:'transparent' },
+          },
+          y: {
+            grid: { color:'rgba(143,163,192,0.07)' },
+            ticks: {
+              color:'#8FA3C0', font:{size:11},
+              callback: v => currency==='usd' ? `$${v}k` : `${v}м`,
+            },
+            border: { color:'transparent' },
+          },
+        },
+      },
+    });
+
+    return () => { if(chartRef.current){chartRef.current.destroy();chartRef.current=null;} };
+  }, [pDeals, currency, rate, mode]);
+
+  return (
+    <div className="card chart-card">
+      <div className="chart-head">
+        <div className="block-title" style={{marginBottom:0}}>Динамика выручки</div>
+        <div className="seg blue">
+          <button className={mode==='day'?'active':''} onClick={()=>setMode('day')}>По дням</button>
+          <button className={mode==='week'?'active':''} onClick={()=>setMode('week')}>По неделям</button>
+        </div>
+      </div>
+      <div className="chart-wrap"><canvas ref={canvasRef}/></div>
+    </div>
+  );
+}
+
+function weekKey(dateStr) {
+  const d = new Date(dateStr);
+  const start = new Date(d.getFullYear(), 0, 1);
+  const wn = Math.ceil(((d-start)/864e5 + start.getDay()+1)/7);
+  return `W${wn}`;
+}
+
+// ═══════════════════════════════════════════════════
+//  DEALS TABLE
+// ═══════════════════════════════════════════════════
+
+function DealsTable({ deals, onEdit, onDelete, currency, rate }) {
+  const [open, setOpen]   = useState(true);
+  const [q, setQ]         = useState('');
+  const [sf, setSf]       = useState('');
+
+  const rows = deals.filter(d=>{
+    const lq = q.toLowerCase();
+    return (!lq || d.manager.toLowerCase().includes(lq) || (d.direction||'').toLowerCase().includes(lq))
+        && (!sf || d.stage===sf);
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+
+  return (
+    <div className="card deals-card">
+      <div className="deals-head">
+        <div style={{display:'flex',alignItems:'center'}}>
+          <div className="block-title" style={{marginBottom:0}}>Все сделки</div>
+          <span className="count-badge">{rows.length}</span>
+        </div>
+        <div className="deals-filters">
+          <input type="text" className="inp" style={{width:170}} placeholder="Поиск…"
+            value={q} onChange={e=>setQ(e.target.value)} />
+          <select className="inp" style={{width:165}} value={sf} onChange={e=>setSf(e.target.value)}>
+            <option value="">Все стадии</option>
+            {STAGES.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}
+          </select>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setOpen(!open)}>
+            {open?'▲ Скрыть':'▼ Показать'}
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <div className="tbl-wrap">
+          {rows.length===0 ? (
+            <div className="empty">Нет сделок</div>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Менеджер</th>
+                  <th>Стадия</th>
+                  <th>Направление</th>
+                  <th>Сумма</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(d=>{
+                  const s = SMAP[d.stage];
+                  return (
+                    <tr key={d.id}>
+                      <td style={{color:'#8FA3C0'}}>{fmtDate(d.date)}</td>
+                      <td style={{fontWeight:500}}>{d.manager}</td>
+                      <td>
+                        <span className="badge" style={{background:s.bg,color:s.color,border:`1px solid ${s.color}33`}}>
+                          {s.label}
+                        </span>
+                      </td>
+                      <td style={{color:'#C8D4E3'}}>{d.direction||'—'}</td>
+                      <td style={{fontWeight:600,color:d.stage==='paid'?'#C9A84C':'#E8EDF5'}}>
+                        {d.amount>0 ? fmtFull(d.amount,currency,rate) : '—'}
+                      </td>
+                      <td>
+                        <div style={{display:'flex',gap:5,justifyContent:'flex-end'}}>
+                          <button className="btn btn-ghost btn-sm" onClick={()=>onEdit(d)}>✎</button>
+                          <button className="btn btn-danger btn-sm" onClick={()=>onDelete(d.id)}>✕</button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+//  EXCEL EXPORT
+// ═══════════════════════════════════════════════════
+
+function exportXLSX(deals, managers, pDeals, currency, rate) {
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: raw deals
+  const dealsRows = [
+    ['Дата','Менеджер','Стадия','Направление','Сумма (сум)',(currency==='usd'?'Сумма ($)':'')],
+    ...deals.sort((a,b)=>b.date.localeCompare(a.date)).map(d=>[
+      d.date, d.manager, SMAP[d.stage]?.label||d.stage,
+      d.direction, d.amount,
+      currency==='usd' ? Math.round(d.amount/rate) : '',
+    ]),
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dealsRows), 'Сделки');
+
+  // Sheet 2: summary
+  const mStats = managers.map(name=>{
+    const md   = pDeals.filter(d=>d.manager===name);
+    const paid = md.filter(d=>d.stage==='paid');
+    const rev  = paid.reduce((s,d)=>s+d.amount,0);
+    const tot  = md.filter(d=>d.stage!=='postponed').length;
+    return [name, rev, md.length, paid.length,
+            paid.length>0?Math.round(rev/paid.length):0,
+            tot>0?Math.round(paid.length/tot*100):0];
+  }).sort((a,b)=>b[1]-a[1]);
+
+  const summaryRows = [
+    ['Рейтинг менеджеров (за выбранный период)'],
+    [],
+    ['Менеджер','Выручка (сум)','Сделок','Оплат','Средний чек (сум)','Конверсия %'],
+    ...mStats.map((r,i)=>[i+1,...r]),
+    [],
+    ['Итого по периоду'],
+    ['Выручка (сум)', pDeals.filter(d=>d.stage==='paid').reduce((s,d)=>s+d.amount,0)],
+    ['Сделок',        pDeals.length],
+    ['Оплат',         pDeals.filter(d=>d.stage==='paid').length],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Сводка');
+
+  XLSX.writeFile(wb, `turon_tourism_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+// ═══════════════════════════════════════════════════
+//  APP
+// ═══════════════════════════════════════════════════
+
+function App() {
+  const [deals,    setDeals]    = useState(()=>{ try{const s=localStorage.getItem('tt_deals');return s?JSON.parse(s):DEMO;}catch{return DEMO;} });
+  const [managers, setManagers] = useState(()=>{ try{const s=localStorage.getItem('tt_mgrs'); return s?JSON.parse(s):DEF_MANAGERS;}catch{return DEF_MANAGERS;} });
+
+  const [currency,    setCurrency]    = useState('sum');
+  const [rate,        setRate]        = useState(12700);
+  const [period,      setPeriod]      = useState('current');
+  const [customFrom,  setCustomFrom]  = useState('');
+  const [customTo,    setCustomTo]    = useState('');
+  const [goal,        setGoal]        = useState(150000000);
+  const [showDeal,    setShowDeal]    = useState(false);
+  const [editDeal,    setEditDeal]    = useState(null);
+  const [showMgrMod,  setShowMgrMod]  = useState(false);
+
+  useEffect(()=>localStorage.setItem('tt_deals', JSON.stringify(deals)), [deals]);
+  useEffect(()=>localStorage.setItem('tt_mgrs',  JSON.stringify(managers)), [managers]);
+
+  const bounds  = useMemo(()=>periodBounds(period,customFrom,customTo),[period,customFrom,customTo]);
+  const pDeals  = useMemo(()=>deals.filter(d=>inPeriod(d.date,bounds)),[deals,bounds]);
+
+  const saveDeal = useCallback(deal=>{
+    setDeals(prev=>{
+      const i=prev.findIndex(d=>d.id===deal.id);
+      if (i>=0){const n=[...prev];n[i]=deal;return n;}
+      return [...prev,deal];
+    });
+  },[]);
+
+  const deleteDeal = useCallback(id=>{
+    if(confirm('Удалить сделку?')) setDeals(prev=>prev.filter(d=>d.id!==id));
+  },[]);
+
+  const periodLabel = {
+    current:  'Июнь 2026',
+    previous: 'Май 2026',
+    custom:   (customFrom&&customTo)?`${fmtDate(customFrom)} — ${fmtDate(customTo)}`:'Период',
+  }[period];
+
+  return (
+    <div className="dashboard">
+      {/* ── HEADER ── */}
+      <header className="header">
+        <div className="logo">Turon <span>Tourism</span></div>
+        <div className="h-divider"/>
+
+        {/* Currency */}
+        <div className="seg">
+          <button className={currency==='sum'?'active':''} onClick={()=>setCurrency('sum')}>сум</button>
+          <button className={currency==='usd'?'active':''} onClick={()=>setCurrency('usd')}>$</button>
+        </div>
+
+        {currency==='usd' && (
+          <div style={{display:'flex',alignItems:'center',gap:6}}>
+            <input type="number" className="inp" style={{width:90}} value={rate}
+              onChange={e=>setRate(Number(e.target.value)||12700)} />
+            <span className="lbl">сум/$</span>
+          </div>
+        )}
+
+        <div className="h-divider"/>
+
+        {/* Period */}
+        <div className="seg blue">
+          <button className={period==='current'?'active':''} onClick={()=>setPeriod('current')}>Этот месяц</button>
+          <button className={period==='previous'?'active':''} onClick={()=>setPeriod('previous')}>Прошлый</button>
+          <button className={period==='custom'?'active':''} onClick={()=>setPeriod('custom')}>Период ▾</button>
+        </div>
+
+        {period==='custom' && <>
+          <input type="date" className="inp" value={customFrom} onChange={e=>setCustomFrom(e.target.value)} />
+          <span className="lbl">—</span>
+          <input type="date" className="inp" value={customTo} onChange={e=>setCustomTo(e.target.value)} />
+        </>}
+
+        {/* Right side */}
+        <div style={{marginLeft:'auto',display:'flex',gap:10,alignItems:'center'}}>
+          <span style={{fontSize:12,color:'#8FA3C0'}}>{periodLabel}</span>
+          <button className="btn btn-outline"
+            onClick={()=>exportXLSX(deals,managers,pDeals,currency,rate)}>
+            ↓ Excel
+          </button>
+          <button className="btn btn-gold"
+            onClick={()=>{setEditDeal(null);setShowDeal(true);}}>
+            + Добавить сделку
+          </button>
+        </div>
+      </header>
+
+      {/* ── KPI ── */}
+      <KPIBlock deals={deals} pDeals={pDeals} currency={currency} rate={rate} goal={goal} setGoal={setGoal}/>
+
+      {/* ── Funnel + Managers ── */}
+      <div className="mid-row">
+        <FunnelBlock pDeals={pDeals}/>
+        <ManagersBlock managers={managers} pDeals={pDeals} currency={currency} rate={rate}
+          onEdit={()=>setShowMgrMod(true)}/>
+      </div>
+
+      {/* ── Chart ── */}
+      <DynamicsChart pDeals={pDeals} currency={currency} rate={rate}/>
+
+      {/* ── Deals ── */}
+      <DealsTable deals={deals} onEdit={d=>{setEditDeal(d);setShowDeal(true);}}
+        onDelete={deleteDeal} currency={currency} rate={rate}/>
+
+      {/* ── Modals ── */}
+      {showDeal && (
+        <DealModal deal={editDeal} managers={managers}
+          onSave={saveDeal} onClose={()=>setShowDeal(false)}/>
+      )}
+      {showMgrMod && (
+        <ManagersModal managers={managers}
+          onSave={setManagers} onClose={()=>setShowMgrMod(false)}/>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
