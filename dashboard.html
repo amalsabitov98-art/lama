@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Turon Tourism — Dashboard</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/recharts@2.10.4/umd/Recharts.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',Roboto,sans-serif;background:#0F2545;color:#E8EDF5;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#0A1E38}
+::-webkit-scrollbar-thumb{background:#1A3660;border-radius:3px}
+input[type=date]{color-scheme:dark}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn 0.25s ease-out}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
+const { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } = Recharts;
+
+// ─────────────────────────────────────────────────────────────
+// PALETTE
+// ─────────────────────────────────────────────────────────────
+const C = {
+  bg:      '#0F2545', bg2:    '#0A1E38', bg3:    '#071428',
+  card:    '#142952', cardH:  '#1a3260',
+  border:  '#1A3660', borderL:'#243d6b',
+  gold:    '#C9A84C', goldL:  '#D4B86A', goldD:  '#7a5e1e',
+  blue:    '#1A56BB', blueL:  '#2563EB',
+  text:    '#E8EDF5', textS:  '#8B9AB5', textM:  '#4a6080',
+  green:   '#10B981', greenD: '#064e3b',
+  red:     '#EF4444', redD:   '#7f1d1d',
+  yellow:  '#F59E0B', yellowD:'#78350f',
+};
+
+// ─────────────────────────────────────────────────────────────
+// DEMO DATA
+// ─────────────────────────────────────────────────────────────
+const MANAGERS  = ['Муслим','Абдулкарим','Сарвинос','Азиза'];
+const DIRECTIONS= ['Дубай','Турция','Египет','Европа','Таиланд'];
+const MRATES    = {Дубай:.15,Турция:.12,Египет:.14,Европа:.18,Таиланд:.16};
+const FUNNEL_STAGES = ['Новый лид','Требует контакта','Проинформирован','Визит в офис','Оплачено'];
+const EXTRA_STAGES  = ['Отложенные','Нецелевой'];
+const ALL_STAGES    = [...FUNNEL_STAGES,...EXTRA_STAGES];
+
+function makeRng(seed){
+  let s=seed>>>0;
+  return ()=>{ s^=s<<13;s^=s>>17;s^=s<<5;return(s>>>0)/4294967296; };
+}
+function wChoice(rng,w){ let c=0,r=rng(); for(let i=0;i<w.length;i++){c+=w[i];if(r<c)return i;} return w.length-1; }
+
+function genDeals(){
+  const rng=makeRng(31337);
+  const clients=['Алишер Т.','Нилуфар К.','Бобур М.','Гулнора Р.','Санжар Х.',
+    'Диля А.','Отабек Ю.','Малика С.','Феруз Н.','Зиёда К.',
+    'Рустам Б.','Лола Ш.','Жамшид В.','Насиба О.','Камол Т.',
+    'Умида Р.','Шохрух А.','Барно И.','Дилшод Н.','Мадина Х.'];
+  const mW=[.32,.25,.23,.20];
+  const dW=[.28,.26,.19,.14,.13];
+  const aW=[.22,.20,.24,.18,.10,.06]; // active stage weights
+  const months=[
+    {y:2026,m:0,n:23,pp:.88,gb:3e6,gr:16e6},
+    {y:2026,m:1,n:18,pp:.85,gb:2.5e6,gr:14e6},
+    {y:2026,m:2,n:25,pp:.88,gb:3.5e6,gr:18e6},
+    {y:2026,m:3,n:28,pp:.90,gb:4e6,gr:20e6},
+    {y:2026,m:4,n:24,pp:.87,gb:3e6,gr:18e6},
+    {y:2026,m:5,n:14,pp:.36,gb:2.5e6,gr:15e6},
+  ];
+  const deals=[];let id=1;
+  for(const cfg of months){
+    const {y,m,n,pp,gb,gr}=cfg;
+    const maxD=(m===5)?11:new Date(y,m+1,0).getDate();
+    for(let i=0;i<n;i++){
+      const isPaid=rng()<pp;
+      const day=Math.floor(rng()*maxD)+1;
+      const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const mgr=MANAGERS[wChoice(rng,mW)];
+      const dir=DIRECTIONS[wChoice(rng,dW)];
+      const stage=isPaid?'Оплачено':ALL_STAGES[wChoice(rng,aW)];
+      const raw=gb+rng()*gr;
+      const gross=Math.round(raw/500000)*500000;
+      const mr=MRATES[dir];
+      const net=Math.round(gross*(1-mr)/100000)*100000;
+      const margin=gross-net;
+      let paid=0;
+      if(stage==='Оплачено'){
+        paid=rng()<.88?gross:Math.round(gross*(0.5+rng()*0.4)/500000)*500000;
+      } else if((stage==='Визит в офис'||stage==='Проинформирован')&&rng()<.25){
+        paid=Math.round(gross*0.3/500000)*500000;
+      }
+      const fd=new Date(y,m,day+7+Math.floor(rng()*60));
+      deals.push({
+        id:`TUR-${String(id).padStart(3,'0')}`,date:ds,manager:mgr,
+        client:clients[Math.floor(rng()*clients.length)],direction:dir,stage,
+        gross,net,margin,marginPct:parseFloat((margin/gross*100).toFixed(1)),
+        paid,balance:gross-paid,
+        flightDate:fd.toISOString().slice(0,10),
+        month:`${y}-${String(m+1).padStart(2,'0')}`,
+        quarter:`Q${Math.ceil((m+1)/3)}`,year:y,
+      });id++;
+    }
+  }
+  return deals.sort((a,b)=>a.date.localeCompare(b.date));
+}
+const DEMO_DEALS=genDeals();
+
+// ─────────────────────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────────────────────
+function TODAY(){ return new Date('2026-06-11'); }
+
+function fmt(val,cur='UZS',rate=12700){
+  const v=cur==='USD'?val/rate:val;
+  const pfx=cur==='USD'?'$':'';
+  const sfx=cur==='USD'?'':' сум';
+  const av=Math.abs(v);
+  if(av>=1e9) return pfx+(v/1e9).toFixed(1)+(cur==='USD'?' B':' млрд');
+  if(av>=1e6) return pfx+(v/1e6).toFixed(1)+(cur==='USD'?' M':' млн');
+  if(av>=1e3) return pfx+(v/1e3).toFixed(0)+(cur==='USD'?' K':' тыс');
+  return pfx+Math.round(v)+sfx;
+}
+function fmtFull(val,cur='UZS',rate=12700){
+  const v=cur==='USD'?val/rate:val;
+  if(cur==='USD') return '$'+v.toLocaleString('ru-RU',{maximumFractionDigits:0});
+  return v.toLocaleString('ru-RU',{maximumFractionDigits:0})+' сум';
+}
+function fmtPct(v){ return `${parseFloat(v).toFixed(1)}%`; }
+
+function getMonthRange(offset=0){
+  const d=TODAY();
+  const start=new Date(d.getFullYear(),d.getMonth()+offset,1);
+  const end=new Date(d.getFullYear(),d.getMonth()+offset+1,0);
+  return{
+    start:start.toISOString().slice(0,10),
+    end:end.toISOString().slice(0,10),
+    label:start.toLocaleDateString('ru-RU',{month:'long',year:'numeric'}),
+  };
+}
+function getQuarterRange(offset=0){
+  const d=TODAY();
+  const q=Math.ceil((d.getMonth()+1)/3)+offset;
+  const year=d.getFullYear()+Math.floor((q-1)/4);
+  const qn=((q-1)%4+4)%4+1;
+  const start=new Date(year,(qn-1)*3,1);
+  const end=new Date(year,qn*3,0);
+  return{start:start.toISOString().slice(0,10),end:end.toISOString().slice(0,10),label:`Q${qn} ${year}`};
+}
+function filterD(deals,start,end){ return deals.filter(d=>d.date>=start&&d.date<=end); }
+function daysSince(dateStr){ return Math.floor((TODAY()-new Date(dateStr))/86400000); }
+function calcStats(deals){
+  const gross=deals.reduce((s,d)=>s+d.gross,0);
+  const net=deals.reduce((s,d)=>s+d.net,0);
+  const margin=deals.reduce((s,d)=>s+d.margin,0);
+  const count=deals.length;
+  return{ gross,net,margin,count,
+    avgCheck:count?gross/count:0,
+    avgMargin:count?margin/count:0,
+    marginPct:gross?margin/gross*100:0 };
+}
+function trendPct(a,b){ return b>0?(a-b)/b*100:0; }
+
+// ─────────────────────────────────────────────────────────────
+// SHARED UI COMPONENTS
+// ─────────────────────────────────────────────────────────────
+function Card({children,style,hover}){
+  const [h,setH]=useState(false);
+  return(
+    <div onMouseEnter={()=>hover&&setH(true)} onMouseLeave={()=>hover&&setH(false)}
+      style={{background:h?C.cardH:C.card,border:`1px solid ${h?C.borderL:C.border}`,
+        borderRadius:12,padding:20,transition:'all .2s ease',...style}}>
+      {children}
+    </div>
+  );
+}
+
+function SecTitle({children}){
+  return(
+    <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.12em',
+      color:C.gold,marginBottom:16,display:'flex',alignItems:'center',gap:8}}>
+      <div style={{width:3,height:12,background:C.gold,borderRadius:2}}/>
+      {children}
+    </div>
+  );
+}
+
+function KPICard({label,value,sub,trend,accent,icon,wide}){
+  const pos=trend>0;
+  return(
+    <Card style={{flex:wide?2:1,minWidth:wide?260:160}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
+        <span style={{fontSize:11,color:C.textS,textTransform:'uppercase',letterSpacing:'.05em',lineHeight:1.3}}>{label}</span>
+        {icon&&<span style={{fontSize:16}}>{icon}</span>}
+      </div>
+      <div style={{fontSize:26,fontWeight:800,color:accent||C.gold,lineHeight:1,marginBottom:4}}>
+        {value}
+      </div>
+      {sub&&<div style={{fontSize:11,color:C.textS}}>{sub}</div>}
+      {trend!==undefined&&(
+        <div style={{display:'inline-flex',alignItems:'center',gap:3,marginTop:6,fontSize:11,
+          fontWeight:700,color:pos?C.green:C.red,background:pos?C.greenD:C.redD,
+          borderRadius:4,padding:'2px 6px'}}>
+          {pos?'↑':'↓'} {Math.abs(trend).toFixed(1)}%
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function Tabs({value,onChange,options}){
+  return(
+    <div style={{display:'flex',gap:4}}>
+      {options.map(o=>(
+        <button key={o.v} onClick={()=>onChange(o.v)}
+          style={{padding:'6px 16px',borderRadius:6,border:'none',cursor:'pointer',
+            fontSize:13,fontWeight:value===o.v?700:400,
+            background:value===o.v?C.gold:C.card,
+            color:value===o.v?'#0F2545':C.textS,transition:'all .15s'}}>
+          {o.l}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function TrendBadge({v,invert}){
+  const pos=invert?v<0:v>0;
+  return(
+    <span style={{fontSize:11,fontWeight:700,color:pos?C.green:C.red,
+      background:pos?C.greenD:C.redD,borderRadius:4,padding:'2px 6px',marginLeft:6}}>
+      {pos?'↑':'↓'}{Math.abs(v).toFixed(1)}%
+    </span>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// TAB 1 — ОПЕРАТИВКА
+// ─────────────────────────────────────────────────────────────
+function Tab1({currency,rate}){
+  const [period,setPeriod]=useState('current');
+  const [customStart,setCS]=useState('2026-01-01');
+  const [customEnd,setCE]=useState('2026-06-11');
+  const [goal,setGoal]=useState(100000000);
+  const [goalEdit,setGE]=useState(false);
+  const [goalInput,setGI]=useState('100000000');
+
+  const range=useMemo(()=>{
+    if(period==='current') return getMonthRange(0);
+    if(period==='prev') return getMonthRange(-1);
+    return{start:customStart,end:customEnd,
+      label:`${customStart} — ${customEnd}`};
+  },[period,customStart,customEnd]);
+
+  const deals=useMemo(()=>filterD(DEMO_DEALS,range.start,range.end),[range]);
+  const paid=deals.filter(d=>d.stage==='Оплачено');
+  const active=deals.filter(d=>!['Оплачено','Нецелевой'].includes(d.stage));
+  const qual=deals.filter(d=>d.stage!=='Нецелевой');
+
+  const totalGross=paid.reduce((s,d)=>s+d.gross,0);
+  const conv=qual.length?paid.length/qual.length*100:0;
+  const progress=Math.min(totalGross/goal*100,100);
+
+  const mgrStats=useMemo(()=>MANAGERS.map(mgr=>{
+    const md=deals.filter(d=>d.manager===mgr);
+    const mp=md.filter(d=>d.stage==='Оплачено');
+    const mq=md.filter(d=>d.stage!=='Нецелевой');
+    const gross=mp.reduce((s,d)=>s+d.gross,0);
+    return{mgr,all:md.length,paid:mp.length,gross,
+      conv:mq.length?mp.length/mq.length*100:0,
+      avg:mp.length?gross/mp.length:0};
+  }).sort((a,b)=>b.gross-a.gross),[deals]);
+
+  const leader=mgrStats[0];
+  const lagger=mgrStats[mgrStats.length-1];
+
+  const funnelData=FUNNEL_STAGES.map(s=>({s,n:deals.filter(d=>d.stage===s).length}));
+  const extraData=EXTRA_STAGES.map(s=>({s,n:deals.filter(d=>d.stage===s).length}));
+  const fMax=funnelData[0]?.n||1;
+
+  const dailyData=useMemo(()=>{
+    const map={};
+    paid.forEach(d=>{map[d.date]=(map[d.date]||0)+d.gross;});
+    return Object.entries(map).sort().map(([date,gross])=>({date:date.slice(5),gross}));
+  },[paid]);
+
+  const stageColors=['#3B82F6','#60A5FA','#818CF8','#A78BFA',C.green];
+
+  return(
+    <div style={{padding:'0 24px 48px',maxWidth:1400,margin:'0 auto'}} className="fade-in">
+
+      {/* Controls row */}
+      <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:24,flexWrap:'wrap'}}>
+        <Tabs value={period} onChange={setPeriod} options={[
+          {v:'current',l:'Этот месяц'},{v:'prev',l:'Прошлый'},{v:'custom',l:'Произвольный'}
+        ]}/>
+        {period==='custom'&&(
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <input type="date" value={customStart} onChange={e=>setCS(e.target.value)}
+              style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,
+                color:C.text,padding:'5px 10px',fontSize:13,outline:'none'}}/>
+            <span style={{color:C.textS}}>—</span>
+            <input type="date" value={customEnd} onChange={e=>setCE(e.target.value)}
+              style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,
+                color:C.text,padding:'5px 10px',fontSize:13,outline:'none'}}/>
+          </div>
+        )}
+        <div style={{fontSize:12,color:C.textS,fontStyle:'italic'}}>{range.label}</div>
+        <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8}}>
+          <span style={{fontSize:12,color:C.textS}}>Цель месяца:</span>
+          {goalEdit?(
+            <input autoFocus value={goalInput} onChange={e=>setGI(e.target.value)}
+              onBlur={()=>{setGoal(+goalInput||goal);setGE(false);}}
+              onKeyDown={e=>{if(e.key==='Enter'){setGoal(+goalInput||goal);setGE(false);}}}
+              style={{width:150,padding:'5px 10px',borderRadius:6,background:C.bg2,
+                border:`1px solid ${C.gold}`,color:C.text,fontSize:13,outline:'none'}}/>
+          ):(
+            <button onClick={()=>{setGI(String(goal));setGE(true);}}
+              style={{padding:'5px 14px',borderRadius:6,border:`1px solid ${C.border}`,
+                background:C.bg2,color:C.gold,cursor:'pointer',fontSize:13}}>
+              {fmt(goal,currency,rate)} <span style={{color:C.textM,fontSize:11}}>✏</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* KPI row */}
+      <div style={{display:'flex',gap:14,marginBottom:22,flexWrap:'wrap'}}>
+
+        {/* Revenue + progress */}
+        <Card style={{flex:2,minWidth:280}}>
+          <div style={{fontSize:11,color:C.textS,textTransform:'uppercase',letterSpacing:'.05em',marginBottom:8}}>
+            Выручка за период
+          </div>
+          <div style={{fontSize:34,fontWeight:800,color:C.gold,lineHeight:1,marginBottom:2}}>
+            {fmt(totalGross,currency,rate)}
+          </div>
+          <div style={{fontSize:12,color:C.textS,marginBottom:14}}>{fmtFull(totalGross,currency,rate)}</div>
+          <div style={{background:C.bg2,borderRadius:4,height:7,overflow:'hidden',marginBottom:6}}>
+            <div style={{width:`${progress}%`,height:'100%',borderRadius:4,
+              background:`linear-gradient(90deg,${C.blue},${C.gold})`,transition:'width .6s ease'}}/>
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:11}}>
+            <span style={{color:C.textM}}>0</span>
+            <span style={{color:C.textS}}>{progress.toFixed(0)}% от цели {fmt(goal,currency,rate)}</span>
+          </div>
+        </Card>
+
+        <KPICard label="Активные лиды" value={active.length}
+          sub={`сделок в обработке`} icon="⏳" accent={C.yellow}/>
+        <KPICard label="Конверсия отдела"
+          value={fmtPct(conv)}
+          sub={`${paid.length} из ${qual.length} сделок`}
+          icon="📈" accent={conv>=55?C.green:C.yellow}/>
+
+        {/* Leader / Lagger */}
+        <Card style={{flex:1,minWidth:200}}>
+          <div style={{fontSize:11,color:C.textS,textTransform:'uppercase',letterSpacing:'.05em',marginBottom:12}}>
+            Лидер / Отстающий
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+              padding:'8px 10px',borderRadius:8,background:C.greenD,border:`1px solid #1a4a2a`}}>
+              <div>
+                <div style={{fontWeight:700,fontSize:13}}>🏆 {leader?.mgr}</div>
+                <div style={{fontSize:11,color:C.textS}}>{fmt(leader?.gross||0,currency,rate)}</div>
+              </div>
+              <span style={{fontSize:10,fontWeight:700,color:C.green,background:'#0d3d1a',
+                padding:'2px 7px',borderRadius:3}}>Лидер</span>
+            </div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+              padding:'8px 10px',borderRadius:8,background:C.redD,border:`1px solid #4a1a1a`}}>
+              <div>
+                <div style={{fontWeight:700,fontSize:13}}>📉 {lagger?.mgr}</div>
+                <div style={{fontSize:11,color:C.textS}}>{fmt(lagger?.gross||0,currency,rate)}</div>
+              </div>
+              <span style={{fontSize:10,fontWeight:700,color:C.red,background:'#3d0d0d',
+                padding:'2px 7px',borderRadius:3}}>Отстаёт</span>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Funnel + Managers */}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:22}}>
+
+        {/* Funnel */}
+        <Card>
+          <SecTitle>Воронка продаж</SecTitle>
+          <div style={{display:'flex',flexDirection:'column',gap:4}}>
+            {funnelData.map((item,idx)=>{
+              const next=funnelData[idx+1]?.n;
+              const c2n=item.n&&next!=null?next/item.n*100:null;
+              const w=Math.max(item.n/fMax*100,item.n?6:0);
+              return(
+                <div key={item.s}>
+                  <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:c2n!=null?0:4}}>
+                    <div style={{width:148,fontSize:12,color:C.textS,flexShrink:0,display:'flex',
+                      alignItems:'center',gap:4}}>
+                      {item.s==='Оплачено'?'✅':''}{item.s}
+                    </div>
+                    <div style={{flex:1,background:C.bg2,borderRadius:3,height:26,overflow:'hidden'}}>
+                      <div style={{width:`${w}%`,height:'100%',borderRadius:3,
+                        background:stageColors[idx],minWidth:item.n?28:0,
+                        display:'flex',alignItems:'center',justifyContent:'flex-end',paddingRight:8,
+                        fontSize:12,fontWeight:700,color:'#fff',transition:'width .5s ease'}}>
+                        {item.n>0?item.n:''}
+                      </div>
+                    </div>
+                    <div style={{width:28,fontSize:13,fontWeight:700,color:C.textS,textAlign:'right'}}>
+                      {item.n}
+                    </div>
+                  </div>
+                  {c2n!=null&&(
+                    <div style={{fontSize:10,color:C.textM,paddingLeft:158,marginBottom:4}}>
+                      ↓ {c2n.toFixed(0)}%
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${C.border}`,
+              display:'flex',gap:20}}>
+              {extraData.map(e=>(
+                <div key={e.s} style={{display:'flex',alignItems:'center',gap:6}}>
+                  <div style={{width:8,height:8,borderRadius:2,background:C.textM}}/>
+                  <span style={{fontSize:12,color:C.textS}}>{e.s}: {e.n}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        {/* Manager ratings */}
+        <Card>
+          <SecTitle>Рейтинг менеджеров</SecTitle>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {mgrStats.map((m,i)=>(
+              <div key={m.mgr} style={{display:'flex',alignItems:'center',gap:12,
+                padding:'10px 14px',borderRadius:10,
+                background:i===0?'#0d2e14':C.bg2,
+                border:`1px solid ${i===0?'#1e4a28':C.border}`}}>
+                <div style={{width:28,height:28,borderRadius:'50%',flexShrink:0,
+                  background:i===0?C.gold:i===1?C.blueL:'#3a4a60',
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                  fontSize:13,fontWeight:800,color:i===0?'#0F2545':'#fff'}}>
+                  {i+1}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:700,fontSize:14,marginBottom:2}}>{m.mgr}</div>
+                  <div style={{fontSize:11,color:C.textS}}>
+                    {m.paid} сделок · конв. {m.conv.toFixed(0)}%
+                  </div>
+                </div>
+                <div style={{textAlign:'right'}}>
+                  <div style={{fontWeight:800,color:C.gold,fontSize:15}}>{fmt(m.gross,currency,rate)}</div>
+                  <div style={{fontSize:11,color:C.textS}}>ср. чек {fmt(m.avg,currency,rate)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      {/* Daily chart */}
+      <Card>
+        <SecTitle>Динамика выручки (оплаченные)</SecTitle>
+        {dailyData.length>0?(
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={dailyData} margin={{top:5,right:20,left:10,bottom:5}}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
+              <XAxis dataKey="date" tick={{fill:C.textS,fontSize:11}}/>
+              <YAxis tickFormatter={v=>fmt(v,currency,rate)} tick={{fill:C.textS,fontSize:11}} width={70}/>
+              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:8,fontSize:13}}
+                labelStyle={{color:C.textS}}
+                formatter={v=>[fmtFull(v,currency,rate),'Выручка']}/>
+              <Line type="monotone" dataKey="gross" stroke={C.gold} strokeWidth={2}
+                dot={{fill:C.gold,r:3,strokeWidth:0}} activeDot={{r:5}}/>
+            </LineChart>
+          </ResponsiveContainer>
+        ):(
+          <div style={{height:220,display:'flex',alignItems:'center',justifyContent:'center',
+            color:C.textS,fontSize:13}}>Нет оплаченных сделок за период</div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// TAB 2 — АНАЛИТИКА
+// ─────────────────────────────────────────────────────────────
+const MONTHS=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
+const MONTH_LABELS={'2026-01':'Янв','2026-02':'Фев','2026-03':'Мар',
+  '2026-04':'Апр','2026-05':'Май','2026-06':'Июн'};
+
+function Tab2({currency,rate}){
+  const [period,setPeriod]=useState('month');
+
+  const CLOSED=useMemo(()=>DEMO_DEALS.filter(d=>d.stage==='Оплачено'),[]);
+
+  const {cRange,pRange}=useMemo(()=>{
+    if(period==='month') return{cRange:getMonthRange(0),pRange:getMonthRange(-1)};
+    if(period==='q') return{cRange:getQuarterRange(0),pRange:getQuarterRange(-1)};
+    const y=TODAY().getFullYear();
+    return{
+      cRange:{start:`${y}-01-01`,end:`${y}-12-31`,label:`${y} год`},
+      pRange:{start:`${y-1}-01-01`,end:`${y-1}-12-31`,label:`${y-1} год`}
+    };
+  },[period]);
+
+  const curr=useMemo(()=>calcStats(filterD(CLOSED,cRange.start,cRange.end)),[CLOSED,cRange]);
+  const prev=useMemo(()=>calcStats(filterD(CLOSED,pRange.start,pRange.end)),[CLOSED,pRange]);
+
+  // All closed deals for historical charts
+  const allClosed=CLOSED;
+
+  // Receivables (any deal with balance>0 and paid>0)
+  const recv=useMemo(()=>DEMO_DEALS.filter(d=>d.balance>0&&d.paid>0)
+    .sort((a,b)=>b.balance-a.balance),[]);
+  const totalDebt=recv.reduce((s,d)=>s+d.balance,0);
+
+  // Direction stats (all-time for insights, current period for ranking)
+  const dirStats=useMemo(()=>DIRECTIONS.map(dir=>{
+    const cd=filterD(CLOSED,cRange.start,cRange.end).filter(d=>d.direction===dir);
+    const ad=allClosed.filter(d=>d.direction===dir);
+    const cg=cd.reduce((s,d)=>s+d.gross,0);
+    const cm=cd.reduce((s,d)=>s+d.margin,0);
+    const ag=ad.reduce((s,d)=>s+d.gross,0);
+    const am=ad.reduce((s,d)=>s+d.margin,0);
+    return{dir,
+      gross:cg,margin:cm,marginPct:cg?cm/cg*100:0,
+      allGross:ag,allMargin:am,allPct:ag?am/ag*100:0};
+  }).sort((a,b)=>b.allPct-a.allPct),[CLOSED,cRange,allClosed]);
+
+  const bestDir=dirStats[0];
+
+  // Manager stats (current period)
+  const mgrStats=useMemo(()=>MANAGERS.map(mgr=>{
+    const cd=filterD(CLOSED,cRange.start,cRange.end).filter(d=>d.manager===mgr);
+    const g=cd.reduce((s,d)=>s+d.gross,0);
+    const n=cd.reduce((s,d)=>s+d.net,0);
+    const m=cd.reduce((s,d)=>s+d.margin,0);
+    const cnt=cd.length;
+    const monthly=MONTHS.map(mo=>{
+      const md=allClosed.filter(d=>d.manager===mgr&&d.month===mo);
+      return{month:MONTH_LABELS[mo],margin:md.reduce((s,d)=>s+d.margin,0)};
+    });
+    return{mgr,gross:g,net:n,margin:m,marginPct:g?m/g*100:0,
+      count:cnt,avgCheck:cnt?g/cnt:0,monthly};
+  }).sort((a,b)=>b.margin-a.margin),[CLOSED,cRange,allClosed]);
+
+  const bestMgr=mgrStats[0];
+
+  // Monthly chart
+  const monthlyChart=MONTHS.map(mo=>{
+    const md=allClosed.filter(d=>d.month===mo);
+    return{month:MONTH_LABELS[mo],
+      gross:md.reduce((s,d)=>s+d.gross,0),
+      net:md.reduce((s,d)=>s+d.net,0),
+      margin:md.reduce((s,d)=>s+d.margin,0)};
+  });
+
+  const bestMonth=[...monthlyChart].sort((a,b)=>b.margin-a.margin)[0];
+  const hasEnoughData=monthlyChart.filter(m=>m.gross>0).length>=3;
+
+  return(
+    <div style={{padding:'0 24px 48px',maxWidth:1400,margin:'0 auto'}} className="fade-in">
+
+      {/* Controls */}
+      <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:24,flexWrap:'wrap'}}>
+        <Tabs value={period} onChange={setPeriod} options={[
+          {v:'month',l:'Месяц'},{v:'q',l:'Квартал'},{v:'year',l:'Год'}
+        ]}/>
+        <div style={{fontSize:12,color:C.textS}}>
+          <span style={{color:C.gold}}>{cRange.label}</span>
+          <span style={{color:C.textM}}> vs {pRange.label}</span>
+        </div>
+      </div>
+
+      {/* KPI row 1 */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:12,marginBottom:12}}>
+        <KPICard label="Брутто" value={fmt(curr.gross,currency,rate)}
+          sub={fmtFull(curr.gross,currency,rate)} trend={trendPct(curr.gross,prev.gross)}/>
+        <KPICard label="Нетто (себест.)" value={fmt(curr.net,currency,rate)}
+          sub={fmtFull(curr.net,currency,rate)} accent={C.blueL}/>
+        <KPICard label="Маржа" value={fmt(curr.margin,currency,rate)}
+          sub={fmtFull(curr.margin,currency,rate)} trend={trendPct(curr.margin,prev.margin)} accent={C.green}/>
+        <KPICard label="Маржа %" value={fmtPct(curr.marginPct)}
+          sub={`было ${fmtPct(prev.marginPct)}`} trend={trendPct(curr.marginPct,prev.marginPct)} accent={C.green}/>
+        <KPICard label="Сделок" value={curr.count}
+          sub={`было ${prev.count}`} trend={trendPct(curr.count,prev.count)} accent={C.text}/>
+      </div>
+      {/* KPI row 2 */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:12,marginBottom:22}}>
+        <KPICard label="Средний чек" value={fmt(curr.avgCheck,currency,rate)} accent={C.gold}/>
+        <KPICard label="Ср. маржа / сделка" value={fmt(curr.avgMargin,currency,rate)} accent={C.gold}/>
+        <KPICard label="Лучшее направление" value={bestDir?.dir||'—'}
+          sub={`маржа ${fmtPct(bestDir?.allPct||0)}`} icon="✈️"/>
+        <KPICard label="Лучший менеджер" value={bestMgr?.mgr||'—'}
+          sub={`${fmt(bestMgr?.margin||0,currency,rate)} маржи`} icon="🏆"/>
+        <KPICard label="Дебиторка" value={fmt(totalDebt,currency,rate)}
+          sub={`${recv.length} клиентов`} accent={C.red} icon="⚠️"/>
+      </div>
+
+      {/* Monthly chart */}
+      <Card style={{marginBottom:22}}>
+        <SecTitle>Финансы по месяцам (Брутто / Нетто / Маржа)</SecTitle>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={monthlyChart} margin={{top:5,right:20,left:10,bottom:5}}>
+            <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
+            <XAxis dataKey="month" tick={{fill:C.textS,fontSize:12}}/>
+            <YAxis tickFormatter={v=>fmt(v,currency,rate)} tick={{fill:C.textS,fontSize:11}} width={75}/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:8,fontSize:13}}
+              formatter={(v,name)=>[fmtFull(v,currency,rate),name]}/>
+            <Legend wrapperStyle={{color:C.textS,fontSize:12}}/>
+            <Bar dataKey="gross" name="Брутто" fill={C.blue} radius={[3,3,0,0]}/>
+            <Bar dataKey="net" name="Нетто" fill={C.gold} radius={[3,3,0,0]} opacity={.85}/>
+            <Bar dataKey="margin" name="Маржа" fill={C.green} radius={[3,3,0,0]}/>
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* Directions + Insights */}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:22}}>
+
+        <Card>
+          <SecTitle>Рейтинг направлений (по марже %)</SecTitle>
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            {dirStats.map((d,i)=>(
+              <div key={d.dir}>
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:4,alignItems:'center'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{fontSize:11,color:C.textM,width:16,textAlign:'right'}}>{i+1}</span>
+                    <span style={{fontSize:14,fontWeight:600}}>{d.dir}</span>
+                    <span style={{fontSize:11,color:C.textS}}>{fmt(d.allGross,currency,rate)}</span>
+                  </div>
+                  <div style={{display:'flex',gap:12,alignItems:'center'}}>
+                    <span style={{fontSize:12,color:C.green,fontWeight:700}}>{fmtPct(d.allPct)}</span>
+                    <span style={{fontSize:11,color:C.textS}}>{fmt(d.allMargin,currency,rate)}</span>
+                  </div>
+                </div>
+                <div style={{background:C.bg2,borderRadius:3,height:6,overflow:'hidden'}}>
+                  <div style={{width:`${d.allPct/20*100}%`,height:'100%',borderRadius:3,
+                    background:i===0?C.green:i<3?C.blueL:C.textM,transition:'width .5s ease'}}/>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card>
+          <SecTitle>Тренды и инсайты</SecTitle>
+          {hasEnoughData?(
+            <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              <div style={{padding:'12px 14px',background:'#0d2e1a',borderRadius:8,border:`1px solid #1e4a28`}}>
+                <div style={{fontSize:11,color:C.textS,marginBottom:8}}>Топ-3 маржинальных направления</div>
+                {dirStats.slice(0,3).map((d,i)=>(
+                  <div key={d.dir} style={{display:'flex',justifyContent:'space-between',
+                    fontSize:13,marginBottom:i<2?4:0}}>
+                    <span style={{color:C.text}}>{i+1}. {d.dir}</span>
+                    <span style={{color:C.green,fontWeight:700}}>{fmtPct(d.allPct)}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{padding:'12px 14px',background:'#1a2a08',borderRadius:8,border:`1px solid #2e4a10`}}>
+                <div style={{fontSize:11,color:C.textS,marginBottom:4}}>Лучший месяц в истории</div>
+                <div style={{fontSize:18,fontWeight:800,color:C.gold}}>{bestMonth?.month}</div>
+                <div style={{fontSize:12,color:C.textS}}>маржа {fmt(bestMonth?.margin||0,currency,rate)}</div>
+              </div>
+              {dirStats.length>0&&(
+                <div style={{padding:'12px 14px',background:C.redD,borderRadius:8,
+                  border:`1px solid #a52020`}}>
+                  <div style={{fontSize:11,color:C.textS,marginBottom:4}}>⚠️ Минимальная маржа</div>
+                  <div style={{fontSize:14,fontWeight:700}}>{dirStats[dirStats.length-1].dir}</div>
+                  <div style={{fontSize:12,color:C.red}}>
+                    {fmtPct(dirStats[dirStats.length-1].allPct)} — самая низкая маржа
+                  </div>
+                </div>
+              )}
+            </div>
+          ):(
+            <div style={{color:C.textS,fontSize:13,paddingTop:8}}>
+              Недостаточно данных (нужно ≥ 3 месяца)
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Manager cards */}
+      <Card style={{marginBottom:22}}>
+        <SecTitle>Менеджеры — финансы ({cRange.label})</SecTitle>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:20}}>
+          {mgrStats.map((m,i)=>(
+            <div key={m.mgr} style={{background:C.bg2,borderRadius:10,padding:16,
+              border:`1px solid ${i===0?C.gold+'55':C.border}`}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:12}}>
+                <span style={{fontWeight:700,fontSize:15}}>{m.mgr}</span>
+                {i===0&&<span style={{fontSize:10,fontWeight:700,color:C.gold,
+                  background:C.goldD,padding:'2px 7px',borderRadius:3}}>ТОП</span>}
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:12}}>
+                {[
+                  {l:'Брутто',v:fmt(m.gross,currency,rate),c:C.text},
+                  {l:'Нетто',v:fmt(m.net,currency,rate),c:C.textS},
+                  {l:'Маржа',v:fmt(m.margin,currency,rate),c:C.green},
+                  {l:'Маржа %',v:fmtPct(m.marginPct),c:C.green},
+                  {l:'Сделок',v:m.count,c:C.text},
+                  {l:'Ср. чек',v:fmt(m.avgCheck,currency,rate),c:C.gold},
+                ].map(it=>(
+                  <div key={it.l}>
+                    <div style={{fontSize:10,color:C.textM,marginBottom:1}}>{it.l}</div>
+                    <div style={{fontSize:13,fontWeight:700,color:it.c}}>{it.v}</div>
+                  </div>
+                ))}
+              </div>
+              <ResponsiveContainer width="100%" height={44}>
+                <LineChart data={m.monthly}>
+                  <Line type="monotone" dataKey="margin" stroke={C.gold} strokeWidth={1.5} dot={false}/>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ))}
+        </div>
+
+        {/* Comparison table */}
+        <div style={{overflowX:'auto'}}>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
+            <thead>
+              <tr>
+                {['Менеджер','Сделок','Брутто','Нетто','Маржа','Маржа %','Ср. чек'].map(h=>(
+                  <th key={h} style={{textAlign:h==='Менеджер'?'left':'right',
+                    padding:'8px 12px',color:C.textS,fontWeight:600,fontSize:10,
+                    textTransform:'uppercase',letterSpacing:'.06em',
+                    borderBottom:`1px solid ${C.border}`}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {mgrStats.map((m,i)=>(
+                <tr key={m.mgr} style={{background:i%2?'#ffffff07':'transparent'}}>
+                  <td style={{padding:'9px 12px',fontWeight:600}}>{m.mgr}</td>
+                  <td style={{padding:'9px 12px',textAlign:'right',color:C.textS}}>{m.count}</td>
+                  <td style={{padding:'9px 12px',textAlign:'right'}}>{fmt(m.gross,currency,rate)}</td>
+                  <td style={{padding:'9px 12px',textAlign:'right',color:C.textS}}>{fmt(m.net,currency,rate)}</td>
+                  <td style={{padding:'9px 12px',textAlign:'right',color:C.green,fontWeight:700}}>{fmt(m.margin,currency,rate)}</td>
+                  <td style={{padding:'9px 12px',textAlign:'right',color:C.green}}>{fmtPct(m.marginPct)}</td>
+                  <td style={{padding:'9px 12px',textAlign:'right',color:C.gold}}>{fmt(m.avgCheck,currency,rate)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Receivables */}
+      <Card>
+        <SecTitle>
+          Дебиторка — {fmtFull(totalDebt,currency,rate)} ({recv.length} клиентов)
+        </SecTitle>
+        {recv.length>0?(
+          <div style={{overflowX:'auto'}}>
+            <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
+              <thead>
+                <tr>
+                  {['Клиент','Менеджер','Направление','Брутто','Оплачено','Остаток','Возраст'].map(h=>(
+                    <th key={h} style={{textAlign:h==='Клиент'?'left':'right',
+                      padding:'8px 12px',color:C.textS,fontWeight:600,fontSize:10,
+                      textTransform:'uppercase',letterSpacing:'.06em',
+                      borderBottom:`1px solid ${C.border}`}}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {recv.map((d,i)=>{
+                  const age=daysSince(d.date);
+                  const ac=age<7?C.green:age<30?C.yellow:C.red;
+                  const ab=age<7?C.greenD:age<30?C.yellowD:C.redD;
+                  return(
+                    <tr key={d.id} style={{background:i%2?'#ffffff07':'transparent'}}>
+                      <td style={{padding:'9px 12px',fontWeight:600}}>{d.client}</td>
+                      <td style={{padding:'9px 12px',textAlign:'right',color:C.textS}}>{d.manager}</td>
+                      <td style={{padding:'9px 12px',textAlign:'right'}}>{d.direction}</td>
+                      <td style={{padding:'9px 12px',textAlign:'right'}}>{fmt(d.gross,currency,rate)}</td>
+                      <td style={{padding:'9px 12px',textAlign:'right',color:C.green}}>{fmt(d.paid,currency,rate)}</td>
+                      <td style={{padding:'9px 12px',textAlign:'right',color:C.red,fontWeight:700}}>{fmt(d.balance,currency,rate)}</td>
+                      <td style={{padding:'9px 12px',textAlign:'right'}}>
+                        <span style={{color:ac,fontWeight:700,background:ab,
+                          padding:'2px 8px',borderRadius:4,fontSize:12}}>{age} дн.</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ):(
+          <div style={{color:C.textS,fontSize:13,padding:'12px 0'}}>Дебиторки нет</div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SETTINGS MODAL
+// ─────────────────────────────────────────────────────────────
+function SettingsModal({onClose}){
+  const [sheetId,setSId]=useState('');
+  const [apiKey,setAK]=useState('');
+  const [status,setStatus]=useState(null);
+  const test=()=>{
+    setStatus('loading');
+    setTimeout(()=>setStatus('demo'),1800);
+  };
+  return(
+    <div onClick={e=>e.target===e.currentTarget&&onClose()}
+      style={{position:'fixed',inset:0,background:'rgba(0,0,0,.72)',
+        display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}}>
+      <div className="fade-in" style={{background:C.card,border:`1px solid ${C.border}`,
+        borderRadius:16,padding:32,width:480,
+        boxShadow:'0 24px 60px rgba(0,0,0,.6)'}}>
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:24}}>
+          <h2 style={{color:C.gold,fontSize:18,fontWeight:700}}>Подключение Google Sheets</h2>
+          <button onClick={onClose} style={{background:'none',border:'none',color:C.textS,
+            cursor:'pointer',fontSize:20,lineHeight:1}}>✕</button>
+        </div>
+        {[
+          {l:'Google Sheets ID',v:sheetId,s:setSId,p:'1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms'},
+          {l:'API Key (Google Cloud)',v:apiKey,s:setAK,p:'AIzaSy...'},
+        ].map(f=>(
+          <div key={f.l} style={{marginBottom:16}}>
+            <label style={{fontSize:12,color:C.textS,display:'block',marginBottom:6}}>{f.l}</label>
+            <input value={f.v} onChange={e=>f.s(e.target.value)} placeholder={f.p}
+              style={{width:'100%',padding:'10px 14px',borderRadius:8,background:C.bg2,
+                border:`1px solid ${C.border}`,color:C.text,fontSize:13,outline:'none'}}/>
+          </div>
+        ))}
+        <button onClick={test} disabled={status==='loading'}
+          style={{width:'100%',padding:'12px',borderRadius:8,border:'none',cursor:'pointer',
+            background:C.gold,color:'#0F2545',fontWeight:700,fontSize:14,marginBottom:12,
+            opacity:status==='loading'?.7:1}}>
+          {status==='loading'?'⏳ Проверка подключения...':'Проверить подключение'}
+        </button>
+        {status==='demo'&&(
+          <div style={{padding:'10px 14px',background:C.yellowD,borderRadius:8,fontSize:13,color:C.yellow,marginBottom:12}}>
+            ⚠️ API недоступен. Дашборд работает в <b>Demo режиме</b> с тестовыми данными.
+          </div>
+        )}
+        <div style={{fontSize:11,color:C.textM,lineHeight:1.6}}>
+          После подключения данные обновляются каждые 60 сек.
+          API ключ создаётся в Google Cloud Console → APIs & Services → Credentials.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// APP ROOT
+// ─────────────────────────────────────────────────────────────
+function App(){
+  const [tab,setTab]=useState('op');
+  const [cur,setCur]=useState('UZS');
+  const [rate,setRate]=useState(12700);
+  const [rateInput,setRI]=useState('12700');
+  const [showSettings,setSS]=useState(false);
+  const [lastUp,setLU]=useState(new Date('2026-06-11T10:42:00'));
+
+  useEffect(()=>{
+    const t=setInterval(()=>setLU(new Date()),60000);
+    return()=>clearInterval(t);
+  },[]);
+
+  return(
+    <div style={{minHeight:'100vh',background:C.bg,color:C.text}}>
+
+      {/* ── HEADER ── */}
+      <div style={{background:C.bg2,borderBottom:`1px solid ${C.border}`,
+        position:'sticky',top:0,zIndex:200}}>
+        <div style={{maxWidth:1400,margin:'0 auto',display:'flex',
+          alignItems:'center',height:62,padding:'0 24px',gap:0}}>
+
+          {/* Logo */}
+          <div style={{marginRight:36,flexShrink:0}}>
+            <div style={{fontSize:17,fontWeight:900,letterSpacing:'.04em',lineHeight:1.1}}>
+              <span style={{color:C.gold}}>TURON</span>
+              <span style={{color:C.text}}> TOURISM</span>
+            </div>
+            <div style={{fontSize:9,color:C.textM,letterSpacing:'.15em',textTransform:'uppercase'}}>
+              Ташкент · Узбекистан
+            </div>
+          </div>
+
+          {/* Nav tabs */}
+          <div style={{display:'flex',height:'100%',marginRight:'auto'}}>
+            {[{id:'op',l:'⚡ Оперативка'},{id:'an',l:'📊 Аналитика'}].map(t=>(
+              <button key={t.id} onClick={()=>setTab(t.id)}
+                style={{height:'100%',padding:'0 22px',border:'none',cursor:'pointer',
+                  background:'none',fontSize:14,fontWeight:tab===t.id?700:400,
+                  color:tab===t.id?C.gold:C.textS,
+                  borderBottom:tab===t.id?`2px solid ${C.gold}`:'2px solid transparent',
+                  transition:'all .15s'}}>
+                {t.l}
+              </button>
+            ))}
+          </div>
+
+          {/* Right controls */}
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <div style={{padding:'3px 9px',borderRadius:4,background:C.yellowD,
+              color:C.yellow,fontSize:10,fontWeight:700,letterSpacing:'.04em'}}>
+              DEMO
+            </div>
+
+            {/* Currency switcher */}
+            <div style={{display:'flex',background:C.card,borderRadius:6,overflow:'hidden',
+              border:`1px solid ${C.border}`}}>
+              {['UZS','USD'].map(c=>(
+                <button key={c} onClick={()=>setCur(c)}
+                  style={{padding:'5px 13px',border:'none',cursor:'pointer',
+                    background:cur===c?C.gold:'none',
+                    color:cur===c?'#0F2545':C.textS,fontSize:12,fontWeight:700,
+                    transition:'all .15s'}}>
+                  {c==='UZS'?'сум':'$'}
+                </button>
+              ))}
+            </div>
+
+            {/* Exchange rate */}
+            {cur==='USD'&&(
+              <div style={{display:'flex',alignItems:'center',gap:5}}>
+                <span style={{fontSize:11,color:C.textS}}>курс:</span>
+                <input value={rateInput} onChange={e=>setRI(e.target.value)}
+                  onBlur={()=>setRate(+rateInput||rate)}
+                  onKeyDown={e=>e.key==='Enter'&&setRate(+rateInput||rate)}
+                  style={{width:76,padding:'4px 8px',borderRadius:6,background:C.card,
+                    border:`1px solid ${C.border}`,color:C.text,
+                    fontSize:12,outline:'none',textAlign:'right'}}/>
+                <span style={{fontSize:11,color:C.textS}}>сум/$</span>
+              </div>
+            )}
+
+            <button onClick={()=>setSS(true)}
+              style={{padding:'6px 14px',borderRadius:6,border:`1px solid ${C.border}`,
+                background:'none',color:C.textS,cursor:'pointer',fontSize:12,
+                transition:'all .15s'}}>
+              ⚙ API
+            </button>
+
+            <div style={{fontSize:10,color:C.textM}}>
+              {lastUp.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── TAB CONTENT ── */}
+      <div style={{paddingTop:28}}>
+        {tab==='op'&&<Tab1 currency={cur} rate={rate}/>}
+        {tab==='an'&&<Tab2 currency={cur} rate={rate}/>}
+      </div>
+
+      {showSettings&&<SettingsModal onClose={()=>setSS(false)}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>
