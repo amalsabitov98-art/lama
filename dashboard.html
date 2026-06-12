@@ -7,10 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/recharts@2.10.4/umd/Recharts.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.9/babel.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -28,8 +28,30 @@ input[type=date]{color-scheme:light}
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel" data-presets="react">
-const {useState,useEffect,useMemo} = React;
+<script>
+window.onerror=function(msg,src,line,col,err){
+  document.getElementById('root').innerHTML=
+    '<div style="padding:40px;font-family:monospace;background:#fee;color:#900;border-radius:8px;margin:40px">'
+    +'<b>JS Error:</b> '+msg+'<br><small>'+src+':'+line+'</small>'
+    +(err?'<pre style="margin-top:10px;white-space:pre-wrap">'+err.stack+'</pre>':'')
+    +'</div>';
+};
+</script>
+<script type="text/babel" data-presets="env,react">
+const {useState,useEffect,useMemo,Component} = React;
+
+class ErrorBoundary extends Component{
+  constructor(p){super(p);this.state={err:null};}
+  static getDerivedStateFromError(e){return{err:e};}
+  render(){
+    if(this.state.err)return React.createElement('div',
+      {style:{padding:40,fontFamily:'monospace',background:'#fee',color:'#900',borderRadius:8,margin:40}},
+      React.createElement('b',null,'Render Error: '),this.state.err.message,
+      React.createElement('pre',{style:{marginTop:10,whiteSpace:'pre-wrap',fontSize:12}},this.state.err.stack)
+    );
+    return this.props.children;
+  }
+}
 const {BarChart,Bar,AreaChart,Area,XAxis,YAxis,CartesianGrid,Tooltip,Legend,ResponsiveContainer} = Recharts;
 
 // ── PALETTE ──────────────────────────────────────────────────
@@ -1133,7 +1155,9 @@ function App(){
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App,null));
+ReactDOM.createRoot(document.getElementById('root')).render(
+  React.createElement(ErrorBoundary,null,React.createElement(App,null))
+);
   </script>
 </body>
 </html>
