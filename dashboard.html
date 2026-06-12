@@ -6,7 +6,7 @@
 <title>Turon Tourism — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/recharts@2.10.4/umd/Recharts.js"></script>
@@ -16,106 +16,65 @@
 html,body{height:100%}
 body{
   font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
-  background:#F1F5F9;
-  color:#0F172A;
-  min-height:100vh;
-  overflow-x:hidden;
+  background:#F1F5F9;color:#0F172A;min-height:100vh;overflow-x:hidden;
 }
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(15,23,42,.12);border-radius:6px}
-::-webkit-scrollbar-thumb:hover{background:rgba(15,23,42,.2)}
 input[type=date]{color-scheme:light}
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(12px)}
-  to{opacity:1;transform:translateY(0)}
-}
-.fade-in{animation:fadeUp .35s cubic-bezier(.16,1,.3,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fi{animation:fadeUp .32s cubic-bezier(.16,1,.3,1)}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
-const { useState, useEffect, useMemo, useCallback, useRef } = React;
-const { BarChart, Bar, AreaChart, Area, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } = Recharts;
+const {useState,useEffect,useMemo} = React;
+const {BarChart,Bar,AreaChart,Area,XAxis,YAxis,CartesianGrid,Tooltip,Legend,ResponsiveContainer} = Recharts;
 
-// ─────────────────────────────────────────────────────────────
-// PALETTE — light premium
-// ─────────────────────────────────────────────────────────────
-const C = {
-  // Structure
-  bg:      '#F1F5F9',
-  glass:   'rgba(255,255,255,0.62)',
-  glassSolid:'rgba(255,255,255,0.95)',
-  header:  'rgba(255,255,255,0.80)',
-  input:   'rgba(255,255,255,0.90)',
-  stripe:  'rgba(15,23,42,0.025)',
-  // Borders
-  border:  'rgba(255,255,255,0.75)',
-  borderD: 'rgba(15,23,42,0.07)',
-  // Shadows
-  shadow:  'inset 0 1.5px 3px rgba(255,255,255,0.95), 0 8px 32px rgba(15,23,42,0.06), 0 2px 8px rgba(15,23,42,0.04)',
-  shadowH: 'inset 0 1.5px 3px rgba(255,255,255,0.95), 0 20px 56px rgba(15,23,42,0.10), 0 4px 16px rgba(15,23,42,0.06)',
-  shadowSm:'inset 0 1px 2px rgba(255,255,255,0.9), 0 4px 16px rgba(15,23,42,0.06)',
-  // Text
-  text:    '#0F172A',
-  textS:   '#475569',
-  textM:   '#94A3B8',
-  // Brand
-  gold:    '#C9A84C',
-  goldL:   '#D4B86A',
-  goldD:   '#92680E',
-  goldBg:  'rgba(201,168,76,0.10)',
-  goldBorder:'rgba(201,168,76,0.30)',
-  // Semantic
-  blue:    '#3B82F6',
-  blueD:   '#1D4ED8',
-  blueBg:  'rgba(59,130,246,0.08)',
-  green:   '#059669',
-  greenD:  '#047857',
-  greenBg: 'rgba(5,150,105,0.08)',
-  red:     '#DC2626',
-  redD:    '#B91C1C',
-  redBg:   'rgba(220,38,38,0.08)',
-  yellow:  '#D97706',
-  yellowBg:'rgba(217,119,6,0.08)',
-  purple:  '#7C3AED',
-  purpleBg:'rgba(124,58,237,0.08)',
+// ── PALETTE ──────────────────────────────────────────────────
+const C={
+  bg:'#F1F5F9',
+  glass:'rgba(255,255,255,0.60)',
+  header:'rgba(255,255,255,0.82)',
+  solid:'rgba(255,255,255,0.96)',
+  stripe:'rgba(15,23,42,0.025)',
+  border:'rgba(255,255,255,0.72)',
+  borderD:'rgba(15,23,42,0.07)',
+  sh:'inset 0 1.5px 3px rgba(255,255,255,0.9), 0 8px 32px rgba(15,23,42,0.06)',
+  shH:'inset 0 1.5px 3px rgba(255,255,255,0.9), 0 20px 56px rgba(15,23,42,0.10)',
+  shSm:'inset 0 1px 2px rgba(255,255,255,0.85), 0 3px 12px rgba(15,23,42,0.06)',
+  text:'#0F172A', textS:'#475569', textM:'#94A3B8',
+  gold:'#C9A84C', goldL:'#D4B86A', goldD:'#92680E',
+  goldBg:'rgba(201,168,76,0.10)', goldBr:'rgba(201,168,76,0.28)',
+  blue:'#3B82F6', blueBg:'rgba(59,130,246,0.08)',
+  green:'#059669', greenD:'#047857', greenBg:'rgba(5,150,105,0.08)',
+  red:'#DC2626', redD:'#B91C1C', redBg:'rgba(220,38,38,0.08)',
+  yellow:'#D97706', yellowBg:'rgba(217,119,6,0.08)',
+  purple:'#7C3AED', purpleBg:'rgba(124,58,237,0.08)',
 };
 
-// ─────────────────────────────────────────────────────────────
-// DATA — unchanged
-// ─────────────────────────────────────────────────────────────
-const MANAGERS  = ['Муслим','Абдулкарим','Сарвинос','Азиза'];
-const DIRECTIONS= ['Дубай','Турция','Египет','Европа','Таиланд'];
-const MRATES    = {Дубай:.15,Турция:.12,Египет:.14,Европа:.18,Таиланд:.16};
-const FUNNEL_STAGES = ['Новый лид','Требует контакта','Проинформирован','Визит в офис','Оплачено'];
-const EXTRA_STAGES  = ['Отложенные','Нецелевой'];
-const ALL_STAGES    = [...FUNNEL_STAGES,...EXTRA_STAGES];
+// ── DEMO DATA (unchanged) ─────────────────────────────────────
+const MANAGERS=['Муслим','Абдулкарим','Сарвинос','Азиза'];
+const DIRECTIONS=['Дубай','Турция','Египет','Европа','Таиланд'];
+const MRATES={Дубай:.15,Турция:.12,Египет:.14,Европа:.18,Таиланд:.16};
+const FUNNEL_STAGES=['Новый лид','Требует контакта','Проинформирован','Визит в офис','Оплачено'];
+const EXTRA_STAGES=['Отложенные','Нецелевой'];
+const ALL_STAGES=[...FUNNEL_STAGES,...EXTRA_STAGES];
 
-function makeRng(seed){
-  let s=seed>>>0;
-  return ()=>{ s^=s<<13;s^=s>>17;s^=s<<5;return(s>>>0)/4294967296; };
-}
-function wChoice(rng,w){ let c=0,r=rng(); for(let i=0;i<w.length;i++){c+=w[i];if(r<c)return i;} return w.length-1; }
-
+function makeRng(seed){let s=seed>>>0;return()=>{s^=s<<13;s^=s>>17;s^=s<<5;return(s>>>0)/4294967296;};}
+function wChoice(rng,w){let c=0,r=rng();for(let i=0;i<w.length;i++){c+=w[i];if(r<c)return i;}return w.length-1;}
 function genDeals(){
   const rng=makeRng(31337);
   const clients=['Алишер Т.','Нилуфар К.','Бобур М.','Гулнора Р.','Санжар Х.',
     'Диля А.','Отабек Ю.','Малика С.','Феруз Н.','Зиёда К.',
     'Рустам Б.','Лола Ш.','Жамшид В.','Насиба О.','Камол Т.',
     'Умида Р.','Шохрух А.','Барно И.','Дилшод Н.','Мадина Х.'];
-  const mW=[.32,.25,.23,.20];
-  const dW=[.28,.26,.19,.14,.13];
-  const aW=[.22,.20,.24,.18,.10,.06];
+  const mW=[.32,.25,.23,.20],dW=[.28,.26,.19,.14,.13],aW=[.22,.20,.24,.18,.10,.06];
   const months=[
-    {y:2026,m:0,n:23,pp:.88,gb:3e6,gr:16e6},
-    {y:2026,m:1,n:18,pp:.85,gb:2.5e6,gr:14e6},
-    {y:2026,m:2,n:25,pp:.88,gb:3.5e6,gr:18e6},
-    {y:2026,m:3,n:28,pp:.90,gb:4e6,gr:20e6},
-    {y:2026,m:4,n:24,pp:.87,gb:3e6,gr:18e6},
-    {y:2026,m:5,n:14,pp:.36,gb:2.5e6,gr:15e6},
+    {y:2026,m:0,n:23,pp:.88,gb:3e6,gr:16e6},{y:2026,m:1,n:18,pp:.85,gb:2.5e6,gr:14e6},
+    {y:2026,m:2,n:25,pp:.88,gb:3.5e6,gr:18e6},{y:2026,m:3,n:28,pp:.90,gb:4e6,gr:20e6},
+    {y:2026,m:4,n:24,pp:.87,gb:3e6,gr:18e6},{y:2026,m:5,n:14,pp:.36,gb:2.5e6,gr:15e6},
   ];
   const deals=[];let id=1;
   for(const cfg of months){
@@ -124,379 +83,311 @@ function genDeals(){
     for(let i=0;i<n;i++){
       const isPaid=rng()<pp;
       const day=Math.floor(rng()*maxD)+1;
-      const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      const mgr=MANAGERS[wChoice(rng,mW)];
-      const dir=DIRECTIONS[wChoice(rng,dW)];
+      const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+      const mgr=MANAGERS[wChoice(rng,mW)],dir=DIRECTIONS[wChoice(rng,dW)];
       const stage=isPaid?'Оплачено':ALL_STAGES[wChoice(rng,aW)];
-      const raw=gb+rng()*gr;
-      const gross=Math.round(raw/500000)*500000;
-      const mr=MRATES[dir];
-      const net=Math.round(gross*(1-mr)/100000)*100000;
-      const margin=gross-net;
+      const gross=Math.round((gb+rng()*gr)/500000)*500000;
+      const mr=MRATES[dir],net=Math.round(gross*(1-mr)/100000)*100000,margin=gross-net;
       let paid=0;
-      if(stage==='Оплачено'){
-        paid=rng()<.88?gross:Math.round(gross*(0.5+rng()*0.4)/500000)*500000;
-      } else if((stage==='Визит в офис'||stage==='Проинформирован')&&rng()<.25){
-        paid=Math.round(gross*0.3/500000)*500000;
-      }
+      if(stage==='Оплачено'){paid=rng()<.88?gross:Math.round(gross*(0.5+rng()*0.4)/500000)*500000;}
+      else if((stage==='Визит в офис'||stage==='Проинформирован')&&rng()<.25){paid=Math.round(gross*0.3/500000)*500000;}
       const fd=new Date(y,m,day+7+Math.floor(rng()*60));
-      deals.push({
-        id:`TUR-${String(id).padStart(3,'0')}`,date:ds,manager:mgr,
+      deals.push({id:'TUR-'+String(id).padStart(3,'0'),date:ds,manager:mgr,
         client:clients[Math.floor(rng()*clients.length)],direction:dir,stage,
         gross,net,margin,marginPct:parseFloat((margin/gross*100).toFixed(1)),
-        paid,balance:gross-paid,
-        flightDate:fd.toISOString().slice(0,10),
-        month:`${y}-${String(m+1).padStart(2,'0')}`,
-        quarter:`Q${Math.ceil((m+1)/3)}`,year:y,
-      });id++;
+        paid,balance:gross-paid,flightDate:fd.toISOString().slice(0,10),
+        month:y+'-'+String(m+1).padStart(2,'0'),quarter:'Q'+Math.ceil((m+1)/3),year:y});
+      id++;
     }
   }
   return deals.sort((a,b)=>a.date.localeCompare(b.date));
 }
 const DEMO_DEALS=genDeals();
 
-// ─────────────────────────────────────────────────────────────
-// UTILS — unchanged
-// ─────────────────────────────────────────────────────────────
-function TODAY(){ return new Date('2026-06-11'); }
-function fmt(val,cur='UZS',rate=12700){
-  const v=cur==='USD'?val/rate:val;
-  const pfx=cur==='USD'?'$':'';
-  const sfx=cur==='USD'?'':' сум';
-  const av=Math.abs(v);
-  if(av>=1e9) return pfx+(v/1e9).toFixed(1)+(cur==='USD'?' B':' млрд');
-  if(av>=1e6) return pfx+(v/1e6).toFixed(1)+(cur==='USD'?' M':' млн');
-  if(av>=1e3) return pfx+(v/1e3).toFixed(0)+(cur==='USD'?' K':' тыс');
-  return pfx+Math.round(v)+sfx;
+// ── UTILS (unchanged) ─────────────────────────────────────────
+function TODAY(){return new Date('2026-06-11');}
+function fmt(val,cur,rate){
+  cur=cur||'UZS';rate=rate||12700;
+  const v=cur==='USD'?val/rate:val,av=Math.abs(v);
+  const p=cur==='USD'?'$':'';
+  if(av>=1e9)return p+(v/1e9).toFixed(1)+(cur==='USD'?' B':' млрд');
+  if(av>=1e6)return p+(v/1e6).toFixed(1)+(cur==='USD'?' M':' млн');
+  if(av>=1e3)return p+(v/1e3).toFixed(0)+(cur==='USD'?' K':' тыс');
+  return p+Math.round(v)+(cur==='USD'?'':' сум');
 }
-function fmtFull(val,cur='UZS',rate=12700){
+function fmtFull(val,cur,rate){
+  cur=cur||'UZS';rate=rate||12700;
   const v=cur==='USD'?val/rate:val;
-  if(cur==='USD') return '$'+v.toLocaleString('ru-RU',{maximumFractionDigits:0});
-  return v.toLocaleString('ru-RU',{maximumFractionDigits:0})+' сум';
+  return cur==='USD'?'$'+v.toLocaleString('ru-RU',{maximumFractionDigits:0}):v.toLocaleString('ru-RU',{maximumFractionDigits:0})+' сум';
 }
-function fmtPct(v){ return `${parseFloat(v).toFixed(1)}%`; }
-function getMonthRange(offset=0){
-  const d=TODAY();
+function fmtPct(v){return parseFloat(v).toFixed(1)+'%';}
+function getMonthRange(offset){
+  offset=offset||0;const d=TODAY();
   const start=new Date(d.getFullYear(),d.getMonth()+offset,1);
   const end=new Date(d.getFullYear(),d.getMonth()+offset+1,0);
-  return{
-    start:start.toISOString().slice(0,10),
-    end:end.toISOString().slice(0,10),
-    label:start.toLocaleDateString('ru-RU',{month:'long',year:'numeric'}),
-  };
+  return{start:start.toISOString().slice(0,10),end:end.toISOString().slice(0,10),
+    label:start.toLocaleDateString('ru-RU',{month:'long',year:'numeric'})};
 }
-function getQuarterRange(offset=0){
-  const d=TODAY();
+function getQuarterRange(offset){
+  offset=offset||0;const d=TODAY();
   const q=Math.ceil((d.getMonth()+1)/3)+offset;
   const year=d.getFullYear()+Math.floor((q-1)/4);
   const qn=((q-1)%4+4)%4+1;
-  const start=new Date(year,(qn-1)*3,1);
-  const end=new Date(year,qn*3,0);
-  return{start:start.toISOString().slice(0,10),end:end.toISOString().slice(0,10),label:`Q${qn} ${year}`};
+  const start=new Date(year,(qn-1)*3,1),end=new Date(year,qn*3,0);
+  return{start:start.toISOString().slice(0,10),end:end.toISOString().slice(0,10),label:'Q'+qn+' '+year};
 }
-function filterD(deals,start,end){ return deals.filter(d=>d.date>=start&&d.date<=end); }
-function daysSince(dateStr){ return Math.floor((TODAY()-new Date(dateStr))/86400000); }
+function filterD(deals,start,end){return deals.filter(function(d){return d.date>=start&&d.date<=end;});}
+function daysSince(dateStr){return Math.floor((TODAY()-new Date(dateStr))/86400000);}
 function calcStats(deals){
-  const gross=deals.reduce((s,d)=>s+d.gross,0);
-  const net=deals.reduce((s,d)=>s+d.net,0);
-  const margin=deals.reduce((s,d)=>s+d.margin,0);
+  const gross=deals.reduce(function(s,d){return s+d.gross;},0);
+  const net=deals.reduce(function(s,d){return s+d.net;},0);
+  const margin=deals.reduce(function(s,d){return s+d.margin;},0);
   const count=deals.length;
-  return{ gross,net,margin,count,
-    avgCheck:count?gross/count:0,
-    avgMargin:count?margin/count:0,
-    marginPct:gross?margin/gross*100:0 };
+  return{gross,net,margin,count,avgCheck:count?gross/count:0,avgMargin:count?margin/count:0,marginPct:gross?margin/gross*100:0};
 }
-function trendPct(a,b){ return b>0?(a-b)/b*100:0; }
+function trendPct(a,b){return b>0?(a-b)/b*100:0;}
 
-// ─────────────────────────────────────────────────────────────
-// SVG ICON LIBRARY — stroke-based, Lucide-style
-// ─────────────────────────────────────────────────────────────
-const PATHS = {
-  trophy:   '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
-  trendUp:  '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
-  trendDn:  '<polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/>',
-  timer:    '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-  target:   '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
-  warn:     '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
-  plane:    '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
-  users:    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-  gear:     '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
-  pencil:   '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
-  close:    '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
-  check:    '<polyline points="20 6 9 17 4 12"/>',
-  barChart: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
-  link:     '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
-  star:     '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
-  zap:      '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
-  check2:   '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+// ── SVG ICONS via span wrapper ────────────────────────────────
+const SVG_PATHS={
+  trophy:'<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  up:'<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  dn:'<polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/>',
+  timer:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  warn:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  plane:'<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  pencil:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+  close:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  bars:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  ok:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
 };
-function Ic({n,s=16,c,style}){
-  return(
-    <svg xmlns="http://www.w3.org/2000/svg" width={s} height={s} viewBox="0 0 24 24"
-      fill="none" stroke={c||'currentColor'} strokeWidth="1.75"
-      strokeLinecap="round" strokeLinejoin="round"
-      style={{display:'block',flexShrink:0,...style}}
-      dangerouslySetInnerHTML={{__html:PATHS[n]||''}}/>
-  );
+function Ic(props){
+  const n=props.n,s=props.s||16,c=props.c||'currentColor';
+  const paths=SVG_PATHS[n]||'';
+  const html='<svg xmlns="http://www.w3.org/2000/svg" width="'+s+'" height="'+s+
+    '" viewBox="0 0 24 24" fill="none" stroke="'+c+
+    '" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">'+paths+'</svg>';
+  return React.createElement('span',{
+    style:{display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0},
+    dangerouslySetInnerHTML:{__html:html}
+  });
 }
 
-// ─────────────────────────────────────────────────────────────
-// MESH GRADIENT BACKGROUND
-// ─────────────────────────────────────────────────────────────
+// ── MESH GRADIENT BACKGROUND ──────────────────────────────────
 function Mesh(){
   const blobs=[
-    {top:'-15%',left:'-8%',  w:700,h:700,color:'rgba(124,58,237,0.18)'},  // violet TL
-    {top:'5%',  right:'-5%', w:600,h:600,color:'rgba(6,182,212,0.16)'},   // cyan TR
-    {top:'45%', left:'30%',  w:800,h:500,color:'rgba(201,168,76,0.14)'},  // gold center
-    {bottom:'0%',left:'5%',  w:500,h:500,color:'rgba(16,185,129,0.12)'},  // green BL
-    {bottom:'10%',right:'5%',w:450,h:450,color:'rgba(59,130,246,0.13)'}, // blue BR
+    {style:{top:'-15%',left:'-8%',width:700,height:700,background:'radial-gradient(circle,rgba(124,58,237,0.18),transparent 70%)'}},
+    {style:{top:'5%',right:'-5%',width:600,height:600,background:'radial-gradient(circle,rgba(6,182,212,0.16),transparent 70%)'}},
+    {style:{top:'42%',left:'28%',width:800,height:500,background:'radial-gradient(circle,rgba(201,168,76,0.14),transparent 70%)'}},
+    {style:{bottom:'0',left:'5%',width:500,height:500,background:'radial-gradient(circle,rgba(16,185,129,0.12),transparent 70%)'}},
+    {style:{bottom:'8%',right:'4%',width:450,height:450,background:'radial-gradient(circle,rgba(59,130,246,0.13),transparent 70%)'}},
   ];
-  return(
-    <div style={{position:'fixed',inset:0,overflow:'hidden',zIndex:0,pointerEvents:'none'}}>
-      {blobs.map((b,i)=>(
-        <div key={i} style={{
-          position:'absolute',
-          top:b.top,bottom:b.bottom,left:b.left,right:b.right,
-          width:b.w,height:b.h,
-          background:`radial-gradient(circle, ${b.color}, transparent 70%)`,
-          filter:'blur(80px)',
-          borderRadius:'50%',
-        }}/>
-      ))}
-    </div>
+  return React.createElement('div',{style:{position:'fixed',inset:0,overflow:'hidden',zIndex:0,pointerEvents:'none'}},
+    blobs.map(function(b,i){
+      return React.createElement('div',{key:i,style:Object.assign({},b.style,{position:'absolute',filter:'blur(80px)',borderRadius:'50%'})});
+    })
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// GLASS CARD
-// ─────────────────────────────────────────────────────────────
-function Card({children,style}){
+// ── GLASS CARD ────────────────────────────────────────────────
+function Card(props){
   const [h,setH]=useState(false);
   return(
     <div
-      onMouseEnter={()=>setH(true)}
-      onMouseLeave={()=>setH(false)}
-      style={{
-        background:C.glass,
-        backdropFilter:'blur(40px)',
-        WebkitBackdropFilter:'blur(40px)',
-        borderRadius:24,
-        border:`1px solid ${C.border}`,
-        boxShadow:h?C.shadowH:C.shadow,
-        padding:24,
-        transition:'box-shadow .25s ease, transform .25s ease',
+      onMouseEnter={function(){setH(true);}}
+      onMouseLeave={function(){setH(false);}}
+      style={Object.assign({
+        background:C.glass,backdropFilter:'blur(40px)',WebkitBackdropFilter:'blur(40px)',
+        borderRadius:24,border:'1px solid '+C.border,
+        boxShadow:h?C.shH:C.sh,padding:24,
+        transition:'box-shadow .25s ease,transform .25s ease',
         transform:h?'translateY(-1px)':'none',
-        position:'relative',
-        zIndex:1,
-        ...style,
-      }}>
-      {children}
+        position:'relative',zIndex:1,
+      },props.style||{})}>
+      {props.children}
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// SHARED UI
-// ─────────────────────────────────────────────────────────────
-function SecTitle({children,icon}){
+// ── SHARED COMPONENTS ─────────────────────────────────────────
+function SecTitle(props){
   return(
     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:18}}>
-      {icon&&(
+      {props.icon&&(
         <div style={{width:28,height:28,borderRadius:8,background:C.goldBg,
           display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-          <Ic n={icon} s={14} c={C.gold}/>
+          <Ic n={props.icon} s={14} c={C.gold}/>
         </div>
       )}
       <span style={{fontSize:10,fontWeight:700,textTransform:'uppercase',
         letterSpacing:'.12em',color:C.textM}}>
-        {children}
+        {props.children}
       </span>
     </div>
   );
 }
 
-function KPICard({label,value,sub,trend,accent,iconName,wide,children}){
-  const pos=trend>0;
+function KPICard(props){
+  const pos=props.trend>0;
   return(
-    <Card style={{flex:wide?2:1,minWidth:wide?260:160}}>
+    <Card style={Object.assign({flex:1,minWidth:160},props.style||{})}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
-        <span style={{fontSize:10,fontWeight:600,color:C.textM,textTransform:'uppercase',
-          letterSpacing:'.1em',lineHeight:1.4}}>
-          {label}
+        <span style={{fontSize:10,fontWeight:600,color:C.textM,textTransform:'uppercase',letterSpacing:'.1em',lineHeight:1.4}}>
+          {props.label}
         </span>
-        {iconName&&(
+        {props.iconName&&(
           <div style={{width:26,height:26,borderRadius:8,
-            background:accent?`${accent}15`:`${C.gold}15`,
+            background:props.accent?props.accent+'20':C.goldBg,
             display:'flex',alignItems:'center',justifyContent:'center'}}>
-            <Ic n={iconName} s={13} c={accent||C.gold}/>
+            <Ic n={props.iconName} s={13} c={props.accent||C.gold}/>
           </div>
         )}
       </div>
-      <div style={{fontSize:28,fontWeight:800,color:accent||C.gold,
-        letterSpacing:'-.02em',lineHeight:1,marginBottom:4}}>
-        {value}
+      <div style={{fontSize:28,fontWeight:800,color:props.accent||C.gold,letterSpacing:'-.02em',lineHeight:1,marginBottom:4}}>
+        {props.value}
       </div>
-      {sub&&<div style={{fontSize:12,color:C.textM,fontWeight:500}}>{sub}</div>}
-      {trend!==undefined&&(
-        <div style={{display:'inline-flex',alignItems:'center',gap:4,marginTop:8,
-          fontSize:11,fontWeight:700,
-          color:pos?C.green:C.red,
-          background:pos?C.greenBg:C.redBg,
-          borderRadius:20,padding:'3px 8px'}}>
-          <Ic n={pos?'trendUp':'trendDn'} s={11} c={pos?C.green:C.red}/>
-          {Math.abs(trend).toFixed(1)}%
+      {props.sub&&<div style={{fontSize:12,color:C.textM,fontWeight:500}}>{props.sub}</div>}
+      {props.trend!==undefined&&(
+        <div style={{display:'inline-flex',alignItems:'center',gap:4,marginTop:8,fontSize:11,fontWeight:700,
+          color:pos?C.green:C.red,background:pos?C.greenBg:C.redBg,borderRadius:20,padding:'3px 8px'}}>
+          <Ic n={pos?'up':'dn'} s={11} c={pos?C.green:C.red}/>
+          {Math.abs(props.trend).toFixed(1)}%
         </div>
       )}
-      {children}
     </Card>
   );
 }
 
-function SegControl({value,onChange,options}){
+function SegCtrl(props){
   return(
-    <div style={{display:'inline-flex',gap:3,padding:4,
-      background:'rgba(15,23,42,0.05)',borderRadius:12,
-      border:'1px solid rgba(15,23,42,0.06)'}}>
-      {options.map(o=>(
-        <button key={o.v} onClick={()=>onChange(o.v)}
-          style={{padding:'6px 18px',borderRadius:8,border:'none',cursor:'pointer',
-            fontSize:13,fontWeight:value===o.v?700:500,
-            fontFamily:"'Plus Jakarta Sans',sans-serif",
-            background:value===o.v?'#FFFFFF':'transparent',
-            color:value===o.v?C.text:C.textS,
-            boxShadow:value===o.v
-              ?'0 1px 4px rgba(15,23,42,0.14),0 0 0 1px rgba(15,23,42,0.04)'
-              :'none',
-            transition:'all .18s ease'}}>
-          {o.l}
-        </button>
-      ))}
+    <div style={{display:'inline-flex',gap:3,padding:4,background:'rgba(15,23,42,0.05)',
+      borderRadius:12,border:'1px solid rgba(15,23,42,0.06)'}}>
+      {props.options.map(function(o){
+        const active=props.value===o.v;
+        return(
+          <button key={o.v} onClick={function(){props.onChange(o.v);}}
+            style={{padding:'6px 18px',borderRadius:8,border:'none',cursor:'pointer',
+              fontSize:13,fontWeight:active?700:500,
+              fontFamily:"'Plus Jakarta Sans',sans-serif",
+              background:active?'#FFFFFF':'transparent',
+              color:active?C.text:C.textS,
+              boxShadow:active?'0 1px 4px rgba(15,23,42,0.14)':'none',
+              transition:'all .18s'}}>
+            {o.l}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-function Pill({children,color,bg}){
-  return(
-    <span style={{display:'inline-flex',alignItems:'center',gap:4,
-      padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700,
-      color:color||C.text,background:bg||C.stripe}}>
-      {children}
-    </span>
-  );
-}
-
-// Recharts shared config
-const CHART_TOOLTIP = {
-  contentStyle:{
-    background:'rgba(255,255,255,0.95)',
-    backdropFilter:'blur(20px)',
-    border:'1px solid rgba(255,255,255,0.8)',
-    borderRadius:16,
-    boxShadow:'0 8px 32px rgba(15,23,42,0.14)',
-    padding:'10px 14px',
-    fontSize:13,
-    fontFamily:"'Plus Jakarta Sans',sans-serif",
-  },
+const TTIP_STYLE={
+  contentStyle:{background:'rgba(255,255,255,0.96)',backdropFilter:'blur(20px)',
+    border:'1px solid rgba(255,255,255,0.8)',borderRadius:16,
+    boxShadow:'0 8px 32px rgba(15,23,42,0.14)',padding:'10px 14px',fontSize:13,
+    fontFamily:"'Plus Jakarta Sans',sans-serif"},
   cursor:{fill:'rgba(15,23,42,0.03)'},
-  labelStyle:{color:C.textS,fontWeight:600,marginBottom:4},
+  labelStyle:{color:C.textS,fontWeight:600},
   itemStyle:{color:C.text,fontWeight:500},
 };
-const AXIS_STYLE={
-  tick:{fill:C.textM,fontSize:11,fontFamily:"'Plus Jakarta Sans',sans-serif"},
-  axisLine:false,
-  tickLine:false,
-};
+const AX={tick:{fill:C.textM,fontSize:11,fontFamily:"'Plus Jakarta Sans',sans-serif"},axisLine:false,tickLine:false};
 
-// ─────────────────────────────────────────────────────────────
-// TAB 1 — ОПЕРАТИВКА
-// ─────────────────────────────────────────────────────────────
 const FUNNEL_COLORS=['#3B82F6','#8B5CF6','#F59E0B','#F97316','#059669'];
 
-function Tab1({currency,rate}){
+// ── TAB 1 — ОПЕРАТИВКА ────────────────────────────────────────
+function Tab1(props){
+  const currency=props.currency,rate=props.rate;
   const [period,setPeriod]=useState('current');
-  const [customStart,setCS]=useState('2026-01-01');
-  const [customEnd,setCE]=useState('2026-06-11');
+  const [csStart,setCS]=useState('2026-01-01');
+  const [csEnd,setCE]=useState('2026-06-11');
   const [goal,setGoal]=useState(100000000);
   const [goalEdit,setGE]=useState(false);
   const [goalInput,setGI]=useState('100000000');
 
-  const range=useMemo(()=>{
-    if(period==='current') return getMonthRange(0);
-    if(period==='prev') return getMonthRange(-1);
-    return{start:customStart,end:customEnd,label:`${customStart} — ${customEnd}`};
-  },[period,customStart,customEnd]);
+  const range=useMemo(function(){
+    if(period==='current')return getMonthRange(0);
+    if(period==='prev')return getMonthRange(-1);
+    return{start:csStart,end:csEnd,label:csStart+' — '+csEnd};
+  },[period,csStart,csEnd]);
 
-  const deals=useMemo(()=>filterD(DEMO_DEALS,range.start,range.end),[range]);
-  const paid=deals.filter(d=>d.stage==='Оплачено');
-  const active=deals.filter(d=>!['Оплачено','Нецелевой'].includes(d.stage));
-  const qual=deals.filter(d=>d.stage!=='Нецелевой');
-
-  const totalGross=paid.reduce((s,d)=>s+d.gross,0);
+  const deals=useMemo(function(){return filterD(DEMO_DEALS,range.start,range.end);},[range]);
+  const paid=deals.filter(function(d){return d.stage==='Оплачено';});
+  const active=deals.filter(function(d){return d.stage!=='Оплачено'&&d.stage!=='Нецелевой';});
+  const qual=deals.filter(function(d){return d.stage!=='Нецелевой';});
+  const totalGross=paid.reduce(function(s,d){return s+d.gross;},0);
   const conv=qual.length?paid.length/qual.length*100:0;
   const progress=Math.min(totalGross/goal*100,100);
 
-  const mgrStats=useMemo(()=>MANAGERS.map(mgr=>{
-    const md=deals.filter(d=>d.manager===mgr);
-    const mp=md.filter(d=>d.stage==='Оплачено');
-    const mq=md.filter(d=>d.stage!=='Нецелевой');
-    const gross=mp.reduce((s,d)=>s+d.gross,0);
-    return{mgr,all:md.length,paid:mp.length,gross,
-      conv:mq.length?mp.length/mq.length*100:0,
-      avg:mp.length?gross/mp.length:0};
-  }).sort((a,b)=>b.gross-a.gross),[deals]);
+  const mgrStats=useMemo(function(){
+    return MANAGERS.map(function(mgr){
+      const md=deals.filter(function(d){return d.manager===mgr;});
+      const mp=md.filter(function(d){return d.stage==='Оплачено';});
+      const mq=md.filter(function(d){return d.stage!=='Нецелевой';});
+      const gross=mp.reduce(function(s,d){return s+d.gross;},0);
+      return{mgr,all:md.length,paid:mp.length,gross,
+        conv:mq.length?mp.length/mq.length*100:0,
+        avg:mp.length?gross/mp.length:0};
+    }).sort(function(a,b){return b.gross-a.gross;});
+  },[deals]);
 
-  const leader=mgrStats[0];
-  const lagger=mgrStats[mgrStats.length-1];
+  const leader=mgrStats[0],lagger=mgrStats[mgrStats.length-1];
 
-  const funnelData=FUNNEL_STAGES.map(s=>({s,n:deals.filter(d=>d.stage===s).length}));
-  const extraData=EXTRA_STAGES.map(s=>({s,n:deals.filter(d=>d.stage===s).length}));
-  const fMax=funnelData[0]?.n||1;
+  const funnelData=FUNNEL_STAGES.map(function(s){
+    return{s:s,n:deals.filter(function(d){return d.stage===s;}).length};
+  });
+  const extraData=EXTRA_STAGES.map(function(s){
+    return{s:s,n:deals.filter(function(d){return d.stage===s;}).length};
+  });
+  const fMax=funnelData[0]?funnelData[0].n:1;
 
-  const dailyData=useMemo(()=>{
+  const dailyData=useMemo(function(){
     const map={};
-    paid.forEach(d=>{map[d.date]=(map[d.date]||0)+d.gross;});
-    return Object.entries(map).sort().map(([date,gross])=>({date:date.slice(5),gross}));
+    paid.forEach(function(d){map[d.date]=(map[d.date]||0)+d.gross;});
+    return Object.entries(map).sort().map(function(e){return{date:e[0].slice(5),gross:e[1]};});
   },[paid]);
 
-  return(
-    <div style={{padding:'0 28px 56px',maxWidth:1440,margin:'0 auto',position:'relative',zIndex:1}}
-      className="fade-in">
+  const avatarColors=[C.gold,C.blue,C.purple,'#64748B'];
+  const avatarBg=[C.goldBg,C.blueBg,C.purpleBg,'rgba(100,116,139,0.1)'];
 
-      {/* Controls bar */}
+  return(
+    <div style={{padding:'0 28px 56px',maxWidth:1440,margin:'0 auto',position:'relative',zIndex:1}} className="fi">
+
+      {/* Controls */}
       <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:24,flexWrap:'wrap'}}>
-        <SegControl value={period} onChange={setPeriod} options={[
+        <SegCtrl value={period} onChange={setPeriod} options={[
           {v:'current',l:'Этот месяц'},{v:'prev',l:'Прошлый'},{v:'custom',l:'Произвольный'}
         ]}/>
         {period==='custom'&&(
           <div style={{display:'flex',gap:6,alignItems:'center'}}>
-            {[{v:customStart,fn:setCS},{v:customEnd,fn:setCE}].map((f,i)=>(
-              <input key={i} type="date" value={f.v} onChange={e=>f.fn(e.target.value)}
-                style={{background:C.glassSolid,border:`1px solid ${C.borderD}`,borderRadius:10,
-                  color:C.text,padding:'6px 11px',fontSize:13,outline:'none',
-                  fontFamily:"'Plus Jakarta Sans',sans-serif",
-                  boxShadow:C.shadowSm}}/>
-            ))}
+            <input type="date" value={csStart} onChange={function(e){setCS(e.target.value);}}
+              style={{background:C.solid,border:'1px solid '+C.borderD,borderRadius:10,
+                color:C.text,padding:'6px 11px',fontSize:13,outline:'none',boxShadow:C.shSm}}/>
+            <span style={{color:C.textM}}>—</span>
+            <input type="date" value={csEnd} onChange={function(e){setCE(e.target.value);}}
+              style={{background:C.solid,border:'1px solid '+C.borderD,borderRadius:10,
+                color:C.text,padding:'6px 11px',fontSize:13,outline:'none',boxShadow:C.shSm}}/>
           </div>
         )}
         <span style={{fontSize:12,color:C.textM,fontStyle:'italic'}}>{range.label}</span>
         <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8}}>
           <span style={{fontSize:12,color:C.textS,fontWeight:500}}>Цель месяца</span>
           {goalEdit?(
-            <input autoFocus value={goalInput} onChange={e=>setGI(e.target.value)}
-              onBlur={()=>{setGoal(+goalInput||goal);setGE(false);}}
-              onKeyDown={e=>{if(e.key==='Enter'){setGoal(+goalInput||goal);setGE(false);}}}
-              style={{width:160,padding:'6px 12px',borderRadius:10,
-                background:C.glassSolid,border:`1.5px solid ${C.gold}`,
-                color:C.text,fontSize:13,outline:'none',
-                fontFamily:"'Plus Jakarta Sans',sans-serif",
-                boxShadow:`0 0 0 3px ${C.goldBg}`}}/>
+            <input autoFocus value={goalInput}
+              onChange={function(e){setGI(e.target.value);}}
+              onBlur={function(){setGoal(+goalInput||goal);setGE(false);}}
+              onKeyDown={function(e){if(e.key==='Enter'){setGoal(+goalInput||goal);setGE(false);}}}
+              style={{width:160,padding:'6px 12px',borderRadius:10,background:C.solid,
+                border:'1.5px solid '+C.gold,color:C.text,fontSize:13,outline:'none'}}/>
           ):(
-            <button onClick={()=>{setGI(String(goal));setGE(true);}}
+            <button onClick={function(){setGI(String(goal));setGE(true);}}
               style={{display:'flex',alignItems:'center',gap:6,padding:'6px 14px',borderRadius:10,
-                border:`1px solid ${C.borderD}`,background:C.glassSolid,color:C.text,
-                cursor:'pointer',fontSize:13,fontWeight:600,
-                fontFamily:"'Plus Jakarta Sans',sans-serif",
-                boxShadow:C.shadowSm}}>
+                border:'1px solid '+C.borderD,background:C.solid,color:C.text,
+                cursor:'pointer',fontSize:13,fontWeight:600,boxShadow:C.shSm}}>
               {fmt(goal,currency,rate)}
               <Ic n="pencil" s={12} c={C.textM}/>
             </button>
@@ -507,32 +398,25 @@ function Tab1({currency,rate}){
       {/* BENTO GRID */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(12,1fr)',gap:16}}>
 
-        {/* ── Revenue card (7 cols) ── */}
+        {/* Revenue hero (7 cols) */}
         <Card style={{gridColumn:'span 7'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
-            <span style={{fontSize:10,fontWeight:700,color:C.textM,
-              textTransform:'uppercase',letterSpacing:'.1em'}}>
+            <span style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',letterSpacing:'.1em'}}>
               Выручка за период
             </span>
-            <Pill color={C.gold} bg={C.goldBg}>
+            <span style={{padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700,
+              color:C.gold,background:C.goldBg}}>
               {progress.toFixed(0)}% от цели
-            </Pill>
+            </span>
           </div>
-          <div style={{fontSize:48,fontWeight:800,color:C.gold,letterSpacing:'-.03em',
-            lineHeight:1,marginBottom:4}}>
+          <div style={{fontSize:48,fontWeight:800,color:C.gold,letterSpacing:'-.03em',lineHeight:1,marginBottom:4}}>
             {fmt(totalGross,currency,rate)}
           </div>
-          <div style={{fontSize:13,color:C.textS,fontWeight:500,marginBottom:20}}>
-            {fmtFull(totalGross,currency,rate)}
-          </div>
-          {/* Progress bar */}
+          <div style={{fontSize:13,color:C.textS,fontWeight:500,marginBottom:20}}>{fmtFull(totalGross,currency,rate)}</div>
           <div style={{background:'rgba(15,23,42,0.06)',borderRadius:8,height:8,overflow:'hidden'}}>
-            <div style={{
-              width:`${progress}%`,height:'100%',borderRadius:8,
-              background:`linear-gradient(90deg,${C.blue},${C.gold})`,
-              boxShadow:`0 0 12px ${C.goldBg}`,
-              transition:'width .7s cubic-bezier(.16,1,.3,1)',
-            }}/>
+            <div style={{width:progress+'%',height:'100%',borderRadius:8,
+              background:'linear-gradient(90deg,'+C.blue+','+C.gold+')',
+              transition:'width .7s cubic-bezier(.16,1,.3,1)'}}/>
           </div>
           <div style={{display:'flex',justifyContent:'space-between',marginTop:8,fontSize:11,color:C.textM,fontWeight:500}}>
             <span>0</span>
@@ -540,127 +424,93 @@ function Tab1({currency,rate}){
           </div>
         </Card>
 
-        {/* ── Right KPI stack (5 cols) ── */}
+        {/* Right KPI stack (5 cols) */}
         <div style={{gridColumn:'span 5',display:'flex',flexDirection:'column',gap:16}}>
-
-          {/* Active leads */}
           <Card style={{flex:1}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div>
-                <div style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',
-                  letterSpacing:'.1em',marginBottom:8}}>Активные лиды</div>
-                <div style={{fontSize:32,fontWeight:800,color:C.yellow,letterSpacing:'-.02em',lineHeight:1}}>
-                  {active.length}
-                </div>
-                <div style={{fontSize:12,color:C.textM,fontWeight:500,marginTop:3}}>
-                  сделок в обработке
-                </div>
+                <div style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8}}>Активные лиды</div>
+                <div style={{fontSize:32,fontWeight:800,color:C.yellow,letterSpacing:'-.02em',lineHeight:1}}>{active.length}</div>
+                <div style={{fontSize:12,color:C.textM,fontWeight:500,marginTop:3}}>сделок в обработке</div>
               </div>
-              <div style={{width:44,height:44,borderRadius:14,background:C.yellowBg,
-                display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <div style={{width:44,height:44,borderRadius:14,background:C.yellowBg,display:'flex',alignItems:'center',justifyContent:'center'}}>
                 <Ic n="timer" s={20} c={C.yellow}/>
               </div>
             </div>
           </Card>
-
-          {/* Conversion */}
           <Card style={{flex:1}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div>
-                <div style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',
-                  letterSpacing:'.1em',marginBottom:8}}>Конверсия отдела</div>
-                <div style={{fontSize:32,fontWeight:800,letterSpacing:'-.02em',lineHeight:1,
-                  color:conv>=55?C.green:C.yellow}}>
-                  {fmtPct(conv)}
-                </div>
-                <div style={{fontSize:12,color:C.textM,fontWeight:500,marginTop:3}}>
-                  {paid.length} из {qual.length} сделок
-                </div>
+                <div style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8}}>Конверсия отдела</div>
+                <div style={{fontSize:32,fontWeight:800,letterSpacing:'-.02em',lineHeight:1,color:conv>=55?C.green:C.yellow}}>{fmtPct(conv)}</div>
+                <div style={{fontSize:12,color:C.textM,fontWeight:500,marginTop:3}}>{paid.length} из {qual.length} сделок</div>
               </div>
-              <div style={{width:44,height:44,borderRadius:14,
-                background:conv>=55?C.greenBg:C.yellowBg,
-                display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <div style={{width:44,height:44,borderRadius:14,background:conv>=55?C.greenBg:C.yellowBg,display:'flex',alignItems:'center',justifyContent:'center'}}>
                 <Ic n="target" s={20} c={conv>=55?C.green:C.yellow}/>
               </div>
             </div>
           </Card>
-
-          {/* Leader / Lagger */}
           <Card style={{flex:1}}>
-            <div style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',
-              letterSpacing:'.1em',marginBottom:10}}>Лидер / Отстающий</div>
+            <div style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',letterSpacing:'.1em',marginBottom:10}}>Лидер / Отстающий</div>
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',
-                padding:'8px 12px',borderRadius:12,background:C.greenBg,
-                border:`1px solid rgba(5,150,105,0.15)`}}>
+                padding:'8px 12px',borderRadius:12,background:C.greenBg,border:'1px solid rgba(5,150,105,0.15)'}}>
                 <div style={{display:'flex',alignItems:'center',gap:8}}>
-                  <div style={{width:28,height:28,borderRadius:10,background:C.green,
-                    display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <div style={{width:28,height:28,borderRadius:10,background:C.green,display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <Ic n="trophy" s={13} c="#fff"/>
                   </div>
                   <div>
-                    <div style={{fontWeight:700,fontSize:13,color:C.text}}>{leader?.mgr}</div>
-                    <div style={{fontSize:11,color:C.textS}}>{fmt(leader?.gross||0,currency,rate)}</div>
+                    <div style={{fontWeight:700,fontSize:13}}>{leader&&leader.mgr}</div>
+                    <div style={{fontSize:11,color:C.textS}}>{fmt(leader?leader.gross:0,currency,rate)}</div>
                   </div>
                 </div>
-                <Pill color={C.green} bg="rgba(5,150,105,0.15)">Лидер</Pill>
+                <span style={{padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700,color:C.green,background:'rgba(5,150,105,0.15)'}}>Лидер</span>
               </div>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',
-                padding:'8px 12px',borderRadius:12,background:C.redBg,
-                border:`1px solid rgba(220,38,38,0.15)`}}>
+                padding:'8px 12px',borderRadius:12,background:C.redBg,border:'1px solid rgba(220,38,38,0.15)'}}>
                 <div style={{display:'flex',alignItems:'center',gap:8}}>
-                  <div style={{width:28,height:28,borderRadius:10,background:C.red,
-                    display:'flex',alignItems:'center',justifyContent:'center'}}>
-                    <Ic n="trendDn" s={13} c="#fff"/>
+                  <div style={{width:28,height:28,borderRadius:10,background:C.red,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <Ic n="dn" s={13} c="#fff"/>
                   </div>
                   <div>
-                    <div style={{fontWeight:700,fontSize:13,color:C.text}}>{lagger?.mgr}</div>
-                    <div style={{fontSize:11,color:C.textS}}>{fmt(lagger?.gross||0,currency,rate)}</div>
+                    <div style={{fontWeight:700,fontSize:13}}>{lagger&&lagger.mgr}</div>
+                    <div style={{fontSize:11,color:C.textS}}>{fmt(lagger?lagger.gross:0,currency,rate)}</div>
                   </div>
                 </div>
-                <Pill color={C.red} bg="rgba(220,38,38,0.15)">Отстаёт</Pill>
+                <span style={{padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700,color:C.red,background:'rgba(220,38,38,0.15)'}}>Отстаёт</span>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* ── Funnel (5 cols) ── */}
+        {/* Funnel (5 cols) */}
         <Card style={{gridColumn:'span 5'}}>
-          <SecTitle icon="barChart">Воронка продаж</SecTitle>
+          <SecTitle icon="bars">Воронка продаж</SecTitle>
           <div style={{display:'flex',flexDirection:'column',gap:5}}>
-            {funnelData.map((item,idx)=>{
-              const next=funnelData[idx+1]?.n;
-              const c2n=item.n&&next!=null?next/item.n*100:null;
-              const w=Math.max(item.n/fMax*100,item.n?5:0);
+            {funnelData.map(function(item,idx){
+              const next=funnelData[idx+1]?funnelData[idx+1].n:null;
+              const c2n=(item.n&&next!==null)?next/item.n*100:null;
+              const w=Math.max(item.n/(fMax||1)*100,item.n?5:0);
               const col=FUNNEL_COLORS[idx];
               return(
                 <div key={item.s}>
                   <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:2}}>
-                    <div style={{width:140,fontSize:12,color:C.textS,flexShrink:0,
-                      fontWeight:500,display:'flex',alignItems:'center',gap:6}}>
-                      {item.s==='Оплачено'&&(
-                        <div style={{width:7,height:7,borderRadius:2,background:C.green,flexShrink:0}}/>
-                      )}
+                    <div style={{width:140,fontSize:12,color:C.textS,flexShrink:0,fontWeight:500,display:'flex',alignItems:'center',gap:6}}>
+                      {item.s==='Оплачено'&&<div style={{width:7,height:7,borderRadius:2,background:C.green,flexShrink:0}}/>}
                       {item.s}
                     </div>
-                    <div style={{flex:1,background:'rgba(15,23,42,0.05)',borderRadius:8,
-                      height:24,overflow:'hidden'}}>
-                      <div style={{
-                        width:`${w}%`,height:'100%',borderRadius:8,
-                        background:col,minWidth:item.n?24:0,
-                        display:'flex',alignItems:'center',justifyContent:'flex-end',
-                        paddingRight:8,fontSize:12,fontWeight:700,color:'#fff',
-                        transition:'width .6s cubic-bezier(.16,1,.3,1)',
-                        boxShadow:`0 2px 8px ${col}44`,
-                      }}>
+                    <div style={{flex:1,background:'rgba(15,23,42,0.05)',borderRadius:8,height:24,overflow:'hidden'}}>
+                      <div style={{width:w+'%',height:'100%',borderRadius:8,background:col,
+                        minWidth:item.n?24:0,display:'flex',alignItems:'center',
+                        justifyContent:'flex-end',paddingRight:8,
+                        fontSize:12,fontWeight:700,color:'#fff',
+                        transition:'width .6s cubic-bezier(.16,1,.3,1)'}}>
                         {item.n>0?item.n:''}
                       </div>
                     </div>
-                    <div style={{width:26,fontSize:13,fontWeight:700,color:C.textS,textAlign:'right'}}>
-                      {item.n}
-                    </div>
+                    <div style={{width:26,fontSize:13,fontWeight:700,color:C.textS,textAlign:'right'}}>{item.n}</div>
                   </div>
-                  {c2n!=null&&(
+                  {c2n!==null&&(
                     <div style={{fontSize:10,color:C.textM,paddingLeft:150,marginBottom:3,fontWeight:500}}>
                       ↓ {c2n.toFixed(0)}% переход
                     </div>
@@ -668,55 +518,44 @@ function Tab1({currency,rate}){
                 </div>
               );
             })}
-            <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${C.borderD}`,
-              display:'flex',gap:16}}>
-              {extraData.map(e=>(
-                <div key={e.s} style={{display:'flex',alignItems:'center',gap:6}}>
-                  <div style={{width:7,height:7,borderRadius:2,background:C.textM}}/>
-                  <span style={{fontSize:11,color:C.textM,fontWeight:500}}>{e.s}: {e.n}</span>
-                </div>
-              ))}
+            <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid '+C.borderD,display:'flex',gap:16}}>
+              {extraData.map(function(e){
+                return(
+                  <div key={e.s} style={{display:'flex',alignItems:'center',gap:6}}>
+                    <div style={{width:7,height:7,borderRadius:2,background:C.textM}}/>
+                    <span style={{fontSize:11,color:C.textM,fontWeight:500}}>{e.s}: {e.n}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </Card>
 
-        {/* ── Manager ratings (7 cols) ── */}
+        {/* Manager ratings (7 cols) */}
         <Card style={{gridColumn:'span 7'}}>
           <SecTitle icon="users">Рейтинг менеджеров</SecTitle>
           <div style={{display:'flex',flexDirection:'column',gap:10}}>
-            {mgrStats.map((m,i)=>{
-              const avatarColors=[C.gold,C.blue,C.purple,'#64748B'];
-              const avatarBg=[C.goldBg,C.blueBg,C.purpleBg,'rgba(100,116,139,0.1)'];
+            {mgrStats.map(function(m,i){
               return(
-                <div key={m.mgr} style={{
-                  display:'flex',alignItems:'center',gap:14,
+                <div key={m.mgr} style={{display:'flex',alignItems:'center',gap:14,
                   padding:'12px 16px',borderRadius:16,
                   background:i===0?C.goldBg:'rgba(15,23,42,0.02)',
-                  border:`1px solid ${i===0?C.goldBorder:'rgba(15,23,42,0.05)'}`,
-                  transition:'background .15s',
-                }}>
-                  <div style={{
-                    width:36,height:36,borderRadius:12,flexShrink:0,
-                    background:avatarBg[i],border:`1.5px solid ${avatarColors[i]}44`,
+                  border:'1px solid '+(i===0?C.goldBr:'rgba(15,23,42,0.05)')}}>
+                  <div style={{width:36,height:36,borderRadius:12,flexShrink:0,
+                    background:avatarBg[i],border:'1.5px solid '+avatarColors[i]+'44',
                     display:'flex',alignItems:'center',justifyContent:'center',
-                    fontSize:15,fontWeight:800,color:avatarColors[i],
-                  }}>
+                    fontSize:15,fontWeight:800,color:avatarColors[i]}}>
                     {i+1}
                   </div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontWeight:700,fontSize:14,color:C.text,marginBottom:2}}>{m.mgr}</div>
-                    <div style={{fontSize:11,color:C.textM,fontWeight:500}}>
-                      {m.paid} сделок · конверсия {m.conv.toFixed(0)}%
-                    </div>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:700,fontSize:14,marginBottom:2}}>{m.mgr}</div>
+                    <div style={{fontSize:11,color:C.textM,fontWeight:500}}>{m.paid} сделок · конверсия {m.conv.toFixed(0)}%</div>
                   </div>
                   <div style={{textAlign:'right',flexShrink:0}}>
-                    <div style={{fontWeight:800,color:i===0?C.gold:C.text,fontSize:16,
-                      letterSpacing:'-.02em'}}>
+                    <div style={{fontWeight:800,color:i===0?C.gold:C.text,fontSize:16,letterSpacing:'-.02em'}}>
                       {fmt(m.gross,currency,rate)}
                     </div>
-                    <div style={{fontSize:11,color:C.textM,fontWeight:500}}>
-                      ср. чек {fmt(m.avg,currency,rate)}
-                    </div>
+                    <div style={{fontSize:11,color:C.textM,fontWeight:500}}>ср. чек {fmt(m.avg,currency,rate)}</div>
                   </div>
                 </div>
               );
@@ -724,120 +563,109 @@ function Tab1({currency,rate}){
           </div>
         </Card>
 
-        {/* ── Daily chart (12 cols) ── */}
+        {/* Daily chart (12 cols) */}
         <Card style={{gridColumn:'span 12'}}>
-          <SecTitle icon="trendUp">Динамика выручки (оплаченные сделки)</SecTitle>
+          <SecTitle icon="up">Динамика выручки (оплаченные сделки)</SecTitle>
           {dailyData.length>0?(
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={dailyData} margin={{top:8,right:16,left:0,bottom:0}}>
                 <defs>
-                  <linearGradient id="goldAreaFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%"  stopColor={C.gold} stopOpacity={0.18}/>
+                  <linearGradient id="gfill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={C.gold} stopOpacity={0.18}/>
                     <stop offset="100%" stopColor={C.gold} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="rgba(15,23,42,0.05)" strokeDasharray="0" vertical={false}/>
-                <XAxis dataKey="date" {...AXIS_STYLE}/>
-                <YAxis tickFormatter={v=>fmt(v,currency,rate)} {...AXIS_STYLE} width={72}/>
-                <Tooltip {...CHART_TOOLTIP}
-                  formatter={v=>[fmtFull(v,currency,rate),'Выручка']}/>
+                <XAxis dataKey="date" {...AX}/>
+                <YAxis tickFormatter={function(v){return fmt(v,currency,rate);}} {...AX} width={72}/>
+                <Tooltip {...TTIP_STYLE} formatter={function(v){return[fmtFull(v,currency,rate),'Выручка'];}}/>
                 <Area type="monotone" dataKey="gross" stroke={C.gold} strokeWidth={2.5}
-                  fill="url(#goldAreaFill)" dot={false}
-                  activeDot={{r:5,fill:C.gold,strokeWidth:0,
-                    style:{filter:`drop-shadow(0 0 6px ${C.gold}88)`}}}/>
+                  fill="url(#gfill)" dot={false} activeDot={{r:5,fill:C.gold,strokeWidth:0}}/>
               </AreaChart>
             </ResponsiveContainer>
           ):(
-            <div style={{height:220,display:'flex',alignItems:'center',justifyContent:'center',
-              color:C.textM,fontSize:13}}>
+            <div style={{height:220,display:'flex',alignItems:'center',justifyContent:'center',color:C.textM,fontSize:13}}>
               Нет оплаченных сделок за период
             </div>
           )}
         </Card>
-
-      </div>{/* end bento grid */}
+      </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// TAB 2 — АНАЛИТИКА
-// ─────────────────────────────────────────────────────────────
+// ── TAB 2 — АНАЛИТИКА ─────────────────────────────────────────
 const MONTHS=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
-const MONTH_LABELS={'2026-01':'Янв','2026-02':'Фев','2026-03':'Мар',
-  '2026-04':'Апр','2026-05':'Май','2026-06':'Июн'};
+const MLABELS={'2026-01':'Янв','2026-02':'Фев','2026-03':'Мар','2026-04':'Апр','2026-05':'Май','2026-06':'Июн'};
 
-function Tab2({currency,rate}){
+function Tab2(props){
+  const currency=props.currency,rate=props.rate;
   const [period,setPeriod]=useState('month');
+  const CLOSED=useMemo(function(){return DEMO_DEALS.filter(function(d){return d.stage==='Оплачено';});},[]);
 
-  const CLOSED=useMemo(()=>DEMO_DEALS.filter(d=>d.stage==='Оплачено'),[]);
-
-  const {cRange,pRange}=useMemo(()=>{
-    if(period==='month') return{cRange:getMonthRange(0),pRange:getMonthRange(-1)};
-    if(period==='q') return{cRange:getQuarterRange(0),pRange:getQuarterRange(-1)};
+  const ranges=useMemo(function(){
+    if(period==='month')return{c:getMonthRange(0),p:getMonthRange(-1)};
+    if(period==='q')return{c:getQuarterRange(0),p:getQuarterRange(-1)};
     const y=TODAY().getFullYear();
-    return{
-      cRange:{start:`${y}-01-01`,end:`${y}-12-31`,label:`${y} год`},
-      pRange:{start:`${y-1}-01-01`,end:`${y-1}-12-31`,label:`${y-1} год`}
-    };
+    return{c:{start:y+'-01-01',end:y+'-12-31',label:y+' год'},
+      p:{start:(y-1)+'-01-01',end:(y-1)+'-12-31',label:(y-1)+' год'}};
   },[period]);
 
-  const curr=useMemo(()=>calcStats(filterD(CLOSED,cRange.start,cRange.end)),[CLOSED,cRange]);
-  const prev=useMemo(()=>calcStats(filterD(CLOSED,pRange.start,pRange.end)),[CLOSED,pRange]);
+  const cRange=ranges.c,pRange=ranges.p;
+  const curr=useMemo(function(){return calcStats(filterD(CLOSED,cRange.start,cRange.end));},[CLOSED,cRange]);
+  const prev=useMemo(function(){return calcStats(filterD(CLOSED,pRange.start,pRange.end));},[CLOSED,pRange]);
 
-  const allClosed=CLOSED;
+  const recv=useMemo(function(){
+    return DEMO_DEALS.filter(function(d){return d.balance>0&&d.paid>0;}).sort(function(a,b){return b.balance-a.balance;});
+  },[]);
+  const totalDebt=recv.reduce(function(s,d){return s+d.balance;},0);
 
-  const recv=useMemo(()=>DEMO_DEALS.filter(d=>d.balance>0&&d.paid>0)
-    .sort((a,b)=>b.balance-a.balance),[]);
-  const totalDebt=recv.reduce((s,d)=>s+d.balance,0);
-
-  const dirStats=useMemo(()=>DIRECTIONS.map(dir=>{
-    const cd=filterD(CLOSED,cRange.start,cRange.end).filter(d=>d.direction===dir);
-    const ad=allClosed.filter(d=>d.direction===dir);
-    const cg=cd.reduce((s,d)=>s+d.gross,0);
-    const cm=cd.reduce((s,d)=>s+d.margin,0);
-    const ag=ad.reduce((s,d)=>s+d.gross,0);
-    const am=ad.reduce((s,d)=>s+d.margin,0);
-    return{dir,gross:cg,margin:cm,marginPct:cg?cm/cg*100:0,
-      allGross:ag,allMargin:am,allPct:ag?am/ag*100:0};
-  }).sort((a,b)=>b.allPct-a.allPct),[CLOSED,cRange,allClosed]);
+  const dirStats=useMemo(function(){
+    return DIRECTIONS.map(function(dir){
+      const ad=CLOSED.filter(function(d){return d.direction===dir;});
+      const ag=ad.reduce(function(s,d){return s+d.gross;},0);
+      const am=ad.reduce(function(s,d){return s+d.margin;},0);
+      return{dir,allGross:ag,allMargin:am,allPct:ag?am/ag*100:0};
+    }).sort(function(a,b){return b.allPct-a.allPct;});
+  },[CLOSED]);
 
   const bestDir=dirStats[0];
 
-  const mgrStats=useMemo(()=>MANAGERS.map(mgr=>{
-    const cd=filterD(CLOSED,cRange.start,cRange.end).filter(d=>d.manager===mgr);
-    const g=cd.reduce((s,d)=>s+d.gross,0);
-    const n=cd.reduce((s,d)=>s+d.net,0);
-    const m=cd.reduce((s,d)=>s+d.margin,0);
-    const cnt=cd.length;
-    const monthly=MONTHS.map(mo=>{
-      const md=allClosed.filter(d=>d.manager===mgr&&d.month===mo);
-      return{month:MONTH_LABELS[mo],margin:md.reduce((s,d)=>s+d.margin,0)};
-    });
-    return{mgr,gross:g,net:n,margin:m,marginPct:g?m/g*100:0,
-      count:cnt,avgCheck:cnt?g/cnt:0,monthly};
-  }).sort((a,b)=>b.margin-a.margin),[CLOSED,cRange,allClosed]);
+  const mgrStats=useMemo(function(){
+    return MANAGERS.map(function(mgr){
+      const cd=filterD(CLOSED,cRange.start,cRange.end).filter(function(d){return d.manager===mgr;});
+      const g=cd.reduce(function(s,d){return s+d.gross;},0);
+      const n=cd.reduce(function(s,d){return s+d.net;},0);
+      const m=cd.reduce(function(s,d){return s+d.margin;},0);
+      const cnt=cd.length;
+      const monthly=MONTHS.map(function(mo){
+        const md=CLOSED.filter(function(d){return d.manager===mgr&&d.month===mo;});
+        return{month:MLABELS[mo],margin:md.reduce(function(s,d){return s+d.margin;},0)};
+      });
+      return{mgr,gross:g,net:n,margin:m,marginPct:g?m/g*100:0,count:cnt,avgCheck:cnt?g/cnt:0,monthly};
+    }).sort(function(a,b){return b.margin-a.margin;});
+  },[CLOSED,cRange]);
 
   const bestMgr=mgrStats[0];
 
-  const monthlyChart=MONTHS.map(mo=>{
-    const md=allClosed.filter(d=>d.month===mo);
-    return{month:MONTH_LABELS[mo],
-      gross:md.reduce((s,d)=>s+d.gross,0),
-      net:md.reduce((s,d)=>s+d.net,0),
-      margin:md.reduce((s,d)=>s+d.margin,0)};
+  const monthlyChart=MONTHS.map(function(mo){
+    const md=CLOSED.filter(function(d){return d.month===mo;});
+    return{month:MLABELS[mo],
+      gross:md.reduce(function(s,d){return s+d.gross;},0),
+      net:md.reduce(function(s,d){return s+d.net;},0),
+      margin:md.reduce(function(s,d){return s+d.margin;},0)};
   });
 
-  const bestMonth=[...monthlyChart].sort((a,b)=>b.margin-a.margin)[0];
-  const hasEnoughData=monthlyChart.filter(m=>m.gross>0).length>=3;
+  const bestMonth=[...monthlyChart].sort(function(a,b){return b.margin-a.margin;})[0];
+  const hasData=monthlyChart.filter(function(m){return m.gross>0;}).length>=3;
+  const barColors=[C.green,C.blue,C.purple,C.yellow,C.textM];
 
   return(
-    <div style={{padding:'0 28px 56px',maxWidth:1440,margin:'0 auto',position:'relative',zIndex:1}}
-      className="fade-in">
+    <div style={{padding:'0 28px 56px',maxWidth:1440,margin:'0 auto',position:'relative',zIndex:1}} className="fi">
 
       {/* Controls */}
       <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:24,flexWrap:'wrap'}}>
-        <SegControl value={period} onChange={setPeriod} options={[
+        <SegCtrl value={period} onChange={setPeriod} options={[
           {v:'month',l:'Месяц'},{v:'q',l:'Квартал'},{v:'year',l:'Год'}
         ]}/>
         <div style={{fontSize:12,fontWeight:500}}>
@@ -846,60 +674,48 @@ function Tab2({currency,rate}){
         </div>
       </div>
 
-      {/* ── BENTO GRID ── */}
+      {/* BENTO GRID */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(12,1fr)',gap:16}}>
 
-        {/* KPI row 1 — 5 равных карточек */}
+        {/* KPI row 1 */}
         <div style={{gridColumn:'span 12',display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:16}}>
-          <KPICard label="Брутто" value={fmt(curr.gross,currency,rate)} iconName="barChart"
+          <KPICard label="Брутто" value={fmt(curr.gross,currency,rate)} iconName="bars"
             sub={fmtFull(curr.gross,currency,rate)} trend={trendPct(curr.gross,prev.gross)}/>
-          <KPICard label="Нетто (себест.)" value={fmt(curr.net,currency,rate)} iconName="trendDn"
+          <KPICard label="Нетто (себест.)" value={fmt(curr.net,currency,rate)} iconName="dn"
             sub={fmtFull(curr.net,currency,rate)} accent={C.blue}/>
-          <KPICard label="Маржа" value={fmt(curr.margin,currency,rate)} iconName="trendUp"
+          <KPICard label="Маржа" value={fmt(curr.margin,currency,rate)} iconName="up"
             sub={fmtFull(curr.margin,currency,rate)} trend={trendPct(curr.margin,prev.margin)} accent={C.green}/>
           <KPICard label="Маржа %" value={fmtPct(curr.marginPct)} iconName="target"
-            sub={`было ${fmtPct(prev.marginPct)}`} trend={trendPct(curr.marginPct,prev.marginPct)} accent={C.green}/>
-          <KPICard label="Сделок" value={curr.count} iconName="check2"
-            sub={`было ${prev.count}`} trend={trendPct(curr.count,prev.count)} accent={C.text}/>
+            sub={'было '+fmtPct(prev.marginPct)} trend={trendPct(curr.marginPct,prev.marginPct)} accent={C.green}/>
+          <KPICard label="Сделок" value={curr.count} iconName="ok"
+            sub={'было '+prev.count} trend={trendPct(curr.count,prev.count)} accent={C.text}/>
         </div>
 
         {/* KPI row 2 */}
         <div style={{gridColumn:'span 12',display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:16}}>
           <KPICard label="Средний чек" value={fmt(curr.avgCheck,currency,rate)} iconName="star" accent={C.gold}/>
           <KPICard label="Ср. маржа / сделка" value={fmt(curr.avgMargin,currency,rate)} iconName="star" accent={C.gold}/>
-          <KPICard label="Лучшее направление" value={bestDir?.dir||'—'} iconName="plane"
-            sub={`маржа ${fmtPct(bestDir?.allPct||0)}`} accent={C.purple}/>
-          <KPICard label="Лучший менеджер" value={bestMgr?.mgr||'—'} iconName="trophy"
-            sub={`${fmt(bestMgr?.margin||0,currency,rate)} маржи`}/>
+          <KPICard label="Лучшее направление" value={bestDir?bestDir.dir:'—'} iconName="plane"
+            sub={'маржа '+fmtPct(bestDir?bestDir.allPct:0)} accent={C.purple}/>
+          <KPICard label="Лучший менеджер" value={bestMgr?bestMgr.mgr:'—'} iconName="trophy"
+            sub={fmt(bestMgr?bestMgr.margin:0,currency,rate)+' маржи'}/>
           <KPICard label="Дебиторка" value={fmt(totalDebt,currency,rate)} iconName="warn"
-            sub={`${recv.length} клиентов`} accent={C.red}/>
+            sub={recv.length+' клиентов'} accent={C.red}/>
         </div>
 
         {/* Monthly chart (8 cols) */}
         <Card style={{gridColumn:'span 8'}}>
-          <SecTitle icon="barChart">Финансы по месяцам</SecTitle>
+          <SecTitle icon="bars">Финансы по месяцам</SecTitle>
           <ResponsiveContainer width="100%" height={255}>
             <BarChart data={monthlyChart} margin={{top:8,right:8,left:0,bottom:0}} barCategoryGap="28%">
               <CartesianGrid stroke="rgba(15,23,42,0.05)" strokeDasharray="0" vertical={false}/>
-              <XAxis dataKey="month" {...AXIS_STYLE}/>
-              <YAxis tickFormatter={v=>fmt(v,currency,rate)} {...AXIS_STYLE} width={72}/>
-              <Tooltip {...CHART_TOOLTIP} formatter={(v,name)=>[fmtFull(v,currency,rate),name]}/>
+              <XAxis dataKey="month" {...AX}/>
+              <YAxis tickFormatter={function(v){return fmt(v,currency,rate);}} {...AX} width={72}/>
+              <Tooltip {...TTIP_STYLE} formatter={function(v,name){return[fmtFull(v,currency,rate),name];}}/>
               <Legend wrapperStyle={{color:C.textS,fontSize:12,fontFamily:"'Plus Jakarta Sans',sans-serif",paddingTop:8}}/>
-              <Bar dataKey="gross" name="Брутто" fill={C.blue} radius={[8,8,0,0]}>
-                {monthlyChart.map((_,i)=>(
-                  <Cell key={i} fill={C.blue} fillOpacity={.75}/>
-                ))}
-              </Bar>
-              <Bar dataKey="net" name="Нетто" fill={C.gold} radius={[8,8,0,0]}>
-                {monthlyChart.map((_,i)=>(
-                  <Cell key={i} fill={C.gold} fillOpacity={.75}/>
-                ))}
-              </Bar>
-              <Bar dataKey="margin" name="Маржа" fill={C.green} radius={[8,8,0,0]}>
-                {monthlyChart.map((_,i)=>(
-                  <Cell key={i} fill={C.green} fillOpacity={.85}/>
-                ))}
-              </Bar>
+              <Bar dataKey="gross" name="Брутто" fill={C.blue} fillOpacity={0.75} radius={[8,8,0,0]}/>
+              <Bar dataKey="net" name="Нетто" fill={C.gold} fillOpacity={0.75} radius={[8,8,0,0]}/>
+              <Bar dataKey="margin" name="Маржа" fill={C.green} fillOpacity={0.85} radius={[8,8,0,0]}/>
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -907,59 +723,40 @@ function Tab2({currency,rate}){
         {/* Insights (4 cols) */}
         <Card style={{gridColumn:'span 4'}}>
           <SecTitle icon="zap">Тренды и инсайты</SecTitle>
-          {hasEnoughData?(
+          {hasData?(
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
-              <div style={{padding:'14px 16px',background:C.greenBg,borderRadius:16,
-                border:`1px solid rgba(5,150,105,0.15)`}}>
-                <div style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',
-                  letterSpacing:'.1em',marginBottom:10}}>Топ-3 по марже</div>
-                {dirStats.slice(0,3).map((d,i)=>(
-                  <div key={d.dir} style={{display:'flex',justifyContent:'space-between',
-                    alignItems:'center',fontSize:13,marginBottom:i<2?6:0}}>
-                    <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <div style={{width:18,height:18,borderRadius:6,background:C.green,
-                        display:'flex',alignItems:'center',justifyContent:'center',
-                        fontSize:10,fontWeight:800,color:'#fff'}}>{i+1}</div>
-                      <span style={{fontWeight:600,color:C.text}}>{d.dir}</span>
+              <div style={{padding:'14px 16px',background:C.greenBg,borderRadius:16,border:'1px solid rgba(5,150,105,0.15)'}}>
+                <div style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',letterSpacing:'.1em',marginBottom:10}}>Топ-3 по марже</div>
+                {dirStats.slice(0,3).map(function(d,i){
+                  return(
+                    <div key={d.dir} style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:13,marginBottom:i<2?6:0}}>
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                        <div style={{width:18,height:18,borderRadius:6,background:C.green,display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,color:'#fff'}}>{i+1}</div>
+                        <span style={{fontWeight:600}}>{d.dir}</span>
+                      </div>
+                      <span style={{color:C.green,fontWeight:700}}>{fmtPct(d.allPct)}</span>
                     </div>
-                    <span style={{color:C.green,fontWeight:700}}>{fmtPct(d.allPct)}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-
-              <div style={{padding:'14px 16px',background:C.goldBg,borderRadius:16,
-                border:`1px solid ${C.goldBorder}`}}>
-                <div style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',
-                  letterSpacing:'.1em',marginBottom:6}}>Лучший месяц</div>
-                <div style={{fontSize:22,fontWeight:800,color:C.gold,letterSpacing:'-.02em'}}>
-                  {bestMonth?.month}
+              <div style={{padding:'14px 16px',background:C.goldBg,borderRadius:16,border:'1px solid '+C.goldBr}}>
+                <div style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>Лучший месяц</div>
+                <div style={{fontSize:22,fontWeight:800,color:C.gold,letterSpacing:'-.02em'}}>{bestMonth?bestMonth.month:'—'}</div>
+                <div style={{fontSize:12,color:C.textS,fontWeight:500}}>маржа {fmt(bestMonth?bestMonth.margin:0,currency,rate)}</div>
+              </div>
+              <div style={{padding:'14px 16px',background:C.redBg,borderRadius:16,border:'1px solid rgba(220,38,38,0.15)'}}>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
+                  <Ic n="warn" s={12} c={C.red}/>
+                  <span style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',letterSpacing:'.1em'}}>Минимальная маржа</span>
                 </div>
-                <div style={{fontSize:12,color:C.textS,fontWeight:500}}>
-                  маржа {fmt(bestMonth?.margin||0,currency,rate)}
+                <div style={{fontSize:14,fontWeight:700}}>{dirStats[dirStats.length-1]?dirStats[dirStats.length-1].dir:'—'}</div>
+                <div style={{fontSize:12,color:C.red,fontWeight:600,marginTop:2}}>
+                  {fmtPct(dirStats[dirStats.length-1]?dirStats[dirStats.length-1].allPct:0)} — самая низкая маржа
                 </div>
               </div>
-
-              {dirStats.length>0&&(
-                <div style={{padding:'14px 16px',background:C.redBg,borderRadius:16,
-                  border:`1px solid rgba(220,38,38,0.15)`}}>
-                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
-                    <Ic n="warn" s={12} c={C.red}/>
-                    <span style={{fontSize:10,fontWeight:700,color:C.textM,textTransform:'uppercase',
-                      letterSpacing:'.1em'}}>Минимальная маржа</span>
-                  </div>
-                  <div style={{fontSize:14,fontWeight:700,color:C.text}}>
-                    {dirStats[dirStats.length-1].dir}
-                  </div>
-                  <div style={{fontSize:12,color:C.red,fontWeight:600,marginTop:2}}>
-                    {fmtPct(dirStats[dirStats.length-1].allPct)} — самая низкая маржа
-                  </div>
-                </div>
-              )}
             </div>
           ):(
-            <div style={{color:C.textM,fontSize:13,fontWeight:500}}>
-              Недостаточно данных (нужно ≥ 3 месяца)
-            </div>
+            <div style={{color:C.textM,fontSize:13,fontWeight:500}}>Недостаточно данных (нужно ≥ 3 месяца)</div>
           )}
         </Card>
 
@@ -967,38 +764,25 @@ function Tab2({currency,rate}){
         <Card style={{gridColumn:'span 5'}}>
           <SecTitle icon="plane">Рейтинг направлений (маржа %)</SecTitle>
           <div style={{display:'flex',flexDirection:'column',gap:14}}>
-            {dirStats.map((d,i)=>{
-              const barColors=[C.green,C.blue,C.purple,C.yellow,C.textM];
+            {dirStats.map(function(d,i){
               return(
                 <div key={d.dir}>
-                  <div style={{display:'flex',justifyContent:'space-between',
-                    alignItems:'center',marginBottom:6}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
-                      <div style={{width:22,height:22,borderRadius:7,
-                        background:i===0?C.greenBg:C.blueBg,
+                      <div style={{width:22,height:22,borderRadius:7,background:barColors[i]+'20',
                         display:'flex',alignItems:'center',justifyContent:'center',
                         fontSize:11,fontWeight:800,color:barColors[i]}}>{i+1}</div>
-                      <span style={{fontSize:14,fontWeight:700,color:C.text}}>{d.dir}</span>
-                      <span style={{fontSize:11,color:C.textM,fontWeight:500}}>
-                        {fmt(d.allGross,currency,rate)}
-                      </span>
+                      <span style={{fontSize:14,fontWeight:700}}>{d.dir}</span>
+                      <span style={{fontSize:11,color:C.textM,fontWeight:500}}>{fmt(d.allGross,currency,rate)}</span>
                     </div>
-                    <div style={{textAlign:'right'}}>
-                      <span style={{fontSize:14,fontWeight:800,color:barColors[i]}}>
-                        {fmtPct(d.allPct)}
-                      </span>
-                      <span style={{fontSize:11,color:C.textM,fontWeight:500,marginLeft:6}}>
-                        {fmt(d.allMargin,currency,rate)}
-                      </span>
+                    <div>
+                      <span style={{fontSize:14,fontWeight:800,color:barColors[i]}}>{fmtPct(d.allPct)}</span>
+                      <span style={{fontSize:11,color:C.textM,fontWeight:500,marginLeft:6}}>{fmt(d.allMargin,currency,rate)}</span>
                     </div>
                   </div>
                   <div style={{background:'rgba(15,23,42,0.06)',borderRadius:6,height:7,overflow:'hidden'}}>
-                    <div style={{
-                      width:`${d.allPct/20*100}%`,height:'100%',borderRadius:6,
-                      background:barColors[i],
-                      boxShadow:`0 1px 4px ${barColors[i]}44`,
-                      transition:'width .6s cubic-bezier(.16,1,.3,1)',
-                    }}/>
+                    <div style={{width:(d.allPct/20*100)+'%',height:'100%',borderRadius:6,
+                      background:barColors[i],transition:'width .6s cubic-bezier(.16,1,.3,1)'}}/>
                   </div>
                 </div>
               );
@@ -1006,49 +790,41 @@ function Tab2({currency,rate}){
           </div>
         </Card>
 
-        {/* Manager finance section (7 cols) — comparison table only */}
+        {/* Comparison table (7 cols) */}
         <Card style={{gridColumn:'span 7'}}>
           <SecTitle icon="users">Сводная таблица менеджеров</SecTitle>
           <div style={{overflowX:'auto'}}>
             <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
               <thead>
                 <tr>
-                  {['Менеджер','Сделок','Брутто','Нетто','Маржа','Маржа %','Ср. чек'].map(h=>(
-                    <th key={h} style={{textAlign:h==='Менеджер'?'left':'right',
-                      padding:'8px 12px',color:C.textM,fontWeight:700,fontSize:10,
-                      textTransform:'uppercase',letterSpacing:'.08em',
-                      borderBottom:`1px solid ${C.borderD}`}}>{h}</th>
-                  ))}
+                  {['Менеджер','Сделок','Брутто','Нетто','Маржа','Маржа %','Ср. чек'].map(function(h){
+                    return(
+                      <th key={h} style={{textAlign:h==='Менеджер'?'left':'right',
+                        padding:'8px 12px',color:C.textM,fontWeight:700,fontSize:10,
+                        textTransform:'uppercase',letterSpacing:'.08em',
+                        borderBottom:'1px solid '+C.borderD}}>{h}</th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
-                {mgrStats.map((m,i)=>(
-                  <tr key={m.mgr} style={{background:i%2?C.stripe:'transparent'}}>
-                    <td style={{padding:'10px 12px',fontWeight:700,color:C.text,
-                      display:'table-cell'}}>
-                      <div style={{display:'flex',alignItems:'center',gap:8}}>
-                        {i===0&&(
-                          <div style={{width:16,height:16,borderRadius:5,background:C.goldBg,
-                            display:'flex',alignItems:'center',justifyContent:'center'}}>
-                            <Ic n="trophy" s={9} c={C.gold}/>
-                          </div>
-                        )}
-                        {m.mgr}
-                      </div>
-                    </td>
-                    <td style={{padding:'10px 12px',textAlign:'right',color:C.textS,fontWeight:500}}>{m.count}</td>
-                    <td style={{padding:'10px 12px',textAlign:'right',fontWeight:600}}>{fmt(m.gross,currency,rate)}</td>
-                    <td style={{padding:'10px 12px',textAlign:'right',color:C.textS,fontWeight:500}}>{fmt(m.net,currency,rate)}</td>
-                    <td style={{padding:'10px 12px',textAlign:'right',color:C.green,fontWeight:700}}>{fmt(m.margin,currency,rate)}</td>
-                    <td style={{padding:'10px 12px',textAlign:'right',fontWeight:700}}>
-                      <span style={{color:C.green,background:C.greenBg,
-                        padding:'2px 8px',borderRadius:8,fontSize:12}}>
-                        {fmtPct(m.marginPct)}
-                      </span>
-                    </td>
-                    <td style={{padding:'10px 12px',textAlign:'right',color:C.gold,fontWeight:700}}>{fmt(m.avgCheck,currency,rate)}</td>
-                  </tr>
-                ))}
+                {mgrStats.map(function(m,i){
+                  return(
+                    <tr key={m.mgr} style={{background:i%2?C.stripe:'transparent'}}>
+                      <td style={{padding:'10px 12px',fontWeight:700}}>{m.mgr}</td>
+                      <td style={{padding:'10px 12px',textAlign:'right',color:C.textS,fontWeight:500}}>{m.count}</td>
+                      <td style={{padding:'10px 12px',textAlign:'right',fontWeight:600}}>{fmt(m.gross,currency,rate)}</td>
+                      <td style={{padding:'10px 12px',textAlign:'right',color:C.textS,fontWeight:500}}>{fmt(m.net,currency,rate)}</td>
+                      <td style={{padding:'10px 12px',textAlign:'right',color:C.green,fontWeight:700}}>{fmt(m.margin,currency,rate)}</td>
+                      <td style={{padding:'10px 12px',textAlign:'right'}}>
+                        <span style={{color:C.green,background:C.greenBg,padding:'2px 8px',borderRadius:8,fontSize:12,fontWeight:700}}>
+                          {fmtPct(m.marginPct)}
+                        </span>
+                      </td>
+                      <td style={{padding:'10px 12px',textAlign:'right',color:C.gold,fontWeight:700}}>{fmt(m.avgCheck,currency,rate)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1056,57 +832,50 @@ function Tab2({currency,rate}){
 
         {/* Manager cards (12 cols) */}
         <Card style={{gridColumn:'span 12'}}>
-          <SecTitle icon="users">Менеджеры — финансы ({cRange.label})</SecTitle>
+          <SecTitle icon="users">{'Менеджеры — финансы ('+cRange.label+')'}</SecTitle>
           <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
-            {mgrStats.map((m,i)=>{
-              const borderAccents=[C.goldBorder,'rgba(59,130,246,0.25)',
-                'rgba(124,58,237,0.2)','rgba(15,23,42,0.08)'];
-              const bgAccents=[C.goldBg,C.blueBg,C.purpleBg,'rgba(15,23,42,0.02)'];
+            {mgrStats.map(function(m,i){
+              const bAccent=[C.goldBr,'rgba(59,130,246,0.25)','rgba(124,58,237,0.2)','rgba(15,23,42,0.08)'];
+              const bBg=[C.goldBg,C.blueBg,C.purpleBg,'rgba(15,23,42,0.02)'];
+              const stats=[
+                {l:'Брутто',v:fmt(m.gross,currency,rate),c:C.text},
+                {l:'Нетто',v:fmt(m.net,currency,rate),c:C.textS},
+                {l:'Маржа',v:fmt(m.margin,currency,rate),c:C.green},
+                {l:'Маржа %',v:fmtPct(m.marginPct),c:C.green},
+                {l:'Сделок',v:m.count,c:C.text},
+                {l:'Ср. чек',v:fmt(m.avgCheck,currency,rate),c:C.gold},
+              ];
               return(
-                <div key={m.mgr} style={{
-                  background:bgAccents[i],borderRadius:20,padding:18,
-                  border:`1px solid ${borderAccents[i]}`,
-                }}>
-                  <div style={{display:'flex',justifyContent:'space-between',
-                    alignItems:'center',marginBottom:14}}>
-                    <span style={{fontWeight:800,fontSize:16,color:C.text}}>{m.mgr}</span>
+                <div key={m.mgr} style={{background:bBg[i],borderRadius:20,padding:18,border:'1px solid '+bAccent[i]}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+                    <span style={{fontWeight:800,fontSize:16}}>{m.mgr}</span>
                     {i===0&&(
-                      <Pill color={C.gold} bg={C.goldBg}>
+                      <span style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700,color:C.gold,background:C.goldBg}}>
                         <Ic n="trophy" s={10} c={C.gold}/>Топ
-                      </Pill>
+                      </span>
                     )}
                   </div>
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}}>
-                    {[
-                      {l:'Брутто',v:fmt(m.gross,currency,rate),c:C.text},
-                      {l:'Нетто',v:fmt(m.net,currency,rate),c:C.textS},
-                      {l:'Маржа',v:fmt(m.margin,currency,rate),c:C.green},
-                      {l:'Маржа %',v:fmtPct(m.marginPct),c:C.green},
-                      {l:'Сделок',v:m.count,c:C.text},
-                      {l:'Ср. чек',v:fmt(m.avgCheck,currency,rate),c:C.gold},
-                    ].map(it=>(
-                      <div key={it.l} style={{background:'rgba(255,255,255,0.5)',
-                        borderRadius:10,padding:'8px 10px'}}>
-                        <div style={{fontSize:10,color:C.textM,fontWeight:600,
-                          marginBottom:3,textTransform:'uppercase',letterSpacing:'.06em'}}>
-                          {it.l}
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:14}}>
+                    {stats.map(function(it){
+                      return(
+                        <div key={it.l} style={{background:'rgba(255,255,255,0.5)',borderRadius:10,padding:'8px 10px'}}>
+                          <div style={{fontSize:10,color:C.textM,fontWeight:600,marginBottom:3,textTransform:'uppercase',letterSpacing:'.06em'}}>{it.l}</div>
+                          <div style={{fontSize:14,fontWeight:800,color:it.c,letterSpacing:'-.01em'}}>{it.v}</div>
                         </div>
-                        <div style={{fontSize:14,fontWeight:800,color:it.c,
-                          letterSpacing:'-.01em'}}>{it.v}</div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
-                  <div style={{background:'rgba(255,255,255,0.5)',borderRadius:12,padding:'8px 4px'}}>
+                  <div style={{background:'rgba(255,255,255,0.5)',borderRadius:12,padding:'6px 4px'}}>
                     <ResponsiveContainer width="100%" height={48}>
                       <AreaChart data={m.monthly} margin={{top:4,right:4,left:4,bottom:0}}>
                         <defs>
-                          <linearGradient id={`mgr${i}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%"  stopColor={C.gold} stopOpacity={0.25}/>
+                          <linearGradient id={'mf'+i} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={C.gold} stopOpacity={0.25}/>
                             <stop offset="100%" stopColor={C.gold} stopOpacity={0}/>
                           </linearGradient>
                         </defs>
                         <Area type="monotone" dataKey="margin" stroke={C.gold} strokeWidth={2}
-                          fill={`url(#mgr${i})`} dot={false}/>
+                          fill={'url(#mf'+i+')'} dot={false}/>
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
@@ -1120,20 +889,14 @@ function Tab2({currency,rate}){
         <Card style={{gridColumn:'span 12'}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
-              <div style={{width:28,height:28,borderRadius:8,background:C.redBg,
-                display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <div style={{width:28,height:28,borderRadius:8,background:C.redBg,display:'flex',alignItems:'center',justifyContent:'center'}}>
                 <Ic n="warn" s={14} c={C.red}/>
               </div>
-              <span style={{fontSize:10,fontWeight:700,textTransform:'uppercase',
-                letterSpacing:'.12em',color:C.textM}}>Дебиторка</span>
+              <span style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.12em',color:C.textM}}>Дебиторка</span>
             </div>
-            <div style={{textAlign:'right'}}>
-              <span style={{fontSize:18,fontWeight:800,color:C.red,letterSpacing:'-.02em'}}>
-                {fmtFull(totalDebt,currency,rate)}
-              </span>
-              <span style={{fontSize:12,color:C.textM,fontWeight:500,marginLeft:8}}>
-                {recv.length} клиентов
-              </span>
+            <div>
+              <span style={{fontSize:18,fontWeight:800,color:C.red,letterSpacing:'-.02em'}}>{fmtFull(totalDebt,currency,rate)}</span>
+              <span style={{fontSize:12,color:C.textM,fontWeight:500,marginLeft:8}}>{recv.length} клиентов</span>
             </div>
           </div>
           {recv.length>0?(
@@ -1141,34 +904,31 @@ function Tab2({currency,rate}){
               <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
                 <thead>
                   <tr>
-                    {['Клиент','Менеджер','Направление','Брутто','Оплачено','Остаток','Возраст'].map(h=>(
-                      <th key={h} style={{textAlign:h==='Клиент'?'left':'right',
-                        padding:'8px 12px',color:C.textM,fontWeight:700,fontSize:10,
-                        textTransform:'uppercase',letterSpacing:'.08em',
-                        borderBottom:`1px solid ${C.borderD}`}}>{h}</th>
-                    ))}
+                    {['Клиент','Менеджер','Направление','Брутто','Оплачено','Остаток','Возраст'].map(function(h){
+                      return(
+                        <th key={h} style={{textAlign:h==='Клиент'?'left':'right',
+                          padding:'8px 12px',color:C.textM,fontWeight:700,fontSize:10,
+                          textTransform:'uppercase',letterSpacing:'.08em',
+                          borderBottom:'1px solid '+C.borderD}}>{h}</th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
-                  {recv.map((d,i)=>{
+                  {recv.map(function(d,i){
                     const age=daysSince(d.date);
-                    const ageColor=age<7?C.green:age<30?C.yellow:C.red;
-                    const ageBg=age<7?C.greenBg:age<30?C.yellowBg:C.redBg;
+                    const ac=age<7?C.green:age<30?C.yellow:C.red;
+                    const ab=age<7?C.greenBg:age<30?C.yellowBg:C.redBg;
                     return(
                       <tr key={d.id} style={{background:i%2?C.stripe:'transparent'}}>
-                        <td style={{padding:'10px 12px',fontWeight:700,color:C.text}}>{d.client}</td>
+                        <td style={{padding:'10px 12px',fontWeight:700}}>{d.client}</td>
                         <td style={{padding:'10px 12px',textAlign:'right',color:C.textS,fontWeight:500}}>{d.manager}</td>
                         <td style={{padding:'10px 12px',textAlign:'right',fontWeight:600}}>{d.direction}</td>
                         <td style={{padding:'10px 12px',textAlign:'right',fontWeight:600}}>{fmt(d.gross,currency,rate)}</td>
                         <td style={{padding:'10px 12px',textAlign:'right',color:C.green,fontWeight:600}}>{fmt(d.paid,currency,rate)}</td>
-                        <td style={{padding:'10px 12px',textAlign:'right',color:C.red,fontWeight:800}}>
-                          {fmt(d.balance,currency,rate)}
-                        </td>
+                        <td style={{padding:'10px 12px',textAlign:'right',color:C.red,fontWeight:800}}>{fmt(d.balance,currency,rate)}</td>
                         <td style={{padding:'10px 12px',textAlign:'right'}}>
-                          <span style={{color:ageColor,fontWeight:700,background:ageBg,
-                            padding:'3px 10px',borderRadius:20,fontSize:11}}>
-                            {age} дн.
-                          </span>
+                          <span style={{color:ac,fontWeight:700,background:ab,padding:'3px 10px',borderRadius:20,fontSize:11}}>{age} дн.</span>
                         </td>
                       </tr>
                     );
@@ -1177,99 +937,69 @@ function Tab2({currency,rate}){
               </table>
             </div>
           ):(
-            <div style={{color:C.textM,fontSize:13,fontWeight:500,padding:'12px 0'}}>
-              Дебиторки нет
-            </div>
+            <div style={{color:C.textM,fontSize:13,fontWeight:500,padding:'12px 0'}}>Дебиторки нет</div>
           )}
         </Card>
-
-      </div>{/* end bento grid */}
+      </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// SETTINGS MODAL
-// ─────────────────────────────────────────────────────────────
-function SettingsModal({onClose}){
+// ── SETTINGS MODAL ────────────────────────────────────────────
+function SettingsModal(props){
   const [sheetId,setSId]=useState('');
   const [apiKey,setAK]=useState('');
   const [status,setStatus]=useState(null);
-  const test=()=>{
-    setStatus('loading');
-    setTimeout(()=>setStatus('demo'),1800);
-  };
-  const INPUT_STYLE={
-    width:'100%',padding:'11px 14px',borderRadius:12,
-    background:C.glassSolid,border:`1px solid ${C.borderD}`,
-    color:C.text,fontSize:13,outline:'none',
-    fontFamily:"'Plus Jakarta Sans',sans-serif",
-    boxShadow:C.shadowSm,
-    transition:'border-color .15s',
-  };
+  function test(){setStatus('loading');setTimeout(function(){setStatus('demo');},1800);}
+  const inp={width:'100%',padding:'11px 14px',borderRadius:12,background:C.solid,
+    border:'1px solid '+C.borderD,color:C.text,fontSize:13,outline:'none',
+    fontFamily:"'Plus Jakarta Sans',sans-serif",boxShadow:C.shSm};
   return(
-    <div onClick={e=>e.target===e.currentTarget&&onClose()}
+    <div onClick={function(e){if(e.target===e.currentTarget)props.onClose();}}
       style={{position:'fixed',inset:0,background:'rgba(15,23,42,0.35)',
         backdropFilter:'blur(8px)',WebkitBackdropFilter:'blur(8px)',
         display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}}>
-      <div className="fade-in" style={{
-        background:'rgba(255,255,255,0.85)',
+      <div className="fi" style={{background:'rgba(255,255,255,0.88)',
         backdropFilter:'blur(40px)',WebkitBackdropFilter:'blur(40px)',
-        border:'1px solid rgba(255,255,255,0.8)',
-        borderRadius:28,padding:36,width:500,
-        boxShadow:'inset 0 2px 3px rgba(255,255,255,0.95),0 32px 80px rgba(15,23,42,0.18)',
-      }}>
+        border:'1px solid rgba(255,255,255,0.8)',borderRadius:28,padding:36,width:500,
+        boxShadow:'inset 0 2px 3px rgba(255,255,255,0.9),0 32px 80px rgba(15,23,42,0.18)'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:28}}>
           <div>
-            <h2 style={{color:C.text,fontSize:20,fontWeight:800,letterSpacing:'-.02em',marginBottom:2}}>
-              Подключение Google Sheets
-            </h2>
-            <p style={{fontSize:12,color:C.textM,fontWeight:500}}>
-              Введите данные для подключения к таблице
-            </p>
+            <h2 style={{fontSize:20,fontWeight:800,letterSpacing:'-.02em',marginBottom:2}}>Подключение Google Sheets</h2>
+            <p style={{fontSize:12,color:C.textM,fontWeight:500}}>Введите данные для подключения к таблице</p>
           </div>
-          <button onClick={onClose}
+          <button onClick={props.onClose}
             style={{width:32,height:32,borderRadius:10,border:'none',cursor:'pointer',
-              background:'rgba(15,23,42,0.06)',display:'flex',alignItems:'center',
-              justifyContent:'center',color:C.textS}}>
-            <Ic n="close" s={14}/>
+              background:'rgba(15,23,42,0.06)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <Ic n="close" s={14} c={C.textS}/>
           </button>
         </div>
-
-        {[
-          {l:'Google Sheets ID',v:sheetId,s:setSId,p:'1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms',
-            icon:'link'},
-          {l:'API Key (Google Cloud)',v:apiKey,s:setAK,p:'AIzaSy...',icon:'gear'},
-        ].map(f=>(
-          <div key={f.l} style={{marginBottom:16}}>
-            <label style={{fontSize:12,color:C.textS,fontWeight:600,
-              display:'flex',alignItems:'center',gap:6,marginBottom:7}}>
-              <Ic n={f.icon} s={13} c={C.textM}/>
-              {f.l}
-            </label>
-            <input value={f.v} onChange={e=>f.s(e.target.value)} placeholder={f.p}
-              style={INPUT_STYLE}/>
-          </div>
-        ))}
-
+        <div style={{marginBottom:16}}>
+          <label style={{fontSize:12,color:C.textS,fontWeight:600,display:'flex',alignItems:'center',gap:6,marginBottom:7}}>
+            <Ic n="link" s={13} c={C.textM}/>Google Sheets ID
+          </label>
+          <input value={sheetId} onChange={function(e){setSId(e.target.value);}}
+            placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" style={inp}/>
+        </div>
+        <div style={{marginBottom:20}}>
+          <label style={{fontSize:12,color:C.textS,fontWeight:600,display:'flex',alignItems:'center',gap:6,marginBottom:7}}>
+            <Ic n="gear" s={13} c={C.textM}/>API Key (Google Cloud)
+          </label>
+          <input value={apiKey} onChange={function(e){setAK(e.target.value);}}
+            placeholder="AIzaSy..." style={inp}/>
+        </div>
         <button onClick={test} disabled={status==='loading'}
           style={{width:'100%',padding:'13px',borderRadius:14,border:'none',cursor:'pointer',
             background:C.gold,color:'#0F172A',fontWeight:800,fontSize:14,
-            fontFamily:"'Plus Jakarta Sans',sans-serif",
-            marginBottom:12,marginTop:4,
-            boxShadow:`0 4px 16px ${C.goldBg},0 2px 6px rgba(0,0,0,0.08)`,
-            opacity:status==='loading'?.7:1,
-            transition:'opacity .15s',letterSpacing:'-.01em'}}>
-          {status==='loading'
-            ? 'Проверка подключения...'
-            : 'Проверить подключение'}
+            fontFamily:"'Plus Jakarta Sans',sans-serif",marginBottom:12,
+            boxShadow:'0 4px 16px rgba(201,168,76,0.3)',
+            opacity:status==='loading'?0.7:1,transition:'opacity .15s'}}>
+          {status==='loading'?'Проверка подключения...':'Проверить подключение'}
         </button>
-
         {status==='demo'&&(
-          <div style={{padding:'12px 16px',background:C.yellowBg,borderRadius:14,
-            fontSize:13,color:C.yellow,marginBottom:12,fontWeight:600,
-            border:`1px solid rgba(217,119,6,0.2)`,
-            display:'flex',alignItems:'center',gap:8}}>
+          <div style={{padding:'12px 16px',background:C.yellowBg,borderRadius:14,fontSize:13,
+            color:C.yellow,marginBottom:12,fontWeight:600,
+            border:'1px solid rgba(217,119,6,0.2)',display:'flex',alignItems:'center',gap:8}}>
             <Ic n="warn" s={14} c={C.yellow}/>
             API недоступен. Дашборд работает в режиме Demo.
           </div>
@@ -1283,9 +1013,7 @@ function SettingsModal({onClose}){
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// APP ROOT
-// ─────────────────────────────────────────────────────────────
+// ── APP ───────────────────────────────────────────────────────
 function App(){
   const [tab,setTab]=useState('op');
   const [cur,setCur]=useState('UZS');
@@ -1294,135 +1022,118 @@ function App(){
   const [showSettings,setSS]=useState(false);
   const [lastUp,setLU]=useState(new Date('2026-06-11T10:42:00'));
 
-  useEffect(()=>{
-    const t=setInterval(()=>setLU(new Date()),60000);
-    return()=>clearInterval(t);
+  useEffect(function(){
+    const t=setInterval(function(){setLU(new Date());},60000);
+    return function(){clearInterval(t);};
   },[]);
+
+  const navTabs=[{id:'op',l:'Оперативка',icon:'zap'},{id:'an',l:'Аналитика',icon:'bars'}];
+  const curOpts=[{c:'UZS',l:'сум'},{c:'USD',l:'$'}];
 
   return(
     <div style={{minHeight:'100vh',background:C.bg,color:C.text}}>
       <Mesh/>
 
-      {/* ── GLASS HEADER ── */}
-      <div style={{
-        background:C.header,
-        backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',
-        borderBottom:'1px solid rgba(15,23,42,0.07)',
-        position:'sticky',top:0,zIndex:200,
-      }}>
-        <div style={{maxWidth:1440,margin:'0 auto',display:'flex',
-          alignItems:'center',height:64,padding:'0 28px',gap:0}}>
+      {/* GLASS HEADER */}
+      <div style={{background:C.header,backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',
+        borderBottom:'1px solid rgba(15,23,42,0.07)',position:'sticky',top:0,zIndex:200}}>
+        <div style={{maxWidth:1440,margin:'0 auto',display:'flex',alignItems:'center',
+          height:64,padding:'0 28px'}}>
 
-          {/* Logo */}
           <div style={{marginRight:40,flexShrink:0}}>
             <div style={{fontSize:18,fontWeight:900,letterSpacing:'.02em',lineHeight:1.1}}>
               <span style={{color:C.gold}}>TURON</span>
               <span style={{color:C.text}}> TOURISM</span>
             </div>
-            <div style={{fontSize:9,color:C.textM,letterSpacing:'.18em',
-              textTransform:'uppercase',fontWeight:600,marginTop:1}}>
+            <div style={{fontSize:9,color:C.textM,letterSpacing:'.18em',textTransform:'uppercase',fontWeight:600,marginTop:1}}>
               Ташкент · Узбекистан
             </div>
           </div>
 
-          {/* Nav tabs */}
-          <div style={{display:'flex',height:'100%',marginRight:'auto',gap:0}}>
-            {[
-              {id:'op',l:'Оперативка',icon:'zap'},
-              {id:'an',l:'Аналитика', icon:'barChart'},
-            ].map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)}
-                style={{
-                  height:'100%',padding:'0 22px',border:'none',cursor:'pointer',
-                  background:'none',display:'flex',alignItems:'center',gap:7,
-                  fontSize:14,fontWeight:tab===t.id?700:500,
-                  fontFamily:"'Plus Jakarta Sans',sans-serif",
-                  color:tab===t.id?C.gold:C.textS,
-                  borderBottom:tab===t.id?`2px solid ${C.gold}`:'2px solid transparent',
-                  transition:'all .15s',
-                }}>
-                <Ic n={t.icon} s={15} c={tab===t.id?C.gold:C.textM}/>
-                {t.l}
-              </button>
-            ))}
+          <div style={{display:'flex',height:'100%',marginRight:'auto'}}>
+            {navTabs.map(function(t){
+              const active=tab===t.id;
+              return(
+                <button key={t.id} onClick={function(){setTab(t.id);}}
+                  style={{height:'100%',padding:'0 22px',border:'none',cursor:'pointer',
+                    background:'none',display:'flex',alignItems:'center',gap:7,
+                    fontSize:14,fontWeight:active?700:500,
+                    fontFamily:"'Plus Jakarta Sans',sans-serif",
+                    color:active?C.gold:C.textS,
+                    borderBottom:active?'2px solid '+C.gold:'2px solid transparent',
+                    transition:'all .15s'}}>
+                  <Ic n={t.icon} s={15} c={active?C.gold:C.textM}/>
+                  {t.l}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Right controls */}
           <div style={{display:'flex',alignItems:'center',gap:10}}>
-
-            {/* DEMO pill */}
-            <div style={{padding:'4px 10px',borderRadius:20,
-              background:C.yellowBg,border:`1px solid rgba(217,119,6,0.25)`,
-              color:C.yellow,fontSize:11,fontWeight:700,letterSpacing:'.06em'}}>
+            <span style={{padding:'4px 10px',borderRadius:20,background:C.yellowBg,
+              border:'1px solid rgba(217,119,6,0.25)',color:C.yellow,fontSize:11,fontWeight:700,letterSpacing:'.06em'}}>
               DEMO
+            </span>
+
+            <div style={{display:'inline-flex',gap:2,padding:3,background:'rgba(15,23,42,0.05)',
+              borderRadius:10,border:'1px solid rgba(15,23,42,0.06)'}}>
+              {curOpts.map(function(o){
+                const active=cur===o.c;
+                return(
+                  <button key={o.c} onClick={function(){setCur(o.c);}}
+                    style={{padding:'4px 12px',borderRadius:7,border:'none',cursor:'pointer',
+                      background:active?'#FFFFFF':'transparent',
+                      color:active?C.text:C.textS,fontSize:12,fontWeight:700,
+                      fontFamily:"'Plus Jakarta Sans',sans-serif",
+                      boxShadow:active?'0 1px 4px rgba(15,23,42,0.12)':'none',
+                      transition:'all .15s'}}>
+                    {o.l}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Currency switcher */}
-            <div style={{display:'inline-flex',gap:2,padding:3,
-              background:'rgba(15,23,42,0.05)',borderRadius:10,
-              border:'1px solid rgba(15,23,42,0.06)'}}>
-              {[{c:'UZS',l:'сум'},{c:'USD',l:'$'}].map(o=>(
-                <button key={o.c} onClick={()=>setCur(o.c)}
-                  style={{padding:'4px 12px',borderRadius:7,border:'none',cursor:'pointer',
-                    background:cur===o.c?'#FFFFFF':'transparent',
-                    color:cur===o.c?C.text:C.textS,fontSize:12,fontWeight:700,
-                    fontFamily:"'Plus Jakarta Sans',sans-serif",
-                    boxShadow:cur===o.c?'0 1px 4px rgba(15,23,42,0.12)':'none',
-                    transition:'all .15s'}}>
-                  {o.l}
-                </button>
-              ))}
-            </div>
-
-            {/* Exchange rate */}
             {cur==='USD'&&(
               <div style={{display:'flex',alignItems:'center',gap:5}}>
                 <span style={{fontSize:11,color:C.textM,fontWeight:500}}>курс:</span>
-                <input value={rateInput} onChange={e=>setRI(e.target.value)}
-                  onBlur={()=>setRate(+rateInput||rate)}
-                  onKeyDown={e=>e.key==='Enter'&&setRate(+rateInput||rate)}
-                  style={{width:80,padding:'5px 9px',borderRadius:10,
-                    background:C.glassSolid,border:`1px solid ${C.borderD}`,
-                    color:C.text,fontSize:12,outline:'none',textAlign:'right',
-                    fontFamily:"'Plus Jakarta Sans',sans-serif",
-                    boxShadow:C.shadowSm}}/>
+                <input value={rateInput}
+                  onChange={function(e){setRI(e.target.value);}}
+                  onBlur={function(){setRate(+rateInput||rate);}}
+                  onKeyDown={function(e){if(e.key==='Enter')setRate(+rateInput||rate);}}
+                  style={{width:80,padding:'5px 9px',borderRadius:10,background:C.solid,
+                    border:'1px solid '+C.borderD,color:C.text,fontSize:12,outline:'none',
+                    textAlign:'right',fontFamily:"'Plus Jakarta Sans',sans-serif",boxShadow:C.shSm}}/>
                 <span style={{fontSize:11,color:C.textM,fontWeight:500}}>сум/$</span>
               </div>
             )}
 
-            {/* API settings button */}
-            <button onClick={()=>setSS(true)}
-              style={{display:'flex',alignItems:'center',gap:6,
-                padding:'7px 14px',borderRadius:10,
-                border:`1px solid ${C.borderD}`,
-                background:C.glassSolid,color:C.textS,cursor:'pointer',
-                fontSize:12,fontWeight:600,
-                fontFamily:"'Plus Jakarta Sans',sans-serif",
-                boxShadow:C.shadowSm,transition:'all .15s'}}>
+            <button onClick={function(){setSS(true);}}
+              style={{display:'flex',alignItems:'center',gap:6,padding:'7px 14px',borderRadius:10,
+                border:'1px solid '+C.borderD,background:C.solid,color:C.textS,cursor:'pointer',
+                fontSize:12,fontWeight:600,fontFamily:"'Plus Jakarta Sans',sans-serif",
+                boxShadow:C.shSm,transition:'all .15s'}}>
               <Ic n="gear" s={13} c={C.textM}/>
               Настройки API
             </button>
 
-            {/* Last update */}
-            <div style={{fontSize:10,color:C.textM,fontWeight:500}}>
+            <span style={{fontSize:10,color:C.textM,fontWeight:500}}>
               {lastUp.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}
-            </div>
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ── TAB CONTENT ── */}
       <div style={{paddingTop:32,position:'relative',zIndex:1}}>
         {tab==='op'&&<Tab1 currency={cur} rate={rate}/>}
         {tab==='an'&&<Tab2 currency={cur} rate={rate}/>}
       </div>
 
-      {showSettings&&<SettingsModal onClose={()=>setSS(false)}/>}
+      {showSettings&&<SettingsModal onClose={function(){setSS(false);}}/>}
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App,null));
   </script>
 </body>
 </html>
