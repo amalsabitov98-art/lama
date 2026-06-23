@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f2545">
+  <title>Turon Tour — справочник направлений</title>
+  <style>
+    :root {
+      --gold: #c9a84c;
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.55);
+      --faint: rgba(255,255,255,.34);
+      --glass: rgba(255,255,255,.07);
+      --glass-hover: rgba(255,255,255,.12);
+      --line: rgba(255,255,255,.12);
+      --radius: 20px;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(135deg, #0f2545 0%, #1a1040 52%, #0d2535 100%);
+    }
+    button, a { font: inherit; }
+    button { color: inherit; }
+    .ambient { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .blob { position: absolute; width: 38vw; height: 38vw; border-radius: 50%; filter: blur(80px); opacity: .25; }
+    .blob.gold { left: -10vw; top: -12vw; background: #e1ad37; }
+    .blob.teal { right: -12vw; top: 18vh; background: #1eb6a4; }
+    .blob.purple { left: 38vw; bottom: -20vw; background: #7d48d8; }
+    .blob.blue { right: 22vw; top: -25vw; background: #2e76c9; opacity: .16; }
+    .app { position: relative; z-index: 1; width: min(1240px, calc(100% - 32px)); margin: 0 auto; padding: 46px 0 64px; }
+    .view { animation: view-in 250ms ease both; }
+    @keyframes view-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 1ms !important; transition-duration: 1ms !important; } }
+    .glass {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 18px 60px rgba(0,0,0,.16);
+    }
+    .eyebrow { margin: 0 0 9px; color: var(--gold); font-size: 12px; font-weight: 760; letter-spacing: .15em; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 12px; font-size: clamp(32px, 5vw, 64px); line-height: .98; letter-spacing: -.045em; }
+    .lead { max-width: 690px; margin-bottom: 0; color: var(--muted); font-size: 16px; line-height: 1.65; }
+    .topbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; margin-bottom: 32px; }
+    .brand-mark { display: grid; place-items: center; flex: 0 0 84px; width: 84px; height: 84px; }
+    .brand-mark svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 14px 24px rgba(0,0,0,.28)) drop-shadow(0 0 16px rgba(201,168,76,.16)); }
+    .intro { display: flex; align-items: flex-start; gap: 18px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat { padding: 18px 20px; }
+    .stat-value { font-size: 28px; font-weight: 780; letter-spacing: -.04em; }
+    .stat-label { margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .control-panel { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px; margin-bottom: 14px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 7px; }
+    .filter-btn, .back-btn {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.055);
+      padding: 9px 13px;
+      cursor: pointer;
+      transition: 180ms ease;
+    }
+    .filter-btn { color: var(--muted); font-size: 12px; }
+    .filter-btn:hover, .filter-btn.active, .back-btn:hover { color: var(--text); border-color: rgba(201,168,76,.46); background: rgba(201,168,76,.13); }
+    .counter { flex: 0 0 auto; padding: 0 8px; color: var(--muted); font-size: 12px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 9px 17px; padding: 0 3px 22px; color: var(--muted); font-size: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 7px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 14px currentColor; }
+    .section-label { margin: 25px 0 10px; }
+    .pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border: 1px solid rgba(255,255,255,.13); border-radius: 999px; font-size: 11px; font-weight: 760; letter-spacing: .03em; }
+    .tier-a { background: rgba(29,158,117,.22); color: #8ee2c5; }
+    .tier-b { background: rgba(55,138,221,.22); color: #9acbfa; }
+    .tier-c { background: rgba(136,135,128,.22); color: #d5d2c6; }
+    .tier-d { background: rgba(239,159,39,.22); color: #ffd08b; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+    .card { position: relative; min-height: 176px; padding: 18px; cursor: pointer; overflow: hidden; transition: 200ms ease; }
+    .card::after { content: "→"; position: absolute; right: 17px; bottom: 15px; color: var(--faint); font-size: 18px; transition: 180ms ease; }
+    .card:hover { background: var(--glass-hover); border-color: rgba(201,168,76,.4); transform: translateY(-2px); }
+    .card:hover::after { color: var(--gold); transform: translateX(3px); }
+    .card:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+    .card-top { display: flex; justify-content: space-between; gap: 12px; }
+    .card-name { max-width: 78%; font-size: 17px; font-weight: 720; line-height: 1.28; }
+    .card-score { color: #f2d77f; font-size: 22px; font-weight: 800; }
+    .card-region { margin: 7px 0 10px; color: var(--muted); font-size: 12px; }
+    .card-program { padding-right: 18px; color: rgba(255,255,255,.72); font-size: 12px; line-height: 1.5; }
+    .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 13px; }
+    .tag { padding: 4px 8px; border: 1px solid rgba(255,255,255,.1); border-radius: 999px; background: rgba(255,255,255,.06); color: var(--muted); font-size: 10px; }
+    .detail-nav { margin-bottom: 14px; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; }
+    .detail-hero { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 20px; padding: clamp(22px, 4vw, 38px); margin-bottom: 14px; }
+    .detail-hero h1 { font-size: clamp(34px, 5vw, 58px); }
+    .detail-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-bottom: 14px; color: var(--muted); font-size: 13px; }
+    .note { max-width: 760px; margin: 0; color: rgba(255,255,255,.7); line-height: 1.6; }
+    .score-block { min-width: 150px; text-align: right; }
+    .score-number { color: #f2d77f; font-size: clamp(58px, 8vw, 90px); font-weight: 820; line-height: .84; letter-spacing: -.07em; }
+    .score-caption { margin-top: 10px; color: var(--muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+    .detail-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
+    .panel { grid-column: span 6; padding: 22px; }
+    .panel.wide { grid-column: 1 / -1; }
+    .panel.third { grid-column: span 4; }
+    .panel h2 { margin-bottom: 18px; font-size: 15px; letter-spacing: -.01em; }
+    .panel h2 span { color: var(--gold); margin-right: 7px; }
+    .criteria { display: grid; gap: 13px; }
+    .criterion-line { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(120px, 2fr) 28px; align-items: center; gap: 12px; }
+    .criterion-name { color: var(--muted); font-size: 12px; }
+    .track { height: 4px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.1); }
+    .fill { height: 100%; border-radius: inherit; background: var(--gold); box-shadow: 0 0 12px rgba(201,168,76,.6); }
+    .criterion-score { text-align: right; font-size: 12px; font-weight: 700; }
+    .facts { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+    .fact-label { margin-bottom: 4px; color: var(--muted); font-size: 11px; }
+    .fact-value { font-size: 13px; line-height: 1.5; }
+    .fact-value a { color: #efd478; text-decoration-color: rgba(239,212,120,.4); }
+    .route { display: grid; gap: 10px; }
+    .route-day { display: grid; grid-template-columns: 62px 1fr; gap: 12px; align-items: start; }
+    .day { color: var(--gold); font-size: 11px; font-weight: 760; text-transform: uppercase; }
+    .day-text { color: rgba(255,255,255,.75); font-size: 13px; line-height: 1.5; }
+    .economics { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .economics th, .economics td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+    .economics th { color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    .economics td:last-child { font-weight: 730; }
+    .months { display: grid; grid-template-columns: repeat(12, minmax(0,1fr)); gap: 7px; }
+    .month { display: grid; place-items: center; min-height: 38px; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; background: rgba(0,0,0,.12); color: var(--faint); font-size: 10px; }
+    .month.active { border-color: rgba(201,168,76,.32); background: rgba(201,168,76,.26); color: #ffe9a9; box-shadow: inset 0 0 18px rgba(201,168,76,.08); }
+    .risks { margin: 0; padding-left: 18px; color: rgba(255,255,255,.72); font-size: 13px; line-height: 1.6; }
+    .risks li + li { margin-top: 8px; }
+    .status-panel { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .status-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
+    .status-value { margin-top: 4px; font-size: 18px; font-weight: 760; }
+    .status-dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 22px currentColor; }
+    .ready { color: #77dfba; } .review { color: #8fc8ff; } .paused { color: #ffc16b; }
+    .muted { color: var(--muted); }
+    .empty { padding: 42px; text-align: center; color: var(--muted); }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .panel, .panel.third { grid-column: 1 / -1; }
+      .months { grid-template-columns: repeat(6, minmax(0,1fr)); }
+    }
+    @media (max-width: 620px) {
+      .app { width: min(100% - 20px, 1240px); padding-top: 24px; }
+      .topbar { align-items: flex-start; }
+      .brand-mark { display: grid; flex-basis: 64px; width: 64px; height: 64px; }
+      .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .control-panel { align-items: flex-start; flex-direction: column; }
+      .grid { grid-template-columns: 1fr; }
+      .detail-hero { grid-template-columns: 1fr; }
+      .score-block { text-align: left; }
+      .score-number { font-size: 64px; }
+      .facts { grid-template-columns: 1fr; }
+      .criterion-line { grid-template-columns: 100px 1fr 24px; gap: 8px; }
+      .months { grid-template-columns: repeat(4, minmax(0,1fr)); }
+      .economics { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"><div class="blob gold"></div><div class="blob teal"></div><div class="blob purple"></div><div class="blob blue"></div></div>
+  <main class="app" id="app"></main>
+
+  <script>
+    const destinations = [
+      {
+        id: "pakistan-hunza", name: "Пакистан (Хунза)", region: "Азия", score: 4.55, tier: "A",
+        program: "Исламабад — Каракорум — долина Хунза — Лахор", tags: ["evisa", "direct", "halal"],
+        note: "Сильный вау-продукт с горным маршрутом и низкой конкуренцией.",
+        criteria: { "Вау-эффект": 5, "Доступность": 4.5, "Виза": 4.5, "Конкуренция": 5, "Маржинальность": 4.3, "Операционка": 4 },
+        visa: { status: "eVisa", term: "Обычно 7–10 рабочих дней", cost: "уточняется", url: "https://visa.nadra.gov.pk/" },
+        aviation: { carriers: "Uzbekistan Airways", frequency: "уточняется", price: "от $420 round trip" },
+        route: ["День 1–2 · Исламабад и переезд к Каракоруму", "День 3–6 · Долина Хунза, перевалы и деревни", "День 7–9 · Лахор и возвращение"],
+        economics: { cost: "$1 050", price: "$1 390", margin: "24%", breakeven: "8 туристов" },
+        seasons: [4,5,6,7,8,9,10], risks: ["Горные дороги и зависимость от погоды", "Необходима проверка визовых сроков перед каждым заездом", "Нужен сильный локальный DMC"], status: "ready"
+      },
+      {
+        id: "tajikistan", name: "Таджикистан (Памир/Фаны)", region: "СНГ", score: 4.50, tier: "A",
+        program: "Душанбе — Искандеркуль — Фанские горы — Памирский тракт", tags: ["visafree", "direct", "halal"],
+        note: "Близкое горное направление с понятной логистикой и культурной совместимостью.",
+        criteria: { "Вау-эффект": 4.8, "Доступность": 4.7, "Виза": 5, "Конкуренция": 4.4, "Маржинальность": 4.1, "Операционка": 4 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Somon Air", frequency: "несколько рейсов в неделю", price: "от $220 round trip" },
+        route: ["День 1 · Душанбе", "День 2–4 · Искандеркуль и Фанские горы", "День 5–8 · Фрагмент Памирского тракта", "День 9 · Возвращение"],
+        economics: { cost: "$690", price: "$940", margin: "27%", breakeven: "7 туристов" },
+        seasons: [5,6,7,8,9], risks: ["Сезонность высокогорных дорог", "Длинные переезды", "Ограниченный номерной фонд вне Душанбе"], status: "ready"
+      },
+      {
+        id: "kazan", name: "Казань / Татарстан", region: "Россия", score: 4.70, tier: "A",
+        program: "Казань — Великий Болгар — Свияжск", tags: ["visafree", "direct", "halal"],
+        note: "Городской культурный тур с сильной халяль-инфраструктурой и круглогодичным потенциалом.",
+        criteria: { "Вау-эффект": 4.5, "Доступность": 5, "Виза": 5, "Конкуренция": 4.2, "Маржинальность": 4.5, "Операционка": 5 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways и партнёры", frequency: "уточняется", price: "от $330 round trip" },
+        route: ["День 1–2 · Казанский кремль и Старо-Татарская слобода", "День 3 · Великий Болгар", "День 4 · Свияжск", "День 5 · Свободное время и вылет"],
+        economics: { cost: "$620", price: "$890", margin: "30%", breakeven: "8 туристов" },
+        seasons: [1,2,3,4,5,6,7,8,9,10,11,12], risks: ["Пиковые цены в даты мероприятий", "Нужно заранее фиксировать транспорт на выезды", "Зимняя программа требует отдельного тайминга"], status: "ready"
+      },
+      {
+        id: "dagestan", name: "Дагестан (Кавказ)", region: "Россия", score: 4.40, tier: "A",
+        program: "Махачкала — Дербент — Сулакский каньон — Гамсутль", tags: ["visafree", "direct", "halal"],
+        note: "Насыщенная природно-культурная программа с заметным визуальным потенциалом.",
+        criteria: { "Вау-эффект": 4.8, "Доступность": 4.5, "Виза": 5, "Конкуренция": 4.3, "Маржинальность": 4.1, "Операционка": 3.7 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам", cost: "$0" },
+        aviation: { carriers: "уточняется", frequency: "уточняется", price: "от $310 round trip" },
+        route: ["День 1 · Махачкала", "День 2 · Сулакский каньон", "День 3–4 · Гуниб и Гамсутль", "День 5–6 · Дербент и Каспийское море"],
+        economics: { cost: "$590", price: "$820", margin: "28%", breakeven: "8 туристов" },
+        seasons: [4,5,6,7,8,9,10], risks: ["Сложная дорожная логистика в горах", "Качество сервиса неоднородно", "Нужны проверенные гиды и транспорт"], status: "ready"
+      },
+      { id: "malaysia", name: "Малайзия (КЛ + Лангкави)", region: "Азия", score: 4.30, tier: "A", program: "Куала-Лумпур — Лангкави", tags: ["visafree","direct","halal"],
+        note: "Безвиз 30 дней, прямые рейсы UzAirways и Batik Air, мусульманская страна с тотальным халялем. Круглогодичный продукт — город + пляж в одном туре.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 5, "Конкуренция": 3, "Маржинальность": 4, "Операционка": 4.5 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Batik Air, AirAsia X", frequency: "~6 рейсов в неделю Ташкент–КЛ", price: "от $380 round trip" },
+        route: ["День 1–3 · Куала-Лумпур — башни Петронас, Бату-Кейвз, ночные рынки", "День 4 · Перелёт или паром на Лангкави", "День 5–7 · Лангкави — канатная дорога, пляжи, мангровые леса", "День 8 · Возвращение в КЛ и вылет"],
+        economics: { cost: "~$780", price: "~$1 050", margin: "~26%", breakeven: "10 туристов" },
+        seasons: [1,2,3,6,7,8,12],
+        risks: ["Конкуренция: Talisman Tour уже продаёт Лангкави — нужна авторская отстройка", "Сезон дождей на западном побережье октябрь–март, на восточном март–октябрь", "Внутренний рейс КЛ–Лангкави: AirAsia, ~$30–60"],
+        status: "review" },
+      { id: "saudi", name: "Саудовская Аравия", region: "Ближний Восток", score: 4.15, tier: "A", program: "Джидда — Аль-Ула — Эр-Рияд (+ умра)", tags: ["evisa","direct","halal"],
+        note: "Культурный маршрут с сильной синергией с умрой. Гробницы Хегра в Аль-Уле — аналог Петры без толп. Ни один узбекский оператор системно не продаёт этот маршрут.",
+        criteria: { "Вау-эффект": 5, "Доступность": 4, "Виза": 4, "Конкуренция": 4, "Маржинальность": 3.8, "Операционка": 3.5 },
+        visa: { status: "eVisa (туристическая)", term: "24–48 часов, до 90 дней пребывания", cost: "~$120 включая страховку", url: "https://visa.visitsaudi.com/" },
+        aviation: { carriers: "Uzbekistan Airways (HY336), flynas (XY634), Centrum Air, Qanot Sharq", frequency: "Джидда: UzAirways 6 дн/нед + flynas 3 дн/нед", price: "от $350 round trip" },
+        route: ["День 1–2 · Джидда — старый город Эль-Балад (ЮНЕСКО), набережная Красного моря", "День 3 · Внутренний рейс Джидда → Аль-Ула", "День 4–5 · Аль-Ула — гробницы Хегра, зеркальный зал Maraya, скалы", "День 6 · Перелёт → Эр-Рияд", "День 7–8 · Эр-Рияд — Эд-Диръия (ЮНЕСКО), башня Kingdom Centre", "День 9 · Вылет"],
+        economics: { cost: "~$2 020", price: "~$2 450", margin: "~18%", breakeven: "12 туристов" },
+        seasons: [1,2,3,10,11,12],
+        risks: ["Аль-Ула имеет квоты на посещение — бронировать за 2–3 месяца через AlUla Experience", "Летняя жара +47–50°C: июнь–сентябрь нерабочие", "Нужен принимающий DMC с русскоязычным гидом", "Внутренний рейс Джидда–Аль-Ула сезонный — уточнять расписание"],
+        status: "review" },
+      { id: "baikal", name: "Байкал зимой (Иркутск)", region: "Россия", score: 4.50, tier: "A", program: "Иркутск — Ольхон — ледяные гроты — Листвянка", tags: ["visafree","direct"],
+        note: "Прозрачный лёд, ледяные гроты, суда на воздушной подушке — ни один узбекский оператор это не продаёт. Окно всего 6 недель в году.",
+        criteria: { "Вау-эффект": 5, "Доступность": 5, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 3 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам РФ–Узбекистан", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Ural Airlines", frequency: "несколько рейсов в неделю Ташкент–Иркутск", price: "от $350 round trip" },
+        route: ["День 1 · Прилёт в Иркутск, трансфер в Листвянку", "День 2–3 · Байкальский лёд — суда Хивус, ледяные гроты, фотосессия", "День 4–5 · Остров Ольхон — мыс Хобой, бурятская культура", "День 6 · Иркутск — Байкальский музей, нерпы, вылет"],
+        economics: { cost: "~$750", price: "~$1 050", margin: "~28%", breakeven: "9 туристов" },
+        seasons: [2,3],
+        risks: ["Рабочее окно: середина февраля — конец марта (6 недель)", "Халяль-питание на Ольхоне только рыба и морепродукты — мясо привозить из Иркутска", "Температуры до -30°C — нужен гайд по одежде для клиентов", "Ограниченный номерной фонд на острове — бронировать за 3+ месяца"],
+        status: "ready" },
+      { id: "elbrus", name: "Приэльбрусье / Минводы", region: "Россия", score: 4.55, tier: "A", program: "Пятигорск — Эльбрус — геотермальные источники", tags: ["visafree","direct","halal"],
+        note: "Мусульманский регион, халяль везде. Подъём на Эльбрус на канатке без физподготовки — идеально для семейной аудитории. Горы + SPA в одном туре.",
+        criteria: { "Вау-эффект": 4, "Доступность": 5, "Виза": 5, "Конкуренция": 4, "Маржинальность": 4.5, "Операционка": 4 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам РФ–Узбекистан", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Centrum Air, FlyOne, Azimuth", frequency: "ежедневно Ташкент–Минеральные Воды", price: "от $280 round trip" },
+        route: ["День 1 · Минеральные Воды, переезд в Пятигорск — нарзанные источники", "День 2 · Кисловодск — Долина роз, Замок коварства и любви", "День 3–4 · Приэльбрусье — канатка на 3 847 м, поляна Азау", "День 5 · Геотермальные источники (приватный VIP-бассейн для группы)", "День 6 · Домбай или Архыз — горные виды, вылет"],
+        economics: { cost: "~$560", price: "~$790", margin: "~29%", breakeven: "8 туристов" },
+        seasons: [1,2,3,5,6,7,8,9,12],
+        risks: ["Пиковые периоды (НГ, майские) — цены на отели кратно растут", "Публичные термальные комплексы не подходят — только приватная аренда", "Погода на Эльбрусе непредсказуема — канатка может не работать"],
+        status: "ready" },
+      { id: "chechnya", name: "Чечня (Грозный)", region: "Россия", score: 4.30, tier: "B", program: "Грозный — Кезеной-Ам — Аргунское ущелье", tags: ["visafree","direct","halal"],
+        note: "Мечеть Сердце Чечни, горные озёра. Лучше продавать в связке с Дагестаном как единый 8-дневный кавказский маршрут.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 3.5 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам РФ–Узбекистан", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways (Грозный–Ташкент)", frequency: "несколько рейсов в неделю", price: "от $300 round trip" },
+        route: ["День 1–2 · Грозный — мечеть Сердце Чечни, проспект Путина, смотровые", "День 3 · Аргунское ущелье — башни и водопады", "День 4–5 · Озеро Кезеной-Ам — горный курорт", "День 6 · Вылет или связка с Дагестаном"],
+        economics: { cost: "~$520", price: "~$740", margin: "~30%", breakeven: "8 туристов" },
+        seasons: [4,5,6,7,8,9,10],
+        risks: ["Узкая самостоятельная программа — оптимально как часть кавказского маршрута", "Низкая узнаваемость у узбекской аудитории — нужна работа с возражениями", "Нужен местный гид и проверенный транспорт"],
+        status: "review" },
+      { id: "azerbaijan", name: "Азербайджан", region: "СНГ", score: 4.15, tier: "B", program: "Баку — Гобустан — Шемаха — Габала — Шеки", tags: ["visafree","direct"],
+        note: "Безвиз, ежедневные рейсы, халяль. Рынок частично занят, но региональный маршрут (не только Баку) даёт авторскую отстройку.",
+        criteria: { "Вау-эффект": 3.5, "Доступность": 5, "Виза": 5, "Конкуренция": 3, "Маржинальность": 4, "Операционка": 5 },
+        visa: { status: "Безвизовый въезд", term: "до 90 дней", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, AZAL, FlyOne, Centrum Air", frequency: "ежедневно, несколько рейсов", price: "от $220 round trip" },
+        route: ["День 1–2 · Баку — Старый город (ЮНЕСКО), Пламенные башни, набережная", "День 3 · Гобустан — наскальные рисунки, грязевые вулканы", "День 4 · Шемаха — мечеть Джума, гробница Едди Гюмбяз", "День 5 · Габала — канатная дорога", "День 6 · Шеки — дворец ханов (ЮНЕСКО), вылет"],
+        economics: { cost: "~$480", price: "~$680", margin: "~29%", breakeven: "8 туристов" },
+        seasons: [3,4,5,9,10,11],
+        risks: ["Конкуренция: несколько узбекских операторов продают Баку", "Нужна сильная концепция — региональный маршрут через Шеки даёт отстройку", "Летняя жара в июле–августе снижает комфорт"],
+        status: "review" },
+      { id: "jordan", name: "Иордания", region: "Ближний Восток", score: 4.05, tier: "B", program: "Амман — Петра — Вади-Рам — Мёртвое море", tags: ["evisa","direct","halal"],
+        note: "Прямой рейс Royal Jordanian Амман–Ташкент с 30 июня 2026 (2 раза в неделю). VOA при прилёте. Петра и Вади-Рам — максимальный вау. Ни один узбекский оператор системно не продаёт.",
+        criteria: { "Вау-эффект": 5, "Доступность": 4, "Виза": 4, "Конкуренция": 4, "Маржинальность": 3.5, "Операционка": 3.5 },
+        visa: { status: "Visa on Arrival (VOA)", term: "при прилёте, до 30 дней", cost: "~$56 (JOD 40)", url: "https://www.nia.gov.jo/" },
+        aviation: { carriers: "Royal Jordanian (с 30.06.2026)", frequency: "2 рейса в неделю, ~4.5 ч", price: "от $380 round trip" },
+        route: ["День 1 · Амман — цитадель, Римский театр", "День 2 · Мёртвое море — купание и грязевые процедуры", "День 3–4 · Петра — Сик, Казна, Монастырь (полный день)", "День 5 · Вади-Рам — джип-сафари, ночёвка в пустынном лагере", "День 6 · Вылет из Аммана"],
+        economics: { cost: "~$1 100", price: "~$1 450", margin: "~24%", breakeven: "11 туристов" },
+        seasons: [3,4,5,9,10,11],
+        risks: ["Высокая себестоимость — вход в Петру $75/чел.", "Прямой рейс новый — следить за сохранением расписания", "Летняя жара +40°C делает июнь–август некомфортными"],
+        status: "review" },
+      { id: "china", name: "Китай (Пекин + Шанхай)", region: "Азия", score: 4.10, tier: "B", program: "Пекин — Сиань — Шанхай", tags: ["visafree","direct"],
+        note: "Безвиз 30 дней с 1 июня 2025. Прямые рейсы в Пекин, Шанхай, Гуанчжоу. Мусульманское расширение через Сиань — халяльный квартал и терракотовая армия.",
+        criteria: { "Вау-эффект": 4, "Доступность": 5, "Виза": 5, "Конкуренция": 3, "Маржинальность": 3.5, "Операционка": 3 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней (соглашение от 1 июня 2025)", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, China Southern, Loong Air, Qanot Sharq", frequency: "ежедневно в Пекин и Шанхай", price: "от $400 round trip" },
+        route: ["День 1–3 · Пекин — Великая стена, Запретный город, площадь Тяньаньмэнь", "День 4 · Переезд в Сиань — мечеть Великая Западная, мусульманский квартал, терракотовая армия", "День 5–7 · Шанхай — Бунд, Жемчужина Востока, Юйюань", "День 8 · Вылет"],
+        economics: { cost: "~$900", price: "~$1 200", margin: "~25%", breakeven: "11 туристов" },
+        seasons: [3,4,5,9,10,11],
+        risks: ["Языковой барьер — нужен русско/узбекоязычный гид", "Халяль только в Сиане и мусульманских кварталах", "Визовый статус подвижен — проверять актуальность перед каждым заездом"],
+        status: "review" },
+      { id: "qatar", name: "Катар (Доха)", region: "Ближний Восток", score: 4.05, tier: "B", program: "Доха — Сук-Вакиф — пустыня — Музей исламского искусства", tags: ["evisa","direct","halal"],
+        note: "Компактный 4–5-дневный премиальный продукт. Qatar Airways прямой из Ташкента, халяль везде. Работает как самостоятельный тур или stopover.",
+        criteria: { "Вау-эффект": 3, "Доступность": 5, "Виза": 4, "Конкуренция": 3, "Маржинальность": 3.5, "Операционка": 4.5 },
+        visa: { status: "Visa on Arrival или eVisa", term: "при прилёте, до 30 дней", cost: "~$17 или бесплатно", url: "https://portal.moi.gov.qa/" },
+        aviation: { carriers: "Qatar Airways, Air Samarkand", frequency: "ежедневно Ташкент–Доха", price: "от $320 round trip" },
+        route: ["День 1 · Доха — Сук-Вакиф, набережная Корниш", "День 2 · Музей исламского искусства (один из лучших в мире)", "День 3 · Пустыня — джип-сафари, сэндбординг, закат над дюнами", "День 4 · Жемчужный квартал, шопинг, вылет"],
+        economics: { cost: "~$820", price: "~$1 100", margin: "~25%", breakeven: "10 туристов" },
+        seasons: [1,2,3,10,11,12],
+        risks: ["Летняя жара +45°C — июнь–сентябрь нерабочие", "Talisman Tour уже продаёт Доху — нужна отстройка по формату", "Небольшая страна — программа максимум 4–5 дней"],
+        status: "review" },
+      { id: "thailand", name: "Таиланд", region: "Азия", score: 3.90, tier: "B", program: "Бангкок — Пхукет / Краби", tags: ["visafree","direct"],
+        note: "Безвиз 60 дней, прямые рейсы. Авторский тур оправдан только при нестандартной концепции — рынок перенасыщен узбекскими операторами.",
+        criteria: { "Вау-эффект": 4, "Доступность": 5, "Виза": 5, "Конкуренция": 1, "Маржинальность": 3, "Операционка": 4.5 },
+        visa: { status: "Безвизовый въезд", term: "до 60 дней", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Qanot Sharq, Centrum Air", frequency: "несколько рейсов в неделю", price: "от $420 round trip" },
+        route: ["День 1–3 · Бангкок — Гранд-Палас, Wat Pho, плавучие рынки", "День 4 · Перелёт Бангкок–Пхукет (AirAsia, ~$30)", "День 5–7 · Пхукет / Краби — острова, Phang Nga Bay", "День 8 · Вылет из Пхукета"],
+        economics: { cost: "~$850", price: "~$1 150", margin: "~26%", breakeven: "10 туристов" },
+        seasons: [1,2,3,11,12],
+        risks: ["Сильная конкуренция — Asialuxe, 1travel, 24travel все продают Таиланд", "Халяль частичный — только на юге страны и в мусульманских кварталах", "Сезон дождей май–октябрь закрывает западное побережье"],
+        status: "review" },
+      { id: "vietnam", name: "Вьетнам (Нячанг / Дананг)", region: "Азия", score: 3.65, tier: "B", program: "Нячанг / Дананг — пляж + город", tags: ["evisa","direct"],
+        note: "eVisa. Прямые сезонные рейсы Centrum Air и Qanot Sharq на Нячанг и Дананг (июнь–октябрь). Вне сезона — только стыковки.",
+        criteria: { "Вау-эффект": 3.5, "Доступность": 3, "Виза": 4, "Конкуренция": 3, "Маржинальность": 3.5, "Операционка": 3.5 },
+        visa: { status: "eVisa", term: "3–5 рабочих дней, до 90 дней", cost: "~$25", url: "https://evisa.xuatnhapcanh.gov.vn/" },
+        aviation: { carriers: "Centrum Air, Qanot Sharq, Uzbekistan Airways (сезонные)", frequency: "сезонные чартеры июнь–октябрь", price: "от $350 round trip (в сезон)" },
+        route: ["День 1–2 · Нячанг — набережная, Башни Чам, острова", "День 3 · Далат — горный курорт", "День 4–6 · Дананг — пляжи Мой-Ан, Хойан (ЮНЕСКО)", "День 7 · Вылет"],
+        economics: { cost: "~$720", price: "~$980", margin: "~26%", breakeven: "10 туристов" },
+        seasons: [6,7,8,9,10],
+        risks: ["Прямые рейсы только в сезон — продукт работает 5 месяцев в году", "Халяль минимален — питание организовывать отдельно", "Сезон тайфунов на центральном побережье: сентябрь–ноябрь"],
+        status: "review" },
+      { id: "india", name: "Индия (Раджастан + Гоа)", region: "Азия", score: 3.65, tier: "B", program: "Дели — Джайпур — Агра — пляжи Гоа", tags: ["evisa","direct"],
+        note: "eVisa. Прямые рейсы в Дели, Мумбаи и Гоа. Контрастный культурно-пляжный маршрут с сильным Раджастаном.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 4, "Конкуренция": 3, "Маржинальность": 3.5, "Операционка": 3 },
+        visa: { status: "e-Tourist Visa", term: "72–96 часов, до 90 дней", cost: "~$25–80", url: "https://indianvisaonline.gov.in/" },
+        aviation: { carriers: "Uzbekistan Airways, Centrum Air, IndiGo", frequency: "ежедневно Ташкент–Дели", price: "от $380 round trip" },
+        route: ["День 1–2 · Дели — Красный форт, Джама-Масджид, рынок Чандни Чоук", "День 3 · Агра — Тадж-Махал на рассвете", "День 4–5 · Джайпур — Амберский форт, Дворец ветров", "День 6–8 · Гоа — пляжи, португальское наследие", "День 9 · Вылет из Гоа"],
+        economics: { cost: "~$820", price: "~$1 100", margin: "~25%", breakeven: "11 туристов" },
+        seasons: [10,11,12,1,2,3],
+        risks: ["Халяль только в мусульманских кварталах Дели и Агры", "Санитарные опасения у части узбекской аудитории", "Длинные переезды между точками маршрута"],
+        status: "review" },
+      { id: "bosnia", name: "Босния и Герцеговина", region: "Европа", score: 2.95, tier: "C", program: "Сараево — Мостар — Травник", tags: ["halal"],
+        note: "Исламское наследие и халяль повсеместно. Сильный продукт по содержанию, но нет прямого рейса и нужна виза C.",
+        criteria: { "Вау-эффект": 4, "Доступность": 2, "Виза": 3, "Конкуренция": 4, "Маржинальность": 3, "Операционка": 2.5 },
+        visa: { status: "Виза C (посольство)", term: "7–15 рабочих дней, до 90 дней", cost: "~$45 однократная" },
+        aviation: { carriers: "Стыковка через Стамбул (Turkish Airlines) или Вену", frequency: "нет прямого рейса из Ташкента", price: "от $450 round trip (со стыковкой)" },
+        route: ["День 1–2 · Сараево — Башчаршия, мечеть Гази Хусрев-бег, латинский мост", "День 3 · Травник — средневековая крепость и текке дервишей", "День 4–5 · Мостар — Старый мост (ЮНЕСКО), турецкий квартал", "День 6 · Вылет"],
+        economics: { cost: "~$820", price: "~$1 100", margin: "~25%", breakeven: "11 туристов" },
+        seasons: [4,5,6,7,8,9,10],
+        risks: ["Визовый барьер снижает конверсию продаж", "Нет прямого рейса — стыковка удлиняет дорогу", "Оптимально в связке с Хорватией, но это добавляет шенген"],
+        status: "review" },
+      { id: "belarus", name: "Беларусь (Минск)", region: "Европа", score: 4.10, tier: "C", program: "Минск — Мир — Несвиж — Беловежская пуща", tags: ["visafree","direct"],
+        note: "Безвиз, прямой рейс, отличная инфраструктура. Потенциальный межсезонный городской продукт. Халяль точечный.",
+        criteria: { "Вау-эффект": 3, "Доступность": 5, "Виза": 5, "Конкуренция": 4, "Маржинальность": 4, "Операционка": 5 },
+        visa: { status: "Безвизовый въезд", term: "до 90 дней", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Belavia", frequency: "несколько рейсов в неделю Ташкент–Минск", price: "от $280 round trip" },
+        route: ["День 1–2 · Минск — проспект Независимости, площадь Победы, Троицкое предместье", "День 3 · Замок Мир (ЮНЕСКО)", "День 4 · Замок Несвиж (ЮНЕСКО)", "День 5 · Беловежская пуща — зубры, заповедник", "День 6 · Вылет"],
+        economics: { cost: "~$580", price: "~$820", margin: "~29%", breakeven: "9 туристов" },
+        seasons: [4,5,6,7,8,9],
+        risks: ["Халяль-рестораны единичны — питание организовывать отдельно", "Низкий вау-эффект для молодой аудитории 25–35 лет", "Зима ограничивает программу — летний и осенний сезон предпочтительнее"],
+        status: "review" },
+      { id: "moldova", name: "Молдова (Кишинёв)", region: "Европа", score: 3.95, tier: "C", program: "Кишинёв — Орхеюл-Векь — природа", tags: ["visafree"],
+        note: "Безвиз до 90 дней. Прямые рейсы FlyOne Asia с 6 апреля 2026 (3 раза в неделю). Нужно перепроектировать программу без винной доминанты.",
+        criteria: { "Вау-эффект": 3, "Доступность": 4, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 4 },
+        visa: { status: "Безвизовый въезд", term: "до 90 дней", cost: "$0" },
+        aviation: { carriers: "FlyOne Asia (с апреля 2026)", frequency: "пн, ср, сб — ~4ч 40мин", price: "от $240 round trip" },
+        route: ["День 1–2 · Кишинёв — старый город, рынок Центральный, парки", "День 3 · Орхеюл-Векь — скальный монастырь XII века", "День 4 · Сорока — крепость на берегу Днестра", "День 5 · Вылет"],
+        economics: { cost: "~$480", price: "~$680", margin: "~29%", breakeven: "8 туристов" },
+        seasons: [4,5,6,7,8,9],
+        risks: ["Основной продукт Молдовы — вино, несовместимо с халяль-аудиторией", "Близость к зоне конфликта в Украине — воздушное пространство периодически ограничивается", "Низкий вау-эффект без нестандартного концептуального наполнения"],
+        status: "review" },
+      { id: "albania", name: "Албания", region: "Европа", score: 3.70, tier: "C", program: "Тирана — Берат — Ривьера", tags: ["evisa"],
+        note: "eVisa через e-visa.al (~15 рабочих дней, €30). Мусульманская страна, нулевая конкуренция. Балканский халяль-маршрут без прямого рейса.",
+        criteria: { "Вау-эффект": 3.5, "Доступность": 2, "Виза": 4, "Конкуренция": 4, "Маржинальность": 3.5, "Операционка": 3 },
+        visa: { status: "eVisa", term: "минимум 15 рабочих дней", cost: "€30 однократная / €50 многократная", url: "https://e-visa.al/" },
+        aviation: { carriers: "Стыковка через Стамбул или Дубай", frequency: "нет прямого рейса из Ташкента", price: "от $420 round trip (со стыковкой)" },
+        route: ["День 1–2 · Тирана — мечеть Этем-Бей, Национальный музей", "День 3 · Берат — город тысячи окон (ЮНЕСКО)", "День 4–6 · Ривьера — Саранда, Ксамиль (Ионическое море)", "День 7 · Вылет"],
+        economics: { cost: "~$780", price: "~$1 050", margin: "~26%", breakeven: "10 туристов" },
+        seasons: [5,6,7,8,9],
+        risks: ["Нет прямого рейса — стыковка 1–2 ч в Стамбуле или Дубае", "eVisa требует подачи за 3–4 недели — строгое планирование", "Черногорию (безвиз отменён с 10.2025) нельзя включать в связку без визы"],
+        status: "review" },
+      { id: "italy", name: "Италия (Рим + Флоренция)", region: "Европа", score: 3.55, tier: "C", program: "Рим — Флоренция — Венеция", tags: ["direct"],
+        note: "Прямой UzAirways в Милан и Рим. Шенгенская виза — одобрение 87.29% по Узбекистану в 2024. Плотная конкуренция, авторское позиционирование только через халяль-формат.",
+        criteria: { "Вау-эффект": 4.5, "Доступность": 4, "Виза": 2, "Конкуренция": 2, "Маржинальность": 3, "Операционка": 3.5 },
+        visa: { status: "Шенгенская виза (тип C)", term: "подача за 6–8 недель, одобрение 87.29%", cost: "€90 + сервисный сбор визового центра (~€25)" },
+        aviation: { carriers: "Uzbekistan Airways (Рим FCO, Милан MXP), Qanot Sharq", frequency: "несколько рейсов в неделю", price: "от $480 round trip" },
+        route: ["День 1–2 · Рим — Колизей, Ватикан, фонтан Треви", "День 3 · Флоренция — Уффици, Давид, Понте-Веккьо", "День 4 · Пиза — Падающая башня", "День 5–6 · Венеция — Сан-Марко, Гранд-канал", "День 7 · Вылет"],
+        economics: { cost: "~$1 350", price: "~$1 750", margin: "~23%", breakeven: "12 туристов" },
+        seasons: [4,5,6,9,10],
+        risks: ["Шенгенская виза — 15.76% отказов, нужна помощь с документами", "Сильная конкуренция: продукт нужно отстраивать халяль-форматом", "EES на шенгенской границе с 10.04.2026 — возможные очереди"],
+        status: "review" },
+      { id: "spain", name: "Испания (Андалусия)", region: "Европа", score: 3.55, tier: "C", program: "Мадрид — Кордова — Гранада — Севилья", tags: ["direct","halal"],
+        note: "Прямой UzAirways в Мадрид. Шенген. Исламское наследие Аль-Андалус — Альгамбра, Большая мечеть Кордовы — сильнейшее халяль-позиционирование для узбекской аудитории.",
+        criteria: { "Вау-эффект": 4.5, "Доступность": 4, "Виза": 2, "Конкуренция": 3, "Маржинальность": 3, "Операционка": 3.5 },
+        visa: { status: "Шенгенская виза (тип C)", term: "подача за 6–8 недель, одобрение ~87%", cost: "€90 + сервисный сбор (~€25)" },
+        aviation: { carriers: "Uzbekistan Airways (Мадрид MAD)", frequency: "несколько рейсов в неделю", price: "от $500 round trip" },
+        route: ["День 1–2 · Мадрид — Прадо, Ретиро, Гран-Виа", "День 3 · Толедо — средневековый город, мечеть Христа Света", "День 4 · Кордова — Большая мечеть-собор (ЮНЕСКО)", "День 5 · Гранада — Альгамбра (бронировать за 2+ мес.)", "День 6 · Севилья — Алькасар, Хиральда", "День 7 · Вылет"],
+        economics: { cost: "~$1 400", price: "~$1 800", margin: "~22%", breakeven: "12 туристов" },
+        seasons: [4,5,9,10],
+        risks: ["Шенгенская виза снижает конверсию продаж", "Альгамбра — билеты бронировать за 2+ месяца, лимит строгий", "Лето в Андалусии +40°C — июнь–август некомфортны"],
+        status: "review" },
+      { id: "kenya", name: "Кения (Сафари)", region: "Африка", score: 3.25, tier: "C", program: "Масаи-Мара — Момбаса", tags: ["evisa"],
+        note: "eVisa. Нет прямого рейса — стыковка через Дубай или Найроби. Уникальное сафари + пляж Занзибар. Нулевая конкуренция среди узбекских операторов.",
+        criteria: { "Вау-эффект": 5, "Доступность": 2, "Виза": 4, "Конкуренция": 4, "Маржинальность": 3, "Операционка": 2 },
+        visa: { status: "eVisa (ETA)", term: "2–5 рабочих дней", cost: "~$30 однократная", url: "https://etakenya.go.ke/" },
+        aviation: { carriers: "Стыковка через Дубай (flydubai) или Доху (Qatar Airways)", frequency: "нет прямого рейса из Ташкента", price: "от $600 round trip (со стыковкой)" },
+        route: ["День 1 · Найроби — трансфер, отель", "День 2–4 · Масаи-Мара — сафари на рассвете и закате", "День 5 · Перелёт Найроби–Момбаса", "День 6–7 · Момбаса — пляжи Диани, Форт Иисуса", "День 8 · Вылет"],
+        economics: { cost: "~$1 400", price: "~$1 850", margin: "~24%", breakeven: "11 туристов" },
+        seasons: [7,8,9,10],
+        risks: ["Сложная логистика: 2 внутренних перелёта + стыковка из Ташкента", "Халяль частичный — прибрежные районы (мусульманское побережье) лучше", "Пик сафари (Большая миграция) июль–октябрь — цены на лоджи максимальные"],
+        status: "review" },
+      { id: "iran", name: "Иран (Исфахан / Шираз)", region: "Ближний Восток", score: 4.70, tier: "D", program: "Тегеран — Исфахан — Йезд — Шираз — Персеполь", tags: ["visafree","halal","pause"], note: "Исключительно сильный маршрут, поставленный на паузу из-за внешних рисков.", seasons: [3,4,5,9,10,11], risks: ["Геополитическая обстановка", "Платёжная инфраструктура", "Оперативные изменения авиапрограмм"], status: "paused" },
+      { id: "oman", name: "Оман (Маскат / Фьорды)", region: "Ближний Восток", score: 3.80, tier: "D", program: "Маскат — Низва — Вахиба — фьорды Мусандам",
+        tags: ["halal","pause"],
+        note: "Премиальный природный продукт. Прямой рейс Oman Air на Маскат. Условный безвиз — только для держателей визы США/UK/Шенгена. Обычному узбекскому туристу нужна виза через посольство.",
+        criteria: { "Вау-эффект": 5, "Доступность": 3, "Виза": 3, "Конкуренция": 5, "Маржинальность": 3.5, "Операционка": 3 },
+        visa: { status: "Условный безвиз / виза посольство", term: "Безвиз до 14 дн. только при наличии шенген/US/UK визы; иначе — посольство, 5–10 раб. дней", cost: "~$50 консульский сбор", url: "https://evisa.rop.gov.om/" },
+        aviation: { carriers: "Oman Air (Маскат), Centrum Air", frequency: "несколько рейсов в неделю Ташкент–Маскат", price: "от $380 round trip" },
+        route: ["День 1–2 · Маскат — Большая мечеть Кабус, рынок Муттра, дворец", "День 3 · Низва — форт и традиционный рынок пятницы", "День 4–5 · Пустыня Вахиба — верблюды, барханы, ночёвка в лагере", "День 6 · Фьорды Мусандам — лодочная экскурсия (дхоу)", "День 7 · Вылет"],
+        economics: { cost: "~$1 050", price: "~$1 400", margin: "~25%", breakeven: "11 туристов" },
+        seasons: [1,2,3,10,11,12],
+        risks: ["Визовый статус для узбекских паспортов конфликтующий — обязательна проверка перед запуском", "Летняя жара +45–50°C: июнь–сентябрь нерабочие", "Высокая стоимость отелей и экскурсий в Омане"],
+        status: "paused" }
+    ];
+
+    const tiers = {
+      A: { label: "Tier A · запуск 2026", className: "tier-a", color: "#1d9e75" },
+      B: { label: "Tier B · вторая волна 2027", className: "tier-b", color: "#378add" },
+      C: { label: "Tier C · резерв", className: "tier-c", color: "#888780" },
+      D: { label: "Tier D · на паузе", className: "tier-d", color: "#ef9f27" }
+    };
+    const tagLabels = { visafree: "безвиз", evisa: "eVisa", halal: "халяль", direct: "прямой рейс", pause: "на паузе" };
+    const criterionNames = ["Вау-эффект", "Доступность", "Виза", "Конкуренция", "Маржинальность", "Операционка"];
+    const monthNames = ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"];
+    const statusLabels = { ready: "готов к запуску", review: "требует проверки", paused: "на паузе" };
+    const app = document.getElementById("app");
+    let activeFilter = "all";
+
+    const valueOrPending = value => value ?? "уточняется";
+    const safeCriteria = destination => criterionNames.reduce((all, name) => ({ ...all, [name]: destination.criteria?.[name] ?? null }), {});
+    const fallbackRoute = destination => destination.route ?? destination.program.split(" — ").map((place, i) => `День ${i + 1} · ${place}`);
+    const fallbackRisks = destination => destination.risks ?? ["Проверить актуальные правила въезда", "Подтвердить авиапрограмму и тарифы", "Провести аудит локальных партнёров"];
+    const money = destination => destination.economics ?? { cost: "уточняется", price: "уточняется", margin: "уточняется", breakeven: "уточняется" };
+
+    function renderList() {
+      document.title = "Turon Tour — справочник направлений";
+      const regions = ["all", ...new Set(destinations.map(d => d.region))];
+      const filtered = activeFilter === "all" ? destinations : destinations.filter(d => d.region === activeFilter);
+      const avg = filtered.length ? (filtered.reduce((sum, d) => sum + d.score, 0) / filtered.length).toFixed(2) : "—";
+      app.innerHTML = `
+        <section class="view" aria-labelledby="page-title">
+          <header class="topbar">
+            <div class="intro"><div class="brand-mark"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="Логотип Turon Tour"><defs><linearGradient id="globe-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a5fb4"/><stop offset="100%" stop-color="#0d3b7a"/></linearGradient><linearGradient id="gold-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e8c84a"/><stop offset="100%" stop-color="#b8942e"/></linearGradient><linearGradient id="wing-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a2a2a"/><stop offset="100%" stop-color="#0a0a0a"/></linearGradient></defs><circle cx="100" cy="100" r="88" fill="url(#globe-bg)" stroke="url(#gold-grad)" stroke-width="6"/><ellipse cx="100" cy="100" rx="40" ry="85" fill="none" stroke="#c9a84c" stroke-width="1.2" opacity=".45"/><ellipse cx="100" cy="100" rx="70" ry="85" fill="none" stroke="#c9a84c" stroke-width="1" opacity=".3"/><line x1="12" y1="100" x2="188" y2="100" stroke="#c9a84c" stroke-width="1" opacity=".35"/><line x1="20" y1="65" x2="180" y2="65" stroke="#c9a84c" stroke-width=".8" opacity=".25"/><line x1="20" y1="135" x2="180" y2="135" stroke="#c9a84c" stroke-width=".8" opacity=".25"/><path d="M40,80 Q60,60 100,55 Q130,52 160,65" fill="#c9a84c" opacity=".5"/><path d="M35,105 Q70,85 120,90 Q155,93 170,110" fill="#c9a84c" opacity=".4"/><path d="M100,155 C80,130 40,120 15,135 C35,110 55,105 75,108 C60,95 30,85 10,92 C30,65 65,58 90,70 C75,55 50,42 25,48 C55,25 95,30 110,55 L100,155 Z" fill="url(#wing-grad)" stroke="#c9a84c" stroke-width=".8"/><path d="M100,155 C120,130 160,120 185,135 C165,110 145,105 125,108 C140,95 170,85 190,92 C170,65 135,58 110,70 C125,55 150,42 175,48 C145,25 105,30 90,55 L100,155 Z" fill="url(#wing-grad)" stroke="#c9a84c" stroke-width=".8"/><polygon points="100,148 95,162 100,158 105,162" fill="#c9a84c"/><circle cx="100" cy="120" r="4" fill="#c9a84c"/><circle cx="100" cy="120" r="2" fill="#1a1a1a"/><polygon points="155,30 175,22 170,35 180,28" fill="#c9a84c" opacity=".85"/></svg></div><div><p class="eyebrow">Turon Tour · Product Lab</p><h1 id="page-title">Карта направлений</h1><p class="lead">Рабочий справочник авторских туров: потенциал, доступность и готовность продукта — в одном месте.</p></div></div>
+          </header>
+          <div class="stats">
+            ${stat(filtered.length, "направлений")}${stat(filtered.filter(d => d.tier === "A").length, "к запуску в 2026")}${stat(filtered.filter(d => d.tier === "B").length, "во второй волне")}${stat(avg, "средний балл")}
+          </div>
+          <div class="control-panel glass"><div class="filters" role="group" aria-label="Фильтр по регионам">${regions.map(region => `<button class="filter-btn ${activeFilter === region ? "active" : ""}" data-region="${region}">${region === "all" ? "Все направления" : region}</button>`).join("")}</div><div class="counter">Показано: ${filtered.length}</div></div>
+          <div class="legend" aria-label="Легенда">${Object.values(tiers).map(t => `<span class="legend-item"><i class="legend-dot" style="color:${t.color};background:${t.color}"></i>${t.label}</span>`).join("")}</div>
+          <div id="board">${renderBoard(filtered)}</div>
+        </section>`;
+      app.querySelectorAll("[data-region]").forEach(button => button.addEventListener("click", () => { activeFilter = button.dataset.region; renderList(); }));
+      app.querySelectorAll("[data-destination]").forEach(card => {
+        const open = () => showDetail(card.dataset.destination);
+        card.addEventListener("click", open);
+        card.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); } });
+      });
+    }
+
+    function stat(value, label) { return `<div class="stat glass"><div class="stat-value">${value}</div><div class="stat-label">${label}</div></div>`; }
+    function renderBoard(items) {
+      if (!items.length) return `<div class="empty glass">В этом регионе направлений пока нет.</div>`;
+      return ["A","B","C","D"].map(tier => {
+        const group = items.filter(d => d.tier === tier).sort((a,b) => b.score - a.score);
+        if (!group.length) return "";
+        return `<section><div class="section-label"><span class="pill ${tiers[tier].className}">${tiers[tier].label}</span></div><div class="grid">${group.map(cardMarkup).join("")}</div></section>`;
+      }).join("");
+    }
+    function cardMarkup(d) {
+      return `<article class="card glass" role="button" tabindex="0" data-destination="${d.id}" aria-label="Открыть ${d.name}"><div class="card-top"><div class="card-name">${d.name}</div><div class="card-score">${d.score.toFixed(2)}</div></div><div class="card-region">${d.region}</div><div class="card-program">${d.program}</div><div class="tags">${d.tags.map(tag => `<span class="tag">${tagLabels[tag] ?? tag}</span>`).join("")}</div></article>`;
+    }
+
+    function showDetail(id, pushState = true) {
+      const d = destinations.find(item => item.id === id);
+      if (!d) return renderList();
+      if (pushState) history.pushState({ destination: id }, "", `#${id}`);
+      document.title = `${d.name} — Turon Tour`;
+      const criteria = safeCriteria(d);
+      const visa = d.visa ?? {};
+      const aviation = d.aviation ?? {};
+      const economics = money(d);
+      const activeMonths = d.seasons ?? [];
+      app.innerHTML = `
+        <article class="view">
+          <nav class="detail-nav"><button class="back-btn glass" id="backButton" type="button">← Назад к направлениям</button></nav>
+          <header class="detail-hero glass">
+            <div><p class="eyebrow">Карточка направления</p><div class="detail-meta"><span>${d.region}</span><span>·</span><span class="pill ${tiers[d.tier].className}">${tiers[d.tier].label}</span></div><h1>${d.name}</h1><p class="note">${valueOrPending(d.note)}</p></div>
+            <div class="score-block"><div class="score-number">${d.score.toFixed(2)}</div><div class="score-caption">итоговый скор · из 5</div></div>
+          </header>
+          <div class="detail-grid">
+            <section class="panel glass"><h2><span>01</span> Критерии</h2><div class="criteria">${Object.entries(criteria).map(([name, value]) => criterionMarkup(name, value)).join("")}</div></section>
+            <section class="panel glass"><h2><span>02</span> Виза и авиа</h2><div class="facts">${fact("Статус визы", valueOrPending(visa.status))}${fact("Срок / пребывание", valueOrPending(visa.term))}${fact("Стоимость визы", valueOrPending(visa.cost))}${fact("Официальная ссылка", visa.url ? `<a href="${visa.url}" target="_blank" rel="noopener">Открыть источник ↗</a>` : "уточняется")}${fact("Перевозчики", valueOrPending(aviation.carriers))}${fact("Частота", valueOrPending(aviation.frequency))}${fact("Билет туда-обратно", valueOrPending(aviation.price))}</div></section>
+            <section class="panel glass"><h2><span>03</span> Программа</h2><div class="route">${fallbackRoute(d).map((row, i) => { const parts = row.split("·"); return `<div class="route-day"><span class="day">${parts.length > 1 ? parts.shift() : `Этап ${i+1}`}</span><span class="day-text">${parts.join("·") || row}</span></div>`; }).join("")}</div></section>
+            <section class="panel glass"><h2><span>04</span> Экономика</h2><table class="economics"><thead><tr><th>Показатель</th><th>Значение</th></tr></thead><tbody><tr><td>Себестоимость / чел.</td><td>${economics.cost}</td></tr><tr><td>Цена продажи / чел.</td><td>${economics.price}</td></tr><tr><td>Валовая маржа</td><td>${economics.margin}</td></tr><tr><td>Точка безубыточности</td><td>${economics.breakeven}</td></tr></tbody></table></section>
+            <section class="panel wide glass"><h2><span>05</span> Сезонный календарь</h2><div class="months">${monthNames.map((month, index) => `<div class="month ${activeMonths.includes(index+1) ? "active" : ""}" title="${activeMonths.length ? (activeMonths.includes(index+1) ? "Рабочий месяц" : "Вне сезона") : "Сезон уточняется"}">${month}</div>`).join("")}</div>${activeMonths.length ? "" : `<p class="muted" style="font-size:12px;margin:12px 0 0">Рабочие месяцы уточняются</p>`}</section>
+            <section class="panel wide glass"><h2><span>06</span> Риски</h2><ul class="risks">${fallbackRisks(d).slice(0,4).map(risk => `<li>${risk}</li>`).join("")}</ul></section>
+            <footer class="panel wide glass status-panel"><div><div class="status-label">Статус продукта</div><div class="status-value ${d.status ?? "review"}">${statusLabels[d.status] ?? statusLabels.review}</div></div><i class="status-dot ${d.status ?? "review"}" aria-hidden="true"></i></footer>
+          </div>
+        </article>`;
+      document.getElementById("backButton").addEventListener("click", () => history.back());
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+
+    function criterionMarkup(name, value) {
+      const score = typeof value === "number" ? Math.max(0, Math.min(5, value)) : 0;
+      return `<div class="criterion-line"><span class="criterion-name">${name}</span><div class="track"><div class="fill" style="width:${score * 20}%"></div></div><span class="criterion-score">${typeof value === "number" ? value.toFixed(1) : "—"}</span></div>`;
+    }
+    function fact(label, value) { return `<div><div class="fact-label">${label}</div><div class="fact-value">${value}</div></div>`; }
+
+    window.addEventListener("popstate", event => event.state?.destination ? showDetail(event.state.destination, false) : renderList());
+    const initialId = location.hash.replace("#", "");
+    if (destinations.some(d => d.id === initialId)) {
+      history.replaceState({ destination: initialId }, "", `#${initialId}`);
+      showDetail(initialId, false);
+    } else {
+      history.replaceState({}, "", location.pathname);
+      renderList();
+    }
+  </script>
+</body>
+</html>
