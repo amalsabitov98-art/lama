@@ -6,7 +6,7 @@
   <title>Turon Tourism — Дашборд</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
@@ -284,7 +284,7 @@
 <body>
 <div id="root"></div>
 
-<script type="text/babel">
+<script type="text/babel" data-presets="env,react">
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
 // ═══════════════════════════════════════════════════
@@ -394,7 +394,7 @@ function DealModal({ deal, managers, onSave, onClose }) {
 
   const save = () => {
     if (!f.manager || !f.stage || !f.date) return;
-    onSave({ ...f, id: deal?.id || uid(), amount: Number(f.amount)||0 });
+    onSave({ ...f, id: (deal && deal.id) || uid(), amount: Number(f.amount)||0 });
     onClose();
   };
 
@@ -508,7 +508,7 @@ function KPIBlock({ deals, pDeals, currency, rate, goal, setGoal }) {
   const byMgr = {};
   pDeals.filter(d=>d.stage==='paid').forEach(d=>{byMgr[d.manager]=(byMgr[d.manager]||0)+d.amount;});
   const sorted  = Object.entries(byMgr).sort((a,b)=>b[1]-a[1]);
-  const leader  = sorted[0]?.[0] || '—';
+  const leader  = (sorted[0] && sorted[0][0]) || '—';
   const laggard = sorted.length>1 ? sorted[sorted.length-1][0] : '—';
 
   const convColor = conv>=40?'#10B981':conv>=20?'#F59E0B':'#E74C3C';
@@ -875,7 +875,7 @@ function exportXLSX(deals, managers, pDeals, currency, rate) {
   const dealsRows = [
     ['Дата','Менеджер','Стадия','Направление','Сумма (сум)',(currency==='usd'?'Сумма ($)':'')],
     ...deals.sort((a,b)=>b.date.localeCompare(a.date)).map(d=>[
-      d.date, d.manager, SMAP[d.stage]?.label||d.stage,
+      d.date, d.manager, (SMAP[d.stage] && SMAP[d.stage].label)||d.stage,
       d.direction, d.amount,
       currency==='usd' ? Math.round(d.amount/rate) : '',
     ]),
@@ -981,11 +981,13 @@ function App() {
           <button className={period==='custom'?'active':''} onClick={()=>setPeriod('custom')}>Период ▾</button>
         </div>
 
-        {period==='custom' && <>
-          <input type="date" className="inp" value={customFrom} onChange={e=>setCustomFrom(e.target.value)} />
-          <span className="lbl">—</span>
-          <input type="date" className="inp" value={customTo} onChange={e=>setCustomTo(e.target.value)} />
-        </>}
+        {period==='custom' && (
+          <React.Fragment>
+            <input type="date" className="inp" value={customFrom} onChange={e=>setCustomFrom(e.target.value)} />
+            <span className="lbl">—</span>
+            <input type="date" className="inp" value={customTo} onChange={e=>setCustomTo(e.target.value)} />
+          </React.Fragment>
+        )}
 
         {/* Right side */}
         <div style={{marginLeft:'auto',display:'flex',gap:10,alignItems:'center'}}>
