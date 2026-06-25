@@ -83,7 +83,7 @@
     .tier-d { background: rgba(239,159,39,.22); color: #ffd08b; }
     .grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
     .card { position: relative; min-height: 176px; padding: 18px; cursor: pointer; overflow: hidden; transition: 200ms ease; }
-    .card::after { content: "→"; position: absolute; right: 17px; bottom: 15px; color: var(--faint); font-size: 18px; transition: 180ms ease; }
+    .card::after { content: "→"; position: absolute; right: 17px; bottom: 14px; color: var(--faint); font-size: 18px; transition: 180ms ease; }
     .card:hover { background: var(--glass-hover); border-color: rgba(201,168,76,.4); transform: translateY(-2px); }
     .card:hover::after { color: var(--gold); transform: translateX(3px); }
     .card:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
@@ -139,6 +139,30 @@
     .ready { color: #77dfba; } .review { color: #8fc8ff; } .paused { color: #ffc16b; }
     .muted { color: var(--muted); }
     .empty { padding: 42px; text-align: center; color: var(--muted); }
+    .sort-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .sort-label { color: var(--muted); font-size: 11px; margin-right: 4px; }
+    .month-filter { display: flex; flex-wrap: wrap; gap: 5px; }
+    .month-btn { border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.055); padding: 7px 10px; cursor: pointer; color: var(--muted); font-size: 11px; transition: 180ms ease; }
+    .month-btn:hover, .month-btn.active { color: var(--text); border-color: rgba(201,168,76,.46); background: rgba(201,168,76,.13); }
+    .compare-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 20px; background: rgba(15,37,69,.95); backdrop-filter: blur(16px); border-top: 1px solid var(--line); transform: translateY(100%); transition: transform 250ms ease; }
+    .compare-bar.visible { transform: translateY(0); }
+    .compare-bar .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--glass); font-size: 12px; }
+    .compare-bar .chip-x { cursor: pointer; color: var(--muted); font-size: 14px; line-height: 1; }
+    .compare-bar .chip-x:hover { color: var(--text); }
+    .compare-btn { border: none; border-radius: 999px; background: var(--gold); color: #0f2545; padding: 9px 18px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 180ms ease; }
+    .compare-btn:hover { background: #e1c060; }
+    .compare-btn:disabled { opacity: .4; cursor: default; }
+    .card-check { position: absolute; top: 12px; right: 12px; width: 22px; height: 22px; border: 2px solid var(--faint); border-radius: 6px; background: transparent; cursor: pointer; display: grid; place-items: center; font-size: 12px; transition: 180ms ease; z-index: 2; }
+    .card-check.checked { border-color: var(--gold); background: var(--gold); color: #0f2545; }
+    .compare-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.7); backdrop-filter: blur(8px); display: grid; place-items: center; animation: view-in 200ms ease; }
+    .compare-sheet { width: min(95vw, 1100px); max-height: 90vh; overflow-y: auto; padding: 28px; border-radius: var(--radius); background: rgba(15,37,69,.97); border: 1px solid var(--line); }
+    .compare-sheet h2 { margin-bottom: 18px; font-size: 18px; }
+    .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .compare-table th, .compare-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; vertical-align: top; }
+    .compare-table th { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+    .compare-table td:first-child { color: var(--muted); font-size: 11px; width: 140px; }
+    .compare-close { position: absolute; top: 16px; right: 20px; background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
+    .compare-close:hover { color: var(--text); }
     @media (max-width: 900px) {
       .grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
       .panel, .panel.third { grid-column: 1 / -1; }
@@ -780,6 +804,11 @@
     const app = document.getElementById("app");
     let activeFilter = "all";
     let activeTag = "all";
+    let activeMonth = 0;
+    let activeSort = "score";
+    let compareSet = new Set();
+    const sortOptions = { score: "по скору", price: "по цене ↑", margin: "по марже ↓", alpha: "по алфавиту" };
+    const parseNum = s => parseFloat(String(s).replace(/[^0-9.]/g, "")) || 0;
 
     const valueOrPending = value => value ?? "уточняется";
     const safeCriteria = destination => criterionNames.reduce((all, name) => ({ ...all, [name]: destination.criteria?.[name] ?? null }), {});
@@ -793,6 +822,7 @@
       const tagKeys = ["all", "visafree", "evisa", "halal", "direct", "pause"];
       let filtered = activeFilter === "all" ? destinations : destinations.filter(d => d.region === activeFilter);
       if (activeTag !== "all") filtered = filtered.filter(d => d.tags.includes(activeTag));
+      if (activeMonth > 0) filtered = filtered.filter(d => (d.seasons ?? []).includes(activeMonth));
       const avg = filtered.length ? (filtered.reduce((sum, d) => sum + d.score, 0) / filtered.length).toFixed(2) : "—";
       app.innerHTML = `
         <section class="view" aria-labelledby="page-title">
@@ -804,29 +834,61 @@
           </div>
           <div class="control-panel glass"><div class="filters" role="group" aria-label="Фильтр по регионам">${regions.map(region => `<button class="filter-btn ${activeFilter === region ? "active" : ""}" data-region="${region}">${region === "all" ? "Все направления" : region}</button>`).join("")}</div><div class="counter">Показано: ${filtered.length}</div></div>
           <div class="control-panel glass"><div class="filters" role="group" aria-label="Фильтр по тегам">${tagKeys.map(tag => `<button class="filter-btn ${activeTag === tag ? "active" : ""}" data-tag="${tag}">${tag === "all" ? "Все теги" : tagLabels[tag] ?? tag}</button>`).join("")}</div></div>
+          <div class="control-panel glass"><span class="sort-label">Сезон:</span><div class="month-filter">${[{v:0,l:"Все"},...monthNames.map((m,i)=>({v:i+1,l:m}))].map(m => `<button class="month-btn ${activeMonth === m.v ? "active" : ""}" data-month="${m.v}">${m.l}</button>`).join("")}</div></div>
+          <div class="control-panel glass"><span class="sort-label">Сортировка:</span><div class="sort-row">${Object.entries(sortOptions).map(([k,v]) => `<button class="filter-btn ${activeSort === k ? "active" : ""}" data-sort="${k}">${v}</button>`).join("")}</div></div>
           <div class="legend" aria-label="Легенда">${Object.values(tiers).map(t => `<span class="legend-item"><i class="legend-dot" style="color:${t.color};background:${t.color}"></i>${t.label}</span>`).join("")}</div>
           <div id="board">${renderBoard(filtered)}</div>
-        </section>`;
+        </section>
+        <div class="compare-bar ${compareSet.size > 0 ? "visible" : ""}" id="compareBar">
+          ${[...compareSet].map(id => { const d = destinations.find(x => x.id === id); return d ? `<span class="chip">${d.name}<span class="chip-x" data-remove="${id}">✕</span></span>` : ""; }).join("")}
+          <button class="compare-btn" ${compareSet.size < 2 ? "disabled" : ""} id="compareGo">Сравнить (${compareSet.size})</button>
+        </div>`;
       app.querySelectorAll("[data-region]").forEach(button => button.addEventListener("click", () => { activeFilter = button.dataset.region; renderList(); }));
       app.querySelectorAll("[data-tag]").forEach(button => button.addEventListener("click", () => { activeTag = button.dataset.tag; renderList(); }));
+      app.querySelectorAll("[data-month]").forEach(button => button.addEventListener("click", () => { activeMonth = parseInt(button.dataset.month); renderList(); }));
+      app.querySelectorAll("[data-sort]").forEach(button => button.addEventListener("click", () => { activeSort = button.dataset.sort; renderList(); }));
       app.querySelectorAll("[data-destination]").forEach(card => {
         const open = () => showDetail(card.dataset.destination);
-        card.addEventListener("click", open);
+        card.addEventListener("click", e => { if (e.target.closest(".card-check")) return; open(); });
         card.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); } });
       });
+      app.querySelectorAll(".card-check").forEach(cb => cb.addEventListener("click", e => {
+        e.stopPropagation();
+        const id = cb.dataset.compare;
+        if (compareSet.has(id)) compareSet.delete(id);
+        else if (compareSet.size < 3) compareSet.add(id);
+        renderList();
+      }));
+      document.querySelectorAll("[data-remove]").forEach(x => x.addEventListener("click", () => { compareSet.delete(x.dataset.remove); renderList(); }));
+      const goBtn = document.getElementById("compareGo");
+      if (goBtn) goBtn.addEventListener("click", () => { if (compareSet.size >= 2) showCompare(); });
     }
 
     function stat(value, label) { return `<div class="stat glass"><div class="stat-value">${value}</div><div class="stat-label">${label}</div></div>`; }
+    function sortItems(items) {
+      const arr = [...items];
+      switch (activeSort) {
+        case "price": return arr.sort((a,b) => parseNum(money(a).cost) - parseNum(money(b).cost));
+        case "margin": return arr.sort((a,b) => parseNum(money(b).margin) - parseNum(money(a).margin));
+        case "alpha": return arr.sort((a,b) => a.name.localeCompare(b.name, "ru"));
+        default: return arr.sort((a,b) => b.score - a.score);
+      }
+    }
     function renderBoard(items) {
-      if (!items.length) return `<div class="empty glass">В этом регионе направлений пока нет.</div>`;
+      if (!items.length) return `<div class="empty glass">Направлений по этим фильтрам не найдено.</div>`;
+      if (activeSort !== "score") {
+        const sorted = sortItems(items);
+        return `<div class="grid">${sorted.map(cardMarkup).join("")}</div>`;
+      }
       return ["A","B","C","D"].map(tier => {
-        const group = items.filter(d => d.tier === tier).sort((a,b) => b.score - a.score);
+        const group = sortItems(items.filter(d => d.tier === tier));
         if (!group.length) return "";
         return `<section><div class="section-label"><span class="pill ${tiers[tier].className}">${tiers[tier].label}</span></div><div class="grid">${group.map(cardMarkup).join("")}</div></section>`;
       }).join("");
     }
     function cardMarkup(d) {
-      return `<article class="card glass" role="button" tabindex="0" data-destination="${d.id}" aria-label="Открыть ${d.name}"><div class="card-top"><div class="card-name">${d.name}</div><div class="card-score">${d.score.toFixed(2)}</div></div><div class="card-region">${d.region}</div><div class="card-program">${d.program}</div><div class="tags">${d.tags.map(tag => `<span class="tag">${tagLabels[tag] ?? tag}</span>`).join("")}</div></article>`;
+      const checked = compareSet.has(d.id);
+      return `<article class="card glass" role="button" tabindex="0" data-destination="${d.id}" aria-label="Открыть ${d.name}"><div class="card-check ${checked ? "checked" : ""}" data-compare="${d.id}" title="Сравнить">${checked ? "✓" : ""}</div><div class="card-top"><div class="card-name">${d.name}</div><div class="card-score">${d.score.toFixed(2)}</div></div><div class="card-region">${d.region}</div><div class="card-program">${d.program}</div><div class="tags">${d.tags.map(tag => `<span class="tag">${tagLabels[tag] ?? tag}</span>`).join("")}</div></article>`;
     }
 
     function showDetail(id, pushState = true) {
@@ -865,6 +927,33 @@
       return `<div class="criterion-line"><span class="criterion-name">${name}</span><div class="track"><div class="fill" style="width:${score * 20}%"></div></div><span class="criterion-score">${typeof value === "number" ? value.toFixed(1) : "—"}</span></div>`;
     }
     function fact(label, value) { return `<div><div class="fact-label">${label}</div><div class="fact-value">${value}</div></div>`; }
+
+    function showCompare() {
+      const items = [...compareSet].map(id => destinations.find(d => d.id === id)).filter(Boolean);
+      if (items.length < 2) return;
+      const rows = [
+        ["Регион", d => d.region],
+        ["Тир", d => tiers[d.tier].label],
+        ["Скор", d => d.score.toFixed(2)],
+        ["Программа", d => d.program],
+        ["Виза", d => d.visa?.status ?? "—"],
+        ["Стоимость визы", d => d.visa?.cost ?? "—"],
+        ["Перевозчики", d => d.aviation?.carriers ?? "—"],
+        ["Билет RT", d => d.aviation?.price ?? "—"],
+        ["Себестоимость", d => money(d).cost],
+        ["Цена продажи", d => money(d).price],
+        ["Маржа", d => money(d).margin],
+        ["Безубыточность", d => money(d).breakeven],
+        ["Сезон", d => (d.seasons ?? []).map(m => monthNames[m-1]).join(", ") || "—"],
+        ["Статус", d => statusLabels[d.status] ?? "—"],
+        ...criterionNames.map(c => [c, d => d.criteria?.[c]?.toFixed(1) ?? "—"])
+      ];
+      const overlay = document.createElement("div");
+      overlay.className = "compare-overlay";
+      overlay.innerHTML = `<div class="compare-sheet" style="position:relative"><button class="compare-close" id="closeCompare">✕</button><h2>Сравнение направлений</h2><table class="compare-table"><thead><tr><th></th>${items.map(d => `<th>${d.name}</th>`).join("")}</tr></thead><tbody>${rows.map(([label, fn]) => `<tr><td>${label}</td>${items.map(d => `<td>${fn(d)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      document.body.appendChild(overlay);
+      overlay.addEventListener("click", e => { if (e.target === overlay || e.target.id === "closeCompare") overlay.remove(); });
+    }
 
     window.addEventListener("popstate", event => event.state?.destination ? showDetail(event.state.destination, false) : renderList());
     const initialId = location.hash.replace("#", "");
