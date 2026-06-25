@@ -779,6 +779,7 @@
     const statusLabels = { ready: "готов к запуску", review: "требует проверки", paused: "на паузе" };
     const app = document.getElementById("app");
     let activeFilter = "all";
+    let activeTag = "all";
 
     const valueOrPending = value => value ?? "уточняется";
     const safeCriteria = destination => criterionNames.reduce((all, name) => ({ ...all, [name]: destination.criteria?.[name] ?? null }), {});
@@ -789,7 +790,9 @@
     function renderList() {
       document.title = "Turon Tour — справочник направлений";
       const regions = ["all", ...new Set(destinations.map(d => d.region))];
-      const filtered = activeFilter === "all" ? destinations : destinations.filter(d => d.region === activeFilter);
+      const tagKeys = ["all", "visafree", "evisa", "halal", "direct", "pause"];
+      let filtered = activeFilter === "all" ? destinations : destinations.filter(d => d.region === activeFilter);
+      if (activeTag !== "all") filtered = filtered.filter(d => d.tags.includes(activeTag));
       const avg = filtered.length ? (filtered.reduce((sum, d) => sum + d.score, 0) / filtered.length).toFixed(2) : "—";
       app.innerHTML = `
         <section class="view" aria-labelledby="page-title">
@@ -800,10 +803,12 @@
             ${stat(filtered.length, "направлений")}${stat(filtered.filter(d => d.tier === "A").length, "к запуску в 2026")}${stat(filtered.filter(d => d.tier === "B").length, "во второй волне")}${stat(avg, "средний балл")}
           </div>
           <div class="control-panel glass"><div class="filters" role="group" aria-label="Фильтр по регионам">${regions.map(region => `<button class="filter-btn ${activeFilter === region ? "active" : ""}" data-region="${region}">${region === "all" ? "Все направления" : region}</button>`).join("")}</div><div class="counter">Показано: ${filtered.length}</div></div>
+          <div class="control-panel glass"><div class="filters" role="group" aria-label="Фильтр по тегам">${tagKeys.map(tag => `<button class="filter-btn ${activeTag === tag ? "active" : ""}" data-tag="${tag}">${tag === "all" ? "Все теги" : tagLabels[tag] ?? tag}</button>`).join("")}</div></div>
           <div class="legend" aria-label="Легенда">${Object.values(tiers).map(t => `<span class="legend-item"><i class="legend-dot" style="color:${t.color};background:${t.color}"></i>${t.label}</span>`).join("")}</div>
           <div id="board">${renderBoard(filtered)}</div>
         </section>`;
       app.querySelectorAll("[data-region]").forEach(button => button.addEventListener("click", () => { activeFilter = button.dataset.region; renderList(); }));
+      app.querySelectorAll("[data-tag]").forEach(button => button.addEventListener("click", () => { activeTag = button.dataset.tag; renderList(); }));
       app.querySelectorAll("[data-destination]").forEach(card => {
         const open = () => showDetail(card.dataset.destination);
         card.addEventListener("click", open);
