@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Etihad — Генератор ваучеров</title>
+<style>
+  :root{
+    --green:#1f5c3d; --dgreen:#14432c; --gold:#a07d1f;
+    --bg:#f4f6f4; --card:#ffffff; --border:#d8e0da; --ink:#1a2420;
+    --muted:#6b7c73; --soft:#eef3ef; --danger:#b4443a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,sans-serif;line-height:1.5}
+  .top{background:var(--dgreen);color:#fff;padding:18px 24px;display:flex;
+    align-items:center;gap:14px}
+  .top img{height:34px}
+  .top h1{font-size:17px;margin:0;font-weight:600;letter-spacing:.3px}
+  .top .tag{margin-left:auto;font-size:12px;opacity:.75}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px;display:grid;
+    grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:840px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:20px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;
+    color:var(--green);margin:0 0 14px;font-weight:700;
+    display:flex;align-items:center;gap:8px}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;
+    color:var(--muted);font-weight:600;margin:10px 0 4px}
+  input,select{width:100%;padding:9px 11px;border:1px solid var(--border);
+    border-radius:9px;font-size:14px;font-family:inherit;background:var(--soft);
+    color:var(--ink)}
+  input:focus,select:focus{outline:none;border-color:var(--green);background:#fff}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .seg{border:1px solid var(--border);border-radius:11px;padding:12px;
+    margin-bottom:12px;background:#fbfcfb}
+  .seg .lbl{font-size:11px;font-weight:700;letter-spacing:.4px;
+    text-transform:uppercase;margin-bottom:6px}
+  .seg .lbl.dep{color:var(--dgreen)} .seg .lbl.arr{color:var(--green)}
+  .transfers .titem{display:flex;gap:8px;margin-bottom:6px}
+  .transfers input{flex:1}
+  .mini{background:none;border:1px solid var(--border);border-radius:8px;
+    width:34px;cursor:pointer;font-size:16px;color:var(--danger)}
+  .addbtn{background:var(--green);color:#fff;border:none;border-radius:9px;
+    padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-top:6px}
+  .addbtn:hover{background:var(--dgreen)}
+  .full{grid-column:1/-1}
+  .drop{border:2px dashed var(--border);border-radius:14px;padding:28px;
+    text-align:center;background:#fff;cursor:pointer;transition:.15s}
+  .drop:hover,.drop.over{border-color:var(--green);background:var(--soft)}
+  .drop strong{color:var(--green)}
+  .drop small{color:var(--muted);display:block;margin-top:6px}
+  .go{grid-column:1/-1;background:var(--green);color:#fff;border:none;
+    border-radius:12px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;
+    letter-spacing:.3px}
+  .go:hover{background:var(--dgreen)} .go:disabled{opacity:.4;cursor:default}
+  #report{grid-column:1/-1}
+  .rlist{font-size:13px}
+  .rrow{display:flex;gap:10px;padding:7px 10px;border-bottom:1px solid var(--soft);
+    align-items:center}
+  .rrow .no{font-weight:700;color:var(--dgreen);min-width:78px}
+  .rrow .pax{flex:1;color:var(--ink)}
+  .rrow .rm{font-size:11px;color:var(--muted);text-transform:uppercase}
+  .rrow.warn{background:#fdf3f2}
+  .rrow.warn .flag{color:var(--danger);font-size:11px;font-weight:600}
+  .hint{font-size:12px;color:var(--muted);margin:2px 0 0}
+  .privacy{grid-column:1/-1;font-size:12px;color:var(--muted);text-align:center;
+    padding:4px}
+  .dl{display:inline-flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .dl button{background:#fff;border:1px solid var(--green);color:var(--green);
+    border-radius:9px;padding:10px 16px;font-weight:600;cursor:pointer;font-size:14px}
+  .dl button:hover{background:var(--soft)}
+</style>
+</head>
+<body>
+<div class="top">
+  <img id="logo" alt="Etihad">
+  <h1>Генератор ваучеров</h1>
+  <span class="tag">данные не покидают ваш браузер</span>
+</div>
+
+<div class="wrap">
+  <!-- LEFT: group data -->
+  <div class="card">
+    <h2>✈ Рейс — туда</h2>
+    <div class="seg">
+      <div class="lbl dep">Вылет</div>
+      <div class="row"><div><label>Дата</label><input id="f1_dd" placeholder="03.07.2026"></div>
+        <div><label>Время</label><input id="f1_dt" placeholder="20:50"></div></div>
+      <div class="row"><div><label>Город</label><input id="f1_dc" placeholder="ТАШКЕНТ"></div>
+        <div><label>Код</label><input id="f1_dk" placeholder="ТАШКЕНТ (TAS)"></div></div>
+      <div class="lbl arr" style="margin-top:10px">Прибытие</div>
+      <div class="row"><div><label>Дата</label><input id="f1_ad" placeholder="03.07.2026"></div>
+        <div><label>Время</label><input id="f1_at" placeholder="23:20"></div></div>
+      <div class="row"><div><label>Город</label><input id="f1_ac" placeholder="БАТУМИ"></div>
+        <div><label>Код</label><input id="f1_ak" placeholder="БАТУМИ (BUS)"></div></div>
+    </div>
+    <h2>✈ Рейс — обратно</h2>
+    <div class="seg">
+      <div class="lbl dep">Вылет</div>
+      <div class="row"><div><label>Дата</label><input id="f2_dd" placeholder="10.07.2026"></div>
+        <div><label>Время</label><input id="f2_dt" placeholder="17:20"></div></div>
+      <div class="row"><div><label>Город</label><input id="f2_dc" placeholder="ТРАБЗОН"></div>
+        <div><label>Код</label><input id="f2_dk" placeholder="ТРАБЗОН (TZX)"></div></div>
+      <div class="lbl arr" style="margin-top:10px">Прибытие</div>
+      <div class="row"><div><label>Дата</label><input id="f2_ad" placeholder="10.07.2026"></div>
+        <div><label>Время</label><input id="f2_at" placeholder="22:20"></div></div>
+      <div class="row"><div><label>Город</label><input id="f2_ac" placeholder="ТАШКЕНТ"></div>
+        <div><label>Код</label><input id="f2_ak" placeholder="ТАШКЕНТ (TAS)"></div></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: hotels + transfers + agency -->
+  <div class="card">
+    <h2>🏨 Отели</h2>
+    <div class="seg">
+      <div class="lbl">Первый отель</div>
+      <label>Подпись</label><input id="h1_l" placeholder="ОТЕЛЬ БАТУМИ:">
+      <label>Название</label><input id="h1_n" placeholder="BATUMI VIEW LUXURY">
+      <label>Даты</label><input id="h1_d" placeholder="03.07.2026 - 07.07.2026 (4 ночи)">
+    </div>
+    <div class="seg">
+      <div class="lbl">Второй отель</div>
+      <label>Подпись</label><input id="h2_l" placeholder="ОТЕЛЬ РИЗЕ:">
+      <label>Название</label><input id="h2_n" placeholder="RHISOS GOLD OTEL RIZE">
+      <label>Даты</label><input id="h2_d" placeholder="07.07.2026 - 10.07.2026 (3 ночи)">
+    </div>
+    <h2>💬 Трансфер и экскурсии</h2>
+    <div class="transfers" id="transfers"></div>
+    <button class="addbtn" id="addTransfer">+ Добавить</button>
+    <h2 style="margin-top:18px">🏢 Агентство</h2>
+    <div class="row"><div><label>Название</label><input id="ag_n" value="B2 MANAGEMENT ETIHAD ПАКЕТЫ"></div>
+      <div><label>Телефон</label><input id="ag_p" value="78-555-96-96"></div></div>
+    <label>Эл. почта</label><input id="ag_e" placeholder="(необязательно)">
+    <label>Адрес</label><input id="ag_a" value="ГОРОД ТАШКЕНТ, АЛМАЗАРСКИЙ РАЙОН, УЛИЦА НУРАФШОН, 51">
+  </div>
+
+  <!-- FULL: settings + upload -->
+  <div class="card full">
+    <h2>⚙ Параметры выпуска</h2>
+    <div class="row3">
+      <div><label>Стартовый номер (EVB-)</label><input id="startNo" value="364"></div>
+      <div><label>Дата вылета (для ADULT/CHILD)</label><input id="depDate" placeholder="03.07.2026"></div>
+      <div style="align-self:end"><p class="hint">Дети до 12 → CHILD, до 2 → INFANT</p></div>
+    </div>
+  </div>
+
+  <div class="card full">
+    <h2>📄 Таблица туристов</h2>
+    <div class="drop" id="drop">
+      <strong>Выбери Excel-файл</strong> или перетащи сюда
+      <small>Колонки: № · Full Name · Date of Birth · Passport № · Expiry · Room.
+      Номера DBL/TWIN/TRPL подсвечены цветом (соседний номер — другим цветом).</small>
+      <input type="file" id="file" accept=".xlsx,.xls" hidden>
+    </div>
+  </div>
+
+  <button class="go" id="go" disabled>Загрузите таблицу</button>
+
+  <div class="card full" id="report" style="display:none">
+    <h2>Готовые ваучеры</h2>
+    <div class="rlist" id="rlist"></div>
+    <div class="dl">
+      <button id="dlAll">Скачать всё одним PDF</button>
+      <button id="dlZip">Скачать ZIP (по одному)</button>
+    </div>
+  </div>
+
+  <p class="privacy">Файл читается прямо в браузере. Ничего не загружается на сервер.</p>
+</div>
+
+<script src="lib/xlsx.full.min.js"></script>
+<script src="lib/pdf-lib.min.js"></script>
+<script src="lib/fontkit.umd.min.js"></script>
+<script src="lib/jszip.min.js"></script>
+<script src="assets.js"></script>
+<script src="pdf.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
