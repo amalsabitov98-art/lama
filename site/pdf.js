@@ -38,6 +38,9 @@ function drawVoucher(p,d,F){
   const right=(s,rx,yy,size,font,color)=>{
     const tw=font.widthOfTextAtSize(String(s||""),size); T(s,rx-tw,yy,size,font,color);
   };
+  // shrink a string until it fits within max width, so text never crosses its box
+  const fit=(s,max,size,font=F.bold)=>{ s=String(s||"");
+    while(size>4 && font.widthOfTextAtSize(s,size)>max) size-=0.1; return size; };
   // rounded rectangle. (x,top)=top-left corner in PDF coords, grows downward.
   const rr=(x,top,w,h,{r=R,stroke=COL.green,sw=1,fill=rgb(1,1,1)}={})=>{
     const pth=`M ${r} 0 H ${w-r} A ${r} ${r} 0 0 1 ${w} ${r} V ${h-r} `
@@ -79,10 +82,10 @@ function drawVoucher(p,d,F){
     const cy=top-ph/2;
     rr(ML,top,nameW,ph);
     person(ML+22,cy);
-    T(pax.name,ML+42,cy-3.6,11,F.bold,COL.ink);
+    T(pax.name,ML+42,cy-3.6,fit(pax.name,nameW-46,11),F.bold,COL.ink);
     rr(docX,top,docW,ph);
     T("НОМЕР ДОКУМЕНТА:",docX+9,top-13,6.3,F.reg,COL.lgrey);
-    T(pax.passport,docX+9,top-27,9.5,F.bold,COL.ink);
+    T(pax.passport,docX+9,top-27,fit(pax.passport,docW-18,9.5),F.bold,COL.ink);
     rr(dobX,top,dobW,ph);
     T("ДАТА РОЖДЕНИЯ:",dobX+9,top-13,6.3,F.reg,COL.lgrey);
     T(pax.dob,dobX+9,top-26,9.5,F.bold,COL.ink);
@@ -106,14 +109,14 @@ function drawVoucher(p,d,F){
     let dcx=depX+boxW/2;
     center(s.dep_date,dcx,fTop-13,8,F.reg,COL.ink);
     center(s.dep_time,dcx,fTop-25,8,F.reg,COL.ink);
-    center(s.dep_city,dcx,fTop-40,11,F.bold,COL.ink);
-    center(s.dep_code,dcx,fTop-50,7,F.reg,COL.grey);
+    center(s.dep_city,dcx,fTop-40,fit(s.dep_city,boxW-10,11),F.bold,COL.ink);
+    center(s.dep_code,dcx,fTop-50,fit(s.dep_code,boxW-8,7,F.reg),F.reg,COL.grey);
     rr(arrX,fTop,boxW,fh);
     let acx=arrX+boxW/2;
     center(s.arr_date,acx,fTop-13,8,F.reg,COL.ink);
     center(s.arr_time,acx,fTop-25,8,F.reg,COL.ink);
-    center(s.arr_city,acx,fTop-40,11,F.bold,COL.ink);
-    center(s.arr_code,acx,fTop-50,7,F.reg,COL.grey);
+    center(s.arr_city,acx,fTop-40,fit(s.arr_city,boxW-10,11),F.bold,COL.ink);
+    center(s.arr_code,acx,fTop-50,fit(s.arr_code,boxW-8,7,F.reg),F.reg,COL.grey);
     planeDisc(pcx,cy);
     fTop-=fh+fgap;
   }
@@ -130,9 +133,9 @@ function drawVoucher(p,d,F){
   d.hotels.forEach((ht,i)=>{
     const hx=ML+i*(hw+16);
     rr(hx,hTop,hw,hh);
-    T(ht.label,hx+14,hTop-14,7,F.reg,COL.grey);
-    T(ht.name,hx+14,hTop-28,10.5,F.bold,COL.ink);
-    T(ht.dates,hx+14,hTop-39,7.5,F.reg,COL.grey);
+    T(ht.label,hx+14,hTop-14,fit(ht.label,hw-24,7,F.reg),F.reg,COL.grey);
+    T(ht.name,hx+14,hTop-28,fit(ht.name,hw-24,10.5),F.bold,COL.ink);
+    T(ht.dates,hx+14,hTop-39,fit(ht.dates,hw-24,7.5,F.reg),F.reg,COL.grey);
   });
   const hotelBottom=hTop-hh;
 
@@ -144,13 +147,11 @@ function drawVoucher(p,d,F){
   rr(ML,tTop,CW,th);
   d.transfers.forEach((t,i)=>{
     const ry=tTop-i*rowH;
-    T(t,ML+14,ry-11,8.5,F.reg,COL.ink);
+    T(t,ML+14,ry-11,fit(t,CW-28,8.5,F.reg),F.reg,COL.ink);
     if(i>0) p.drawLine({start:{x:ML+1,y:ry},end:{x:CR-1,y:ry},thickness:0.6,color:COL.border});
   });
 
-  // ---- agency footer ----
-  // every footer line shrinks to fit its box so nothing ever crosses the border
-  const fit=(s,max,size)=>{ while(size>4 && F.bold.widthOfTextAtSize(s,size)>max) size-=0.1; return size; };
+  // ---- agency footer ----  (each line auto-shrinks via fit() defined above)
   const ag=d.agency, aw=(CW-16)/2, ah=25, agap=12;
   let aTop=tTop-th-12.5;
   const agName="АГЕНТСТВО: "+ag.name;

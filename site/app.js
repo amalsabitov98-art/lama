@@ -46,9 +46,9 @@ function cfg(){
 let GROUPS=null;
 function parseDate(val){
   if(val==null||val==="") return null;
-  if(typeof val==='number'){ // excel serial
-    const d=new Date(Math.round((val-25569)*86400*1000));
-    return d;
+  if(typeof val==='number'){ // excel serial -> build a local date from UTC parts
+    const d=new Date(Math.round((val-25569)*86400*1000)); // instant at UTC midnight
+    return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()); // no TZ day-shift
   }
   const s=String(val);
   let m=s.match(/(\d{4})-(\d{2})-(\d{2})/); if(m) return new Date(+m[1],+m[2]-1,+m[3]);
@@ -130,14 +130,15 @@ function buildVouchers(groups,c){
 }
 
 // ---- render report ----
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function renderReport(vs){
   const list=$('rlist'); list.innerHTML='';
   vs.forEach(v=>{
     const row=document.createElement('div'); row.className='rrow'+(v.warn?' warn':'');
-    row.innerHTML=`<span class="no">${v.order_no}</span>
-      <span class="pax">${v.passengers.map(p=>p.name).join('; ')}</span>
-      <span class="rm">${v.rooms.join(',')}</span>
-      ${v.warn?`<span class="flag">⚠ ${v.warn}</span>`:''}`;
+    row.innerHTML=`<span class="no">${esc(v.order_no)}</span>
+      <span class="pax">${v.passengers.map(p=>esc(p.name)).join('; ')}</span>
+      <span class="rm">${esc(v.rooms.join(','))}</span>
+      ${v.warn?`<span class="flag">⚠ ${esc(v.warn)}</span>`:''}`;
     list.append(row);
   });
   $('report').style.display='block';
