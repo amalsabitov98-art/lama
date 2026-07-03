@@ -192,6 +192,9 @@ $('dlZip').onclick=async()=>{
   saveBlob(blob,'vouchers.zip');
 };
 function saveBlob(blob,name){
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=name; a.click(); URL.revokeObjectURL(a.href);
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=name; a.style.display='none';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000); // revoke late so the download isn't cancelled
 }
