@@ -61,18 +61,11 @@ function drawVoucher(p,d,F){
     p.drawCircle({x:cx,y:cy,size:13,color:COL.green});
     center("✈",cx+1,cy-4.4,15,F.bold,rgb(1,1,1));
   };
-  // wide-spaced "ETIHAD" wordmark centred at cx on baseline by
-  const wordmark=(cx,by)=>{
-    const s="ETIHAD", size=19, ls=9;
-    let tot=-ls; for(const ch of s) tot+=F.bold.widthOfTextAtSize(ch,size)+ls;
-    let x=cx-tot/2;
-    for(const ch of s){ T(ch,x,by,size,F.bold,COL.dgreen); x+=F.bold.widthOfTextAtSize(ch,size)+ls; }
-  };
-
   // ---- header ----
-  const lw=168, lh=lw*logoRatio(F.logo);
-  p.drawImage(F.logo,{x:CX-lw/2,y:808-lh,width:lw,height:lh});
-  wordmark(CX,744);
+  // the logo asset is the genuine mark (leaf + ETIHAD wordmark), cut from
+  // the approved sample — drawn as-is, nothing is typeset over it.
+  const lh=55, lw=lh/logoRatio(F.logo);
+  p.drawImage(F.logo,{x:CX-lw/2,y:806-lh,width:lw,height:lh});
   right("Номер заказа:",CR,785,9,F.bold,COL.green);
   right(d.order_no,CR,763,18,F.bold,COL.dgreen);
 
@@ -156,17 +149,20 @@ function drawVoucher(p,d,F){
   });
 
   // ---- agency footer ----
+  // every footer line shrinks to fit its box so nothing ever crosses the border
+  const fit=(s,max,size)=>{ while(size>4 && F.bold.widthOfTextAtSize(s,size)>max) size-=0.1; return size; };
   const ag=d.agency, aw=(CW-16)/2, ah=25, agap=12;
   let aTop=tTop-th-12.5;
-  rr(ML,aTop,aw,ah); T("АГЕНТСТВО: "+ag.name,ML+14,aTop-16,8.5,F.bold,COL.ink);
-  rr(ML+aw+16,aTop,aw,ah); T("ТЕЛЕФОН: "+ag.phone,ML+aw+30,aTop-16,8.5,F.bold,COL.ink);
+  const agName="АГЕНТСТВО: "+ag.name;
+  rr(ML,aTop,aw,ah); T(agName,ML+14,aTop-16,fit(agName,aw-26,8.5),F.bold,COL.ink);
+  const agPhone="ТЕЛЕФОН: "+ag.phone;
+  rr(ML+aw+16,aTop,aw,ah); T(agPhone,ML+aw+30,aTop-16,fit(agPhone,aw-42,8.5),F.bold,COL.ink);
   aTop-=ah+agap;
-  rr(ML,aTop,aw,ah); T("ЭЛ. ПОЧТА: "+(ag.email||""),ML+14,aTop-16,8.5,F.bold,COL.ink);
+  const agMail="ЭЛ. ПОЧТА: "+(ag.email||"");
+  rr(ML,aTop,aw,ah); T(agMail,ML+14,aTop-16,fit(agMail,aw-26,8.5),F.bold,COL.ink);
   rr(ML+aw+16,aTop,aw,ah);
-  // shrink the address so it always stays inside its box
-  const adr="АДРЕС: "+ag.address; let asz=6.3;
-  while(asz>4 && F.bold.widthOfTextAtSize(adr,asz)>aw-26) asz-=0.1;
-  T(adr,ML+aw+30,aTop-15,asz,F.bold,COL.grey);
+  const adr="АДРЕС: "+ag.address;
+  T(adr,ML+aw+30,aTop-15,fit(adr,aw-42,6.3),F.bold,COL.grey);
 
   // ---- bottom separator ----
   const sepY=aTop-ah-9;
