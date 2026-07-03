@@ -6,170 +6,384 @@
 <title>Etihad — Генератор ваучеров</title>
 <style>
   :root{
-    --green:#1f5c3d; --dgreen:#14432c; --gold:#a07d1f;
-    --bg:#f4f6f4; --card:#ffffff; --border:#d8e0da; --ink:#1a2420;
-    --muted:#6b7c73; --soft:#eef3ef; --danger:#b4443a;
+    /* forest greens */
+    --forest-900:#0c2418; --forest-800:#0f2c1e; --forest-700:#14432c;
+    --forest-600:#1f5c3d; --forest-500:#2c7350;
+    /* brass / gold foil */
+    --gold-600:#957823; --gold-500:#b6912f; --gold-400:#cbab52;
+    /* paper */
+    --ivory:#f7f4ec; --ivory-2:#fbf9f3; --ivory-3:#fffefb;
+    --line:#e6dfcd; --line-2:#efe9da;
+    /* ink & neutrals (green-biased) */
+    --ink:#16241c; --ink-2:#33413a; --muted:#6d7d72; --faint:#94a29a;
+    /* semantic */
+    --danger:#b4443a; --amber:#a97a1f; --amber-bg:#fbf3e3;
+    --ok:#1f6b46;
+    --shadow:0 1px 2px rgba(20,40,30,.06),0 8px 24px -12px rgba(20,40,30,.18);
+    --shadow-lg:0 2px 6px rgba(12,36,24,.10),0 24px 60px -24px rgba(12,36,24,.34);
+    --radius:12px; --radius-sm:9px;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","Roboto Mono",Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:"Segoe UI",system-ui,-apple-system,sans-serif;line-height:1.5}
-  .top{background:var(--dgreen);color:#fff;padding:18px 24px;display:flex;
-    align-items:center;gap:14px}
-  .top img{height:34px}
-  .top h1{font-size:17px;margin:0;font-weight:600;letter-spacing:.3px}
-  .top .tag{margin-left:auto;font-size:12px;opacity:.75}
-  .wrap{max-width:1080px;margin:0 auto;padding:24px;display:grid;
-    grid-template-columns:1fr 1fr;gap:20px}
-  @media(max-width:840px){.wrap{grid-template-columns:1fr}}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
-    padding:20px}
-  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;
-    color:var(--green);margin:0 0 14px;font-weight:700;
-    display:flex;align-items:center;gap:8px}
-  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;
-    color:var(--muted);font-weight:600;margin:10px 0 4px}
-  input,select{width:100%;padding:9px 11px;border:1px solid var(--border);
-    border-radius:9px;font-size:14px;font-family:inherit;background:var(--soft);
-    color:var(--ink)}
-  input:focus,select:focus{outline:none;border-color:var(--green);background:#fff}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-  .seg{border:1px solid var(--border);border-radius:11px;padding:12px;
-    margin-bottom:12px;background:#fbfcfb}
-  .seg .lbl{font-size:11px;font-weight:700;letter-spacing:.4px;
-    text-transform:uppercase;margin-bottom:6px}
-  .seg .lbl.dep{color:var(--dgreen)} .seg .lbl.arr{color:var(--green)}
-  .transfers .titem{display:flex;gap:8px;margin-bottom:6px}
-  .transfers input{flex:1}
-  .mini{background:none;border:1px solid var(--border);border-radius:8px;
-    width:34px;cursor:pointer;font-size:16px;color:var(--danger)}
-  .addbtn{background:var(--green);color:#fff;border:none;border-radius:9px;
-    padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-top:6px}
-  .addbtn:hover{background:var(--dgreen)}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;color:var(--ink);font-family:var(--sans);line-height:1.55;
+    background:
+      radial-gradient(1200px 460px at 50% -160px,rgba(44,115,80,.30),transparent 70%),
+      linear-gradient(180deg,var(--forest-900),var(--forest-800) 220px,#0c2016 100%);
+    min-height:100vh;
+  }
+  ::selection{background:var(--gold-400);color:var(--forest-900)}
+
+  /* ---------- masthead ---------- */
+  .masthead{max-width:1120px;margin:0 auto;padding:30px 28px 20px;
+    display:flex;align-items:center;gap:18px}
+  .brand{display:flex;align-items:center;gap:15px;min-width:0}
+  .brand .plate{background:var(--ivory-3);border-radius:12px;padding:8px 12px;
+    box-shadow:0 0 0 1px rgba(203,171,82,.35),0 6px 18px -8px rgba(0,0,0,.5);
+    display:flex;align-items:center}
+  .brand .plate img{height:30px;display:block}
+  .brand .titles{min-width:0}
+  .brand .wordmark{font-family:var(--serif);font-size:15px;letter-spacing:.42em;
+    text-transform:uppercase;color:var(--gold-400);font-weight:600;line-height:1;
+    padding-left:.42em}
+  .brand h1{font-family:var(--serif);font-size:22px;font-weight:600;margin:5px 0 0;
+    color:var(--ivory-2);letter-spacing:.2px;line-height:1.1;text-wrap:balance}
+  .masthead .chip{margin-left:auto;display:inline-flex;align-items:center;gap:7px;
+    font-size:12px;color:#bcd0c4;background:rgba(255,255,255,.05);
+    border:1px solid rgba(203,171,82,.22);padding:7px 13px;border-radius:999px;
+    white-space:nowrap}
+  .masthead .chip svg{width:13px;height:13px;opacity:.85}
+  .rule{max-width:1120px;margin:0 auto;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(203,171,82,.5) 12%,rgba(203,171,82,.5) 88%,transparent)}
+
+  /* ---------- console surface ---------- */
+  .console{max-width:1120px;margin:18px auto 0;padding:22px 28px 40px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
   .full{grid-column:1/-1}
-  .drop{border:2px dashed var(--border);border-radius:14px;padding:28px;
-    text-align:center;background:#fff;cursor:pointer;transition:.15s}
-  .drop:hover,.drop.over{border-color:var(--green);background:var(--soft)}
-  .drop strong{color:var(--green)}
-  .drop small{color:var(--muted);display:block;margin-top:6px}
-  .go{grid-column:1/-1;background:var(--green);color:#fff;border:none;
-    border-radius:12px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;
-    letter-spacing:.3px}
-  .go:hover{background:var(--dgreen)} .go:disabled{opacity:.4;cursor:default}
-  #report{grid-column:1/-1}
-  .rlist{font-size:13px}
-  .rrow{display:flex;gap:10px;padding:7px 10px;border-bottom:1px solid var(--soft);
-    align-items:center}
-  .rrow .no{font-weight:700;color:var(--dgreen);min-width:78px}
-  .rrow .pax{flex:1;color:var(--ink)}
-  .rrow .rm{font-size:11px;color:var(--muted);text-transform:uppercase}
-  .rrow.warn{background:#fdf3f2}
-  .rrow.warn .flag{color:var(--danger);font-size:11px;font-weight:600}
-  .hint{font-size:12px;color:var(--muted);margin:2px 0 0}
-  .privacy{grid-column:1/-1;font-size:12px;color:var(--muted);text-align:center;
-    padding:4px}
-  .dl{display:inline-flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-  .dl button{background:#fff;border:1px solid var(--green);color:var(--green);
-    border-radius:9px;padding:10px 16px;font-weight:600;cursor:pointer;font-size:14px}
-  .dl button:hover{background:var(--soft)}
+
+  .panel{background:var(--ivory);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;
+    opacity:0;transform:translateY(10px);animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards}
+  .panel:nth-child(1){animation-delay:.02s}.panel:nth-child(2){animation-delay:.08s}
+  .panel:nth-child(3){animation-delay:.14s}.panel:nth-child(4){animation-delay:.20s}
+  .panel:nth-child(5){animation-delay:.26s}.panel:nth-child(6){animation-delay:.32s}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .pad{padding:20px 22px 22px}
+
+  /* section header */
+  .shead{display:flex;align-items:baseline;gap:12px;padding:16px 22px 13px;
+    border-bottom:1px solid var(--line-2);background:
+      linear-gradient(180deg,var(--ivory-2),var(--ivory))}
+  .shead .eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--gold-600);font-family:var(--mono)}
+  .shead h2{font-family:var(--serif);font-size:17px;font-weight:600;margin:0;
+    color:var(--forest-700);letter-spacing:.2px}
+  .shead .aside{margin-left:auto;font-size:11.5px;color:var(--muted)}
+
+  /* fields */
+  label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--muted);font-weight:700;margin:12px 2px 5px}
+  input,select{width:100%;padding:10px 11px;border:1px solid var(--line);
+    border-radius:var(--radius-sm);font-size:13.5px;font-family:inherit;
+    background:var(--ivory-3);color:var(--ink);transition:border-color .15s,box-shadow .15s,background .15s}
+  input::placeholder{color:var(--faint)}
+  input:hover,select:hover{border-color:#d8cfb6}
+  input:focus,select:focus{outline:none;border-color:var(--forest-600);background:#fff;
+    box-shadow:0 0 0 3px rgba(31,92,61,.14)}
+  .code input{font-family:var(--mono);letter-spacing:.02em}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
+  @media(max-width:520px){.row3{grid-template-columns:1fr}}
+
+  /* ---------- boarding-pass flight card ---------- */
+  .pass{border:1px solid var(--line);border-radius:var(--radius);background:var(--ivory-2);
+    margin:2px 0 4px;overflow:hidden}
+  .pass + .pass{margin-top:16px}
+  .pass-body{display:grid;grid-template-columns:1fr 46px 1fr;align-items:stretch}
+  .leg{padding:14px 16px}
+  .leg .legtag{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;margin-bottom:2px}
+  .leg .row{grid-template-columns:1.3fr 1fr;gap:9px}
+  .leg.dep .legtag{color:var(--forest-600)} .leg.arr .legtag{color:var(--gold-600)}
+  .divider{position:relative;display:flex;align-items:center;justify-content:center}
+  .divider::before{content:"";position:absolute;top:8px;bottom:8px;left:50%;
+    border-left:1px dashed #cfc6ac;transform:translateX(-.5px)}
+  .disc{position:relative;z-index:1;width:30px;height:30px;border-radius:50%;
+    background:var(--forest-600);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 0 4px var(--ivory-2),0 4px 10px -3px rgba(20,60,40,.5)}
+  .disc svg{width:16px;height:16px;fill:#fff}
+  .perf{height:0;border-top:1px dashed var(--line);margin:0 12px}
+  @media(max-width:560px){
+    .pass-body{grid-template-columns:1fr}
+    .divider{height:32px}
+    .divider::before{top:50%;bottom:auto;left:8px;right:8px;border-left:0;
+      border-top:1px dashed #cfc6ac;transform:none}
+    .disc{transform:rotate(90deg)}
+  }
+
+  /* transfers */
+  .transfers{margin-top:6px}
+  .titem{display:flex;gap:9px;margin-bottom:8px;align-items:center}
+  .titem::before{content:"";flex:0 0 6px;height:6px;border-radius:50%;
+    background:var(--gold-500);box-shadow:0 0 0 3px rgba(182,145,47,.16)}
+  .titem input{flex:1}
+  .mini{flex:0 0 auto;background:#fff;border:1px solid var(--line);border-radius:8px;
+    width:34px;height:34px;cursor:pointer;font-size:17px;color:var(--danger);line-height:1;
+    transition:.15s}
+  .mini:hover{background:#fbeceb;border-color:#e6b3ae}
+  .addbtn{background:transparent;color:var(--forest-600);border:1px dashed var(--forest-500);
+    border-radius:var(--radius-sm);padding:9px 15px;font-size:13px;font-weight:600;
+    cursor:pointer;margin-top:4px;font-family:inherit;transition:.15s}
+  .addbtn:hover{background:rgba(31,92,61,.06);border-style:solid}
+
+  .hint{font-size:12px;color:var(--muted);margin:6px 2px 0}
+
+  /* ---------- dropzone ---------- */
+  .drop{border:1.5px dashed #cbc2a8;border-radius:var(--radius);padding:30px 24px;
+    text-align:center;background:
+      repeating-linear-gradient(135deg,var(--ivory-2),var(--ivory-2) 12px,var(--ivory) 12px,var(--ivory) 24px);
+    cursor:pointer;transition:.18s;position:relative}
+  .drop:hover{border-color:var(--forest-500);background:var(--ivory-3)}
+  .drop.over{border-color:var(--forest-600);background:#f0f6f1;
+    box-shadow:inset 0 0 0 3px rgba(31,92,61,.10)}
+  .drop .dicon{width:38px;height:38px;margin:0 auto 8px;color:var(--forest-600);
+    display:flex;align-items:center;justify-content:center;
+    background:#fff;border-radius:10px;box-shadow:var(--shadow)}
+  .drop .dicon svg{width:20px;height:20px;fill:currentColor}
+  .drop strong{color:var(--forest-700);font-size:15px}
+  .drop small{color:var(--muted);display:block;margin-top:7px;max-width:52ch;
+    margin-inline:auto;line-height:1.5}
+
+  /* ---------- primary action ---------- */
+  .actionbar{position:sticky;bottom:0;z-index:5;margin-top:6px;
+    padding:14px 0 4px;
+    background:linear-gradient(180deg,transparent,rgba(12,32,22,.55) 40%,rgba(12,32,22,.85))}
+  .go{width:100%;background:linear-gradient(180deg,var(--forest-600),var(--forest-700));
+    color:#fff;border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);
+    padding:16px;font-size:15.5px;font-weight:700;cursor:pointer;letter-spacing:.3px;
+    font-family:inherit;box-shadow:0 10px 30px -12px rgba(0,0,0,.6);transition:.16s;
+    display:inline-flex;align-items:center;justify-content:center;gap:9px}
+  .go::after{content:"";width:0;height:0}
+  .go:not(:disabled):hover{transform:translateY(-1px);
+    box-shadow:0 14px 34px -12px rgba(0,0,0,.65),0 0 0 1px var(--gold-500)}
+  .go:not(:disabled):active{transform:translateY(0)}
+  .go:disabled{opacity:.45;cursor:default;background:#3a4b41}
+  .ghost{background:#fff;border:1px solid var(--line);color:var(--forest-700);
+    border-radius:var(--radius-sm);padding:11px 16px;font-weight:600;cursor:pointer;
+    font-size:13.5px;font-family:inherit;transition:.15s;display:inline-flex;
+    align-items:center;gap:8px}
+  .ghost:hover{background:var(--ivory-2);border-color:#d8cfb6}
+  .ghost svg{width:15px;height:15px;fill:currentColor}
+
+  .peek{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .peek .txt{flex:1;min-width:200px}
+  .peek .txt strong{color:var(--forest-700);font-family:var(--serif);font-size:15px}
+
+  /* ---------- report ---------- */
+  #report .pad{padding-top:6px}
+  .rlist{font-size:13.5px;border:1px solid var(--line);border-radius:var(--radius-sm);
+    overflow:hidden}
+  .rrow{display:flex;gap:12px;padding:10px 14px;align-items:center;
+    border-bottom:1px solid var(--line-2);background:#fff}
+  .rrow:last-child{border-bottom:0}
+  .rrow:nth-child(even){background:var(--ivory-2)}
+  .rrow .no{font-family:var(--mono);font-weight:700;color:var(--forest-700);
+    min-width:86px;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+  .rrow .pax{flex:1;color:var(--ink-2)}
+  .rrow .rm{font-size:11px;color:var(--muted);text-transform:uppercase;
+    font-family:var(--mono);letter-spacing:.05em}
+  .rrow.warn{background:var(--amber-bg)}
+  .rrow.warn .flag{color:var(--amber);font-size:11.5px;font-weight:700}
+  .dl{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .dl button{background:#fff;border:1px solid var(--forest-500);color:var(--forest-700);
+    border-radius:var(--radius-sm);padding:11px 17px;font-weight:600;cursor:pointer;
+    font-size:14px;font-family:inherit;transition:.15s}
+  .dl button:hover{background:var(--forest-600);color:#fff;border-color:var(--forest-600)}
+
+  /* ---------- preview ---------- */
+  #previewPanel .pad{padding-top:14px}
+  #pvFrame{width:100%;height:82vh;min-height:520px;border:1px solid var(--line);
+    border-radius:var(--radius-sm);background:#fff;display:block}
+  .pv-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+  .footnote{grid-column:1/-1;text-align:center;font-size:12px;color:#9fb1a6;
+    padding:10px 0 4px}
+
+  @media(prefers-reduced-motion:reduce){
+    .panel{animation:none;opacity:1;transform:none}
+    *{transition:none!important}
+  }
 </style>
 </head>
 <body>
-<div class="top">
-  <img id="logo" alt="Etihad">
-  <h1>Генератор ваучеров</h1>
-  <span class="tag">данные не покидают ваш браузер</span>
-</div>
 
-<div class="wrap">
-  <!-- LEFT: group data -->
-  <div class="card">
-    <h2>✈ Рейс — туда</h2>
-    <div class="seg">
-      <div class="lbl dep">Вылет</div>
-      <div class="row"><div><label>Дата</label><input id="f1_dd" placeholder="03.07.2026"></div>
-        <div><label>Время</label><input id="f1_dt" placeholder="20:50"></div></div>
-      <div class="row"><div><label>Город</label><input id="f1_dc" placeholder="ТАШКЕНТ"></div>
-        <div><label>Код</label><input id="f1_dk" placeholder="ТАШКЕНТ (TAS)"></div></div>
-      <div class="lbl arr" style="margin-top:10px">Прибытие</div>
-      <div class="row"><div><label>Дата</label><input id="f1_ad" placeholder="03.07.2026"></div>
-        <div><label>Время</label><input id="f1_at" placeholder="23:20"></div></div>
-      <div class="row"><div><label>Город</label><input id="f1_ac" placeholder="БАТУМИ"></div>
-        <div><label>Код</label><input id="f1_ak" placeholder="БАТУМИ (BUS)"></div></div>
-    </div>
-    <h2>✈ Рейс — обратно</h2>
-    <div class="seg">
-      <div class="lbl dep">Вылет</div>
-      <div class="row"><div><label>Дата</label><input id="f2_dd" placeholder="10.07.2026"></div>
-        <div><label>Время</label><input id="f2_dt" placeholder="17:20"></div></div>
-      <div class="row"><div><label>Город</label><input id="f2_dc" placeholder="ТРАБЗОН"></div>
-        <div><label>Код</label><input id="f2_dk" placeholder="ТРАБЗОН (TZX)"></div></div>
-      <div class="lbl arr" style="margin-top:10px">Прибытие</div>
-      <div class="row"><div><label>Дата</label><input id="f2_ad" placeholder="10.07.2026"></div>
-        <div><label>Время</label><input id="f2_at" placeholder="22:20"></div></div>
-      <div class="row"><div><label>Город</label><input id="f2_ac" placeholder="ТАШКЕНТ"></div>
-        <div><label>Код</label><input id="f2_ak" placeholder="ТАШКЕНТ (TAS)"></div></div>
-    </div>
+<header class="masthead">
+  <div class="brand">
+    <span class="plate"><img id="logo" alt="Etihad"></span>
+    <span class="titles">
+      <span class="wordmark">Etihad</span>
+      <h1>Генератор ваучеров</h1>
+    </span>
   </div>
+  <span class="chip">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M6 10V8a6 6 0 1112 0v2" stroke="#cbab52" stroke-width="2"/><rect x="4" y="10" width="16" height="10" rx="2" stroke="#cbab52" stroke-width="2"/></svg>
+    Данные не покидают браузер
+  </span>
+</header>
+<div class="rule"></div>
 
-  <!-- RIGHT: hotels + transfers + agency -->
-  <div class="card">
-    <h2>🏨 Отели</h2>
-    <div class="seg">
-      <div class="lbl">Первый отель</div>
-      <label>Подпись</label><input id="h1_l" placeholder="ОТЕЛЬ БАТУМИ:">
-      <label>Название</label><input id="h1_n" placeholder="BATUMI VIEW LUXURY">
-      <label>Даты</label><input id="h1_d" placeholder="03.07.2026 - 07.07.2026 (4 ночи)">
+<main class="console">
+  <div class="grid">
+
+    <!-- LEFT: flights -->
+    <section class="panel">
+      <div class="shead"><span class="eyebrow">Маршрут</span><h2>Перелёты</h2>
+        <span class="aside">туда и обратно</span></div>
+      <div class="pad">
+        <div class="pass">
+          <div class="pass-body">
+            <div class="leg dep">
+              <div class="legtag">Рейс туда · вылет</div>
+              <div class="row"><div><label>Дата</label><input id="f1_dd" placeholder="03.07.2026"></div>
+                <div><label>Время</label><input id="f1_dt" placeholder="20:50"></div></div>
+              <div><label>Город</label><input id="f1_dc" placeholder="ТАШКЕНТ"></div>
+              <div class="code"><label>Код</label><input id="f1_dk" placeholder="ТАШКЕНТ (TAS)"></div>
+            </div>
+            <div class="divider"><span class="disc"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L11 19v-5.5z"/></svg></span></div>
+            <div class="leg arr">
+              <div class="legtag">Рейс туда · прибытие</div>
+              <div class="row"><div><label>Дата</label><input id="f1_ad" placeholder="03.07.2026"></div>
+                <div><label>Время</label><input id="f1_at" placeholder="23:20"></div></div>
+              <div><label>Город</label><input id="f1_ac" placeholder="БАТУМИ"></div>
+              <div class="code"><label>Код</label><input id="f1_ak" placeholder="БАТУМИ (BUS)"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pass">
+          <div class="pass-body">
+            <div class="leg dep">
+              <div class="legtag">Рейс обратно · вылет</div>
+              <div class="row"><div><label>Дата</label><input id="f2_dd" placeholder="10.07.2026"></div>
+                <div><label>Время</label><input id="f2_dt" placeholder="17:20"></div></div>
+              <div><label>Город</label><input id="f2_dc" placeholder="ТРАБЗОН"></div>
+              <div class="code"><label>Код</label><input id="f2_dk" placeholder="ТРАБЗОН (TZX)"></div>
+            </div>
+            <div class="divider"><span class="disc"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L11 19v-5.5z"/></svg></span></div>
+            <div class="leg arr">
+              <div class="legtag">Рейс обратно · прибытие</div>
+              <div class="row"><div><label>Дата</label><input id="f2_ad" placeholder="10.07.2026"></div>
+                <div><label>Время</label><input id="f2_at" placeholder="22:20"></div></div>
+              <div><label>Город</label><input id="f2_ac" placeholder="ТАШКЕНТ"></div>
+              <div class="code"><label>Код</label><input id="f2_ak" placeholder="ТАШКЕНТ (TAS)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: hotels + transfers + agency -->
+    <section class="panel">
+      <div class="shead"><span class="eyebrow">Проживание</span><h2>Отели</h2></div>
+      <div class="pad">
+        <label>Первый отель — подпись</label><input id="h1_l" placeholder="ОТЕЛЬ БАТУМИ:">
+        <label>Название</label><input id="h1_n" placeholder="BATUMI VIEW LUXURY">
+        <label>Даты</label><input id="h1_d" placeholder="03.07.2026 - 07.07.2026 (4 ночи)">
+        <div class="perf" style="margin:16px 0"></div>
+        <label>Второй отель — подпись</label><input id="h2_l" placeholder="ОТЕЛЬ РИЗЕ:">
+        <label>Название</label><input id="h2_n" placeholder="RHISOS GOLD OTEL RIZE">
+        <label>Даты</label><input id="h2_d" placeholder="07.07.2026 - 10.07.2026 (3 ночи)">
+      </div>
+      <div class="shead"><span class="eyebrow">Программа</span><h2>Трансфер и экскурсии</h2></div>
+      <div class="pad">
+        <div class="transfers" id="transfers"></div>
+        <button class="addbtn" id="addTransfer">+ Добавить пункт</button>
+      </div>
+      <div class="shead"><span class="eyebrow">Реквизиты</span><h2>Агентство</h2></div>
+      <div class="pad">
+        <label>Название</label><input id="ag_n" value="B2 MANAGEMENT ETIHAD ПАКЕТЫ">
+        <div class="row"><div><label>Телефон</label><input id="ag_p" value="78-555-96-96"></div>
+          <div><label>Эл. почта</label><input id="ag_e" placeholder="(необязательно)"></div></div>
+        <label>Адрес</label><input id="ag_a" value="ГОРОД ТАШКЕНТ, АЛМАЗАРСКИЙ РАЙОН, УЛИЦА НУРАФШОН, 51">
+      </div>
+    </section>
+
+    <!-- settings -->
+    <section class="panel full">
+      <div class="shead"><span class="eyebrow">Выпуск</span><h2>Параметры</h2></div>
+      <div class="pad">
+        <div class="row3">
+          <div class="code"><label>Стартовый номер (EVB-)</label><input id="startNo" value="364"></div>
+          <div class="code"><label>Дата вылета (для ADULT / CHILD)</label><input id="depDate" placeholder="03.07.2026"></div>
+          <div style="align-self:end"><p class="hint">Дети до 12 → CHILD, до 2 → INFANT. Возраст считается на дату вылета.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- upload -->
+    <section class="panel full">
+      <div class="shead"><span class="eyebrow">Источник</span><h2>Таблица туристов</h2>
+        <span class="aside">Excel · .xlsx</span></div>
+      <div class="pad">
+        <div class="drop" id="drop">
+          <span class="dicon"><svg viewBox="0 0 24 24"><path d="M19 13v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4h2v4h10v-4h2zM11 3h2v8.17l2.59-2.58L17 10l-5 5-5-5 1.41-1.41L11 11.17V3z"/></svg></span>
+          <strong>Выберите Excel-файл</strong> или перетащите сюда
+          <small>Колонки: № · Full Name · Date of Birth · Passport № · Expiry · Room.
+          Номера DBL / TWIN / TRPL подсвечены цветом — смена цвета в колонке Room начинает новый ваучер.</small>
+          <input type="file" id="file" accept=".xlsx,.xls" hidden>
+        </div>
+      </div>
+    </section>
+
+    <!-- peek / sample -->
+    <section class="panel full">
+      <div class="pad peek">
+        <div class="txt"><strong>Хотите просто посмотреть, как выглядит ваучер?</strong>
+          <p class="hint">Соберём образец из текущих полей формы — Excel не нужен.</p></div>
+        <button class="ghost" id="btnSample">
+          <svg viewBox="0 0 24 24"><path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 11a4 4 0 110-8 4 4 0 010 8zm0-6a2 2 0 100 4 2 2 0 000-4z"/></svg>
+          Показать пример
+        </button>
+      </div>
+    </section>
+
+    <div class="full actionbar">
+      <button class="go" id="go" disabled>Загрузите таблицу</button>
     </div>
-    <div class="seg">
-      <div class="lbl">Второй отель</div>
-      <label>Подпись</label><input id="h2_l" placeholder="ОТЕЛЬ РИЗЕ:">
-      <label>Название</label><input id="h2_n" placeholder="RHISOS GOLD OTEL RIZE">
-      <label>Даты</label><input id="h2_d" placeholder="07.07.2026 - 10.07.2026 (3 ночи)">
-    </div>
-    <h2>💬 Трансфер и экскурсии</h2>
-    <div class="transfers" id="transfers"></div>
-    <button class="addbtn" id="addTransfer">+ Добавить</button>
-    <h2 style="margin-top:18px">🏢 Агентство</h2>
-    <div class="row"><div><label>Название</label><input id="ag_n" value="B2 MANAGEMENT ETIHAD ПАКЕТЫ"></div>
-      <div><label>Телефон</label><input id="ag_p" value="78-555-96-96"></div></div>
-    <label>Эл. почта</label><input id="ag_e" placeholder="(необязательно)">
-    <label>Адрес</label><input id="ag_a" value="ГОРОД ТАШКЕНТ, АЛМАЗАРСКИЙ РАЙОН, УЛИЦА НУРАФШОН, 51">
+
+    <!-- report -->
+    <section class="panel full" id="report" style="display:none">
+      <div class="shead"><span class="eyebrow">Готово</span><h2>Ваучеры</h2></div>
+      <div class="pad">
+        <div class="rlist" id="rlist"></div>
+        <div class="dl">
+          <button id="dlAll">Скачать всё одним PDF</button>
+          <button id="dlZip">Скачать ZIP (по одному)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- preview -->
+    <section class="panel full" id="previewPanel" style="display:none">
+      <div class="shead"><span class="eyebrow">Предпросмотр</span><h2>PDF</h2>
+        <span class="aside">прямо на странице</span></div>
+      <div class="pad">
+        <iframe id="pvFrame" title="Предпросмотр ваучера"></iframe>
+        <div class="pv-actions">
+          <button class="ghost" id="pvDownload"><svg viewBox="0 0 24 24"><path d="M12 3v10.17l3.59-3.58L17 11l-5 5-5-5 1.41-1.41L12 13.17V3h0zM5 19h14v2H5z"/></svg>Скачать этот PDF</button>
+          <button class="ghost" id="pvTab"><svg viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.3 9.29 1.42 1.42L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7z"/></svg>Открыть в новой вкладке</button>
+        </div>
+        <p class="hint">Не видно предпросмотр? Нажмите «Скачать этот PDF» или «Открыть в новой вкладке» — сам файл корректный.</p>
+      </div>
+    </section>
+
+    <p class="footnote">Файл читается прямо в браузере. Ничего не загружается на сервер.</p>
   </div>
-
-  <!-- FULL: settings + upload -->
-  <div class="card full">
-    <h2>⚙ Параметры выпуска</h2>
-    <div class="row3">
-      <div><label>Стартовый номер (EVB-)</label><input id="startNo" value="364"></div>
-      <div><label>Дата вылета (для ADULT/CHILD)</label><input id="depDate" placeholder="03.07.2026"></div>
-      <div style="align-self:end"><p class="hint">Дети до 12 → CHILD, до 2 → INFANT</p></div>
-    </div>
-  </div>
-
-  <div class="card full">
-    <h2>📄 Таблица туристов</h2>
-    <div class="drop" id="drop">
-      <strong>Выбери Excel-файл</strong> или перетащи сюда
-      <small>Колонки: № · Full Name · Date of Birth · Passport № · Expiry · Room.
-      Номера DBL/TWIN/TRPL подсвечены цветом (соседний номер — другим цветом).</small>
-      <input type="file" id="file" accept=".xlsx,.xls" hidden>
-    </div>
-  </div>
-
-  <button class="go" id="go" disabled>Загрузите таблицу</button>
-
-  <div class="card full" id="report" style="display:none">
-    <h2>Готовые ваучеры</h2>
-    <div class="rlist" id="rlist"></div>
-    <div class="dl">
-      <button id="dlAll">Скачать всё одним PDF</button>
-      <button id="dlZip">Скачать ZIP (по одному)</button>
-    </div>
-  </div>
-
-  <p class="privacy">Файл читается прямо в браузере. Ничего не загружается на сервер.</p>
-</div>
+</main>
 
 <script src="lib/xlsx.full.min.js"></script>
 <script src="lib/pdf-lib.min.js"></script>
@@ -178,5 +392,45 @@
 <script src="assets.js"></script>
 <script src="pdf.js"></script>
 <script src="app.js"></script>
+<script>
+/* On-page PDF preview — the app runs entirely in the browser, so render the
+   generated voucher right here (downloads can be blocked in embedded frames). */
+(function(){
+  var panel=document.getElementById('previewPanel');
+  var frame=document.getElementById('pvFrame');
+  var lastUrl=null;
+
+  async function show(vs){
+    if(!vs||!vs.length) return;
+    var bytes=await makePdf(vs);
+    var blob=new Blob([bytes],{type:'application/pdf'});
+    if(lastUrl) URL.revokeObjectURL(lastUrl);
+    lastUrl=URL.createObjectURL(blob);
+    frame.src=lastUrl;
+    panel.style.display='block';
+    panel.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  document.getElementById('pvDownload').onclick=function(){
+    if(!lastUrl)return; var a=document.createElement('a');
+    a.href=lastUrl; a.download='vouchers.pdf'; a.click();
+  };
+  document.getElementById('pvTab').onclick=function(){ if(lastUrl) window.open(lastUrl,'_blank'); };
+
+  document.getElementById('btnSample').onclick=function(){
+    var c=cfg();
+    show([{
+      order_no:'EVB-'+String(c.startNo).padStart(4,'0'),
+      passengers:[
+        {name:'AKHMADJONOV NIGMATJON',passport:'FA6379647',dob:'04.09.1991',category:'ADULT'},
+        {name:'AKBARALIEVA NARGIZA',passport:'FA1281950',dob:'23.06.1990',category:'ADULT'}
+      ],
+      flights:c.flights,hotels:c.hotels,transfers:c.transfers,agency:c.agency
+    }]);
+  };
+  document.getElementById('go').addEventListener('click',function(){
+    setTimeout(function(){ try{ if(LAST) show(LAST); }catch(e){} },0);
+  });
+})();
+</script>
 </body>
 </html>
