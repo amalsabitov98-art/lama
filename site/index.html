@@ -206,8 +206,12 @@
 
   /* ---------- preview ---------- */
   #previewPanel .pad{padding-top:14px}
-  #pvFrame{width:100%;height:82vh;min-height:520px;border:1px solid var(--line);
-    border-radius:var(--radius-sm);background:#fff;display:block}
+  #pvPages{display:flex;flex-direction:column;gap:16px;align-items:center;
+    background:var(--ivory-2);padding:16px;border:1px solid var(--line);
+    border-radius:var(--radius-sm);max-height:86vh;overflow:auto}
+  .pv-page{max-width:100%;height:auto;background:#fff;border:1px solid var(--line-2);
+    border-radius:4px;box-shadow:var(--shadow-lg)}
+  .pv-status{font-size:13px;color:var(--muted);padding:24px;text-align:center}
   .pv-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 
   .footnote{grid-column:1/-1;text-align:center;font-size:12px;color:#9fb1a6;
@@ -372,12 +376,12 @@
       <div class="shead"><span class="eyebrow">Предпросмотр</span><h2>PDF</h2>
         <span class="aside">прямо на странице</span></div>
       <div class="pad">
-        <iframe id="pvFrame" title="Предпросмотр ваучера"></iframe>
+        <div id="pvPages"></div>
         <div class="pv-actions">
-          <button class="ghost" id="pvDownload"><svg viewBox="0 0 24 24"><path d="M12 3v10.17l3.59-3.58L17 11l-5 5-5-5 1.41-1.41L12 13.17V3h0zM5 19h14v2H5z"/></svg>Скачать этот PDF</button>
+          <button class="ghost" id="pvDownload"><svg viewBox="0 0 24 24"><path d="M12 3v10.17l3.59-3.58L17 11l-5 5-5-5 1.41-1.41L12 13.17V3h0zM5 19h14v2H5z"/></svg>Скачать PDF</button>
           <button class="ghost" id="pvTab"><svg viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.3 9.29 1.42 1.42L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7z"/></svg>Открыть в новой вкладке</button>
         </div>
-        <p class="hint">Не видно предпросмотр? Нажмите «Скачать этот PDF» или «Открыть в новой вкладке» — сам файл корректный.</p>
+        <p class="hint">Если открыто как встроенный предпросмотр и скачивание не срабатывает — сохраните страницы правым кликом → «Сохранить картинку», либо откройте приложение отдельным файлом <code>standalone.html</code>, там всё скачивается.</p>
       </div>
     </section>
 
@@ -389,32 +393,59 @@
 <script src="lib/pdf-lib.min.js"></script>
 <script src="lib/fontkit.umd.min.js"></script>
 <script src="lib/jszip.min.js"></script>
+<script src="lib/pdf.min.js"></script>
+<script src="lib/pdf.worker.min.js"></script>
 <script src="assets.js"></script>
 <script src="pdf.js"></script>
 <script src="app.js"></script>
 <script>
-/* On-page PDF preview — the app runs entirely in the browser, so render the
-   generated voucher right here (downloads can be blocked in embedded frames). */
+/* On-page PDF preview. The generated PDF is rasterised to <canvas> images with
+   pdf.js on the main thread — this renders reliably even inside a sandboxed
+   frame (where the browser PDF viewer, downloads and pop-ups are disabled). */
 (function(){
   var panel=document.getElementById('previewPanel');
-  var frame=document.getElementById('pvFrame');
-  var lastUrl=null;
+  var pages=document.getElementById('pvPages');
+  var lastBytes=null, busy=false;
+
+  // run pdf.js without a dedicated worker: force the main-thread ("fake") worker,
+  // which pdf.worker.min.js registered on globalThis. No blobs / network needed.
+  if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='pdf.worker.js';
+
+  function status(t){ pages.innerHTML='<div class="pv-status">'+t+'</div>'; }
 
   async function show(vs){
-    if(!vs||!vs.length) return;
-    var bytes=await makePdf(vs);
-    var blob=new Blob([bytes],{type:'application/pdf'});
-    if(lastUrl) URL.revokeObjectURL(lastUrl);
-    lastUrl=URL.createObjectURL(blob);
-    frame.src=lastUrl;
+    if(!vs||!vs.length||busy) return;
+    busy=true;
     panel.style.display='block';
+    status('Готовлю PDF…');
     panel.scrollIntoView({behavior:'smooth',block:'start'});
+    try{
+      lastBytes=await makePdf(vs);
+      if(!window.pdfjsLib) throw new Error('pdf.js не загрузился');
+      status('Рисую предпросмотр…');
+      var pdf=await pdfjsLib.getDocument({data:lastBytes.slice()}).promise;
+      pages.innerHTML='';
+      for(var i=1;i<=pdf.numPages;i++){
+        var page=await pdf.getPage(i);
+        var vp=page.getViewport({scale:1.8});
+        var cv=document.createElement('canvas');
+        cv.className='pv-page'; cv.width=vp.width; cv.height=vp.height;
+        pages.appendChild(cv);
+        await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+      }
+    }catch(e){
+      status('Не удалось нарисовать предпросмотр ('+(e&&e.message||e)+'). '
+        +'Файл всё равно готов — нажмите «Скачать PDF».');
+    }
+    busy=false;
   }
+  function blobUrl(){ return URL.createObjectURL(new Blob([lastBytes],{type:'application/pdf'})); }
   document.getElementById('pvDownload').onclick=function(){
-    if(!lastUrl)return; var a=document.createElement('a');
-    a.href=lastUrl; a.download='vouchers.pdf'; a.click();
+    if(!lastBytes)return; var u=blobUrl(); var a=document.createElement('a');
+    a.href=u; a.download='vouchers.pdf'; document.body.appendChild(a); a.click();
+    a.remove(); setTimeout(function(){URL.revokeObjectURL(u);},4000);
   };
-  document.getElementById('pvTab').onclick=function(){ if(lastUrl) window.open(lastUrl,'_blank'); };
+  document.getElementById('pvTab').onclick=function(){ if(lastBytes) window.open(blobUrl(),'_blank'); };
 
   document.getElementById('btnSample').onclick=function(){
     var c=cfg();
