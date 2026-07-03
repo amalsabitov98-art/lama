@@ -699,12 +699,30 @@ function colorOf(cell){
     if(f&&f.rgb) return f.rgb; }
   return null;
 }
+// find the last header row so data reading starts right after it.
+// Works whether the sheet has 1 or 2 header rows (or none) — never drops the
+// first tourist. A row is a header if its cells read like column titles.
+function headerEndRow(ws,ref){
+  const cell=(col,r)=>{ const c=ws[col+(r+1)]; return c&&c.v!=null?String(c.v).trim().toLowerCase():""; };
+  const looksHeader=(r)=>{
+    const a=cell('A',r),b=cell('B',r),c=cell('C',r),f=cell('F',r);
+    return /full\s*name|ф\.?\s*и\.?\s*о|фамилия|passenger/.test(b)
+        || /\broom\b|комнат|размещ/.test(f)
+        || /date\s*of\s*birth|birth|рожд/.test(c)
+        || a==='№'||a==='#'||/^no\.?$/.test(a);
+  };
+  let last=-1;
+  for(let r=ref.s.r;r<=Math.min(ref.e.r,ref.s.r+9);r++) if(looksHeader(r)) last=r;
+  return last; // -1 => no header found
+}
+
 function readExcel(buf){
   const wb=XLSX.read(buf,{type:'array',cellStyles:true});
   const ws=wb.Sheets[wb.SheetNames[0]];
   const ref=XLSX.utils.decode_range(ws['!ref']);
+  const start=headerEndRow(ws,ref)+1; // first data row (0-indexed); 0 if no header
   const rows=[];
-  for(let r=2;r<=ref.e.r;r++){ // r=2 -> excel row3 (0-indexed)
+  for(let r=start;r<=ref.e.r;r++){
     const name=ws['B'+(r+1)]; const dob=ws['C'+(r+1)];
     const pass=ws['D'+(r+1)]; const room=ws['F'+(r+1)];
     const nameVal = (name && name.v!=null && String(name.v).trim()!=="") ? String(name.v).trim() : null;
