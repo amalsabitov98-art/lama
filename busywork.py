@@ -8,11 +8,15 @@ busywork.py — имитатор бурной деятельности для т
 прогресс-бары и время от времени "останавливается", спрашивая
 подтверждение следующего шага.
 
+По умолчанию экран НИКОГДА не останавливается в ожидании ввода —
+"подтверждения" нажимаются сами через паузу. Это специально: чтобы
+случайный взгляд со стороны всегда ловил движение на экране.
+
 Запуск:
-    python3 busywork.py                 # обычный режим, бесконечный цикл
+    python3 busywork.py                 # авто-режим, бесконечный цикл (рекомендуется)
+    python3 busywork.py --slow          # медленнее и солиднее (хорошо издалека)
     python3 busywork.py --fast          # печатать быстрее
-    python3 busywork.py --slow          # печатать медленнее
-    python3 busywork.py --no-confirm    # не ждать ввода, всё авто
+    python3 busywork.py --interactive   # реально ждать ввода [y/n]
     python3 busywork.py --once          # один проход и выход
 
 Выход в любой момент — Ctrl+C.
@@ -164,7 +168,7 @@ healthcheck:
 #  Утилиты вывода
 # ------------------------------------------------------------------ #
 SPEED = 1.0          # множитель задержек (меняется флагами)
-CONFIRM = True       # ждать ли подтверждения
+CONFIRM = False      # ждать ли реального ввода (по умолчанию — нет, авто)
 
 
 def _sleep(base):
@@ -238,8 +242,12 @@ def confirm_step():
     line("")
     line(f"{C.yellow}{C.bold}?{C.reset} {C.bold}{q}{C.reset}")
     if not CONFIRM:
-        _sleep(0.6)
-        line(f"  {C.green}→ авто-подтверждение (y){C.reset}")
+        # авто-режим: "думаем" и как будто сами нажимаем y — экран не замирает
+        sys.stdout.write(f"  {C.gray}[y/n]{C.reset} ")
+        sys.stdout.flush()
+        _sleep(random.uniform(1.0, 2.4))
+        type_out("y\n", color=C.green, cps_min=0.05, cps_max=0.12)
+        line(f"  {C.green}✓ продолжаю...{C.reset}")
         return
     try:
         sys.stdout.write(f"  {C.gray}[y/n]{C.reset} ")
@@ -306,7 +314,8 @@ def main():
     p = argparse.ArgumentParser(description="Имитатор бурной деятельности.")
     p.add_argument("--fast", action="store_true", help="печатать быстрее")
     p.add_argument("--slow", action="store_true", help="печатать медленнее")
-    p.add_argument("--no-confirm", action="store_true", help="не ждать ввода")
+    p.add_argument("--interactive", action="store_true",
+                   help="реально ждать ввода [y/n] (по умолчанию — авто)")
     p.add_argument("--once", action="store_true", help="один проход и выход")
     args = p.parse_args()
 
@@ -314,8 +323,8 @@ def main():
         SPEED = 0.4
     if args.slow:
         SPEED = 2.0
-    if args.no_confirm:
-        CONFIRM = False
+    if args.interactive:
+        CONFIRM = True
 
     os.system("")  # включить ANSI в старых Windows-терминалах
 
