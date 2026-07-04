@@ -21,10 +21,11 @@ $ErrorActionPreference = "Stop"
 $e = [char]27  # ESC для ANSI-цветов
 
 # --- множитель скорости (больше = медленнее) ---
-$SPEED = 1.0
-if ($Slow) { $SPEED = 3.0 }
-if ($Fast) { $SPEED = 0.4 }
-if ($Speed -gt 0) { $SPEED = $Speed }   # -Speed переопределяет всё
+# ВАЖНО: имя НЕ должно совпадать с $Speed по буквам — в PowerShell регистр не важен.
+$MULT = 1.0
+if ($Slow) { $MULT = 3.0 }
+if ($Fast) { $MULT = 0.4 }
+if ($Speed -gt 0) { $MULT = $Speed }   # -Speed переопределяет всё
 
 # --- цвета ---
 $R  = "$e[0m"; $DIM = "$e[2m"; $B = "$e[1m"
@@ -129,7 +130,7 @@ function CheckPause {
 
 function Zzz($sec) {
     CheckPause
-    Start-Sleep -Milliseconds ([int]($sec * 1000 * $SPEED))
+    Start-Sleep -Milliseconds ([int]($sec * 1000 * $MULT))
 }
 
 function Rand($arr) { $arr[(Get-Random -Maximum $arr.Count)] }
@@ -153,7 +154,7 @@ function Status($text, $color) {
 
 function Spinner($text, $seconds) {
     $frames = "|/-\".ToCharArray()
-    $end = (Get-Date).AddSeconds($seconds * $SPEED)
+    $end = (Get-Date).AddSeconds($seconds * $MULT)
     $i = 0
     while ((Get-Date) -lt $end) {
         CheckPause
