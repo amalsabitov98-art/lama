@@ -4,22 +4,27 @@
 #   powershell -ExecutionPolicy Bypass -File C:\Users\User\Downloads\busywork.ps1
 #
 # Флаги:
-#   -Slow   печатать медленнее (солиднее издалека)
-#   -Fast   печатать быстрее
-# Выход в любой момент - Ctrl+C.
+#   -Slow          печатать медленнее
+#   -Fast          печатать быстрее
+#   -Speed <число> точная скорость: 1 = обычно, 4 = медленно, 8 = очень медленно
+# Управление во время работы:
+#   ПРОБЕЛ - пауза / продолжить
+#   Ctrl+C - выход
 
 param(
     [switch]$Slow,
-    [switch]$Fast
+    [switch]$Fast,
+    [double]$Speed = 0
 )
 
 $ErrorActionPreference = "Stop"
 $e = [char]27  # ESC для ANSI-цветов
 
-# --- множитель скорости ---
+# --- множитель скорости (больше = медленнее) ---
 $SPEED = 1.0
-if ($Slow) { $SPEED = 2.0 }
+if ($Slow) { $SPEED = 3.0 }
 if ($Fast) { $SPEED = 0.4 }
+if ($Speed -gt 0) { $SPEED = $Speed }   # -Speed переопределяет всё
 
 # --- цвета ---
 $R  = "$e[0m"; $DIM = "$e[2m"; $B = "$e[1m"
@@ -104,7 +109,28 @@ func (s *TransferService) Dispatch(ctx context.Context, r Route) error {
 )
 
 # --- утилиты ---
-function Zzz($sec) { Start-Sleep -Milliseconds ([int]($sec * 1000 * $SPEED)) }
+# Пауза по пробелу: если нажат ПРОБЕЛ - замираем до следующего ПРОБЕЛА.
+function CheckPause {
+    try {
+        if ([Console]::KeyAvailable) {
+            $k = [Console]::ReadKey($true)
+            if ($k.Key -eq 'Spacebar') {
+                Write-Host ""
+                Write-Host "$YEL$B  [ ПАУЗА ]  нажми ПРОБЕЛ чтобы продолжить$R"
+                while ($true) {
+                    $k2 = [Console]::ReadKey($true)
+                    if ($k2.Key -eq 'Spacebar') { break }
+                }
+                Write-Host "$GREEN  [ продолжаю ]$R"
+            }
+        }
+    } catch { }  # если ввод недоступен - просто идём дальше
+}
+
+function Zzz($sec) {
+    CheckPause
+    Start-Sleep -Milliseconds ([int]($sec * 1000 * $SPEED))
+}
 
 function Rand($arr) { $arr[(Get-Random -Maximum $arr.Count)] }
 
@@ -130,6 +156,7 @@ function Spinner($text, $seconds) {
     $end = (Get-Date).AddSeconds($seconds * $SPEED)
     $i = 0
     while ((Get-Date) -lt $end) {
+        CheckPause
         Write-Host "`r$YEL$($frames[$i % $frames.Count])$R $text" -NoNewline
         Start-Sleep -Milliseconds 80
         $i++
@@ -198,7 +225,7 @@ function OnePass {
 
 # --- main ---
 Write-Host ""
-Write-Host "$B$MAG  Turon Tour . dev console$R  $DIM(Ctrl+C - выход)$R"
+Write-Host "$B$MAG  Turon Tour . dev console$R  $DIM(ПРОБЕЛ - пауза, Ctrl+C - выход)$R"
 Write-Host "$GRAY  -----------------------------------------$R"
 Write-Host ""
 
