@@ -1,17 +1,54 @@
+/* Шрифты направления: Outfit (заголовки) + Work Sans (текст). */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Work+Sans:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Базовые дефолты каркаса. Финальную типографику/палитру добавим на этапе дизайна. */
 @layer base {
   html {
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply bg-sand font-sans text-ink antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-heading;
   }
   /* Отступ под sticky-шапку при скролле к якорям (#tours и т.д.) */
   :target {
-    scroll-margin-top: 5rem;
+    scroll-margin-top: 6rem;
+  }
+}
+
+@layer components {
+  /* Signature #1: пунктирная линия-«маршрут» между секциями. */
+  .route-divider {
+    @apply relative flex items-center justify-center;
+  }
+  .route-divider::before {
+    content: '';
+    @apply absolute left-0 right-0 top-1/2 border-t border-dashed border-brand/40;
+  }
+  .route-divider__pin {
+    @apply relative z-10 flex h-9 w-9 items-center justify-center rounded-full border border-brand/40 bg-sand text-brand;
+  }
+
+  /* Signature #2: «билетная» надсечка — два выреза цвета фона на стыке фото и тела карточки. */
+  .ticket-notch {
+    @apply pointer-events-none absolute h-4 w-4 rounded-full bg-sand;
+  }
+}
+
+/* Уважаем prefers-reduced-motion: гасим анимации и плавный скролл. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

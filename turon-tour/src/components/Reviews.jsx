@@ -37,7 +37,7 @@ function Avatar({ имя }) {
     .slice(0, 2)
     .join('')
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-600">
+    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand/15 text-sm font-semibold text-brand-dark">
       {initials}
     </div>
   )
@@ -45,23 +45,23 @@ function Avatar({ имя }) {
 
 export default function Reviews() {
   return (
-    <section id="reviews" className="border-t border-gray-200 bg-white">
+    <section id="reviews" className="bg-white">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
-        <h2 className="text-2xl font-bold sm:text-3xl">Отзывы</h2>
-        <p className="mt-2 text-gray-600">Что говорят туристы, которые уже съездили с нами.</p>
+        <h2 className="font-heading text-3xl font-bold text-ink sm:text-4xl">Отзывы</h2>
+        <p className="mt-2 text-stone-600">Что говорят туристы, которые уже съездили с нами.</p>
 
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {REVIEWS.map((r) => (
             <figure
               key={r.id}
-              className="flex flex-col rounded-lg border border-gray-200 bg-white p-5"
+              className="flex flex-col rounded-xl border border-stone-200 bg-sand p-5"
             >
-              <blockquote className="flex-1 text-sm text-gray-700">«{r.текст}»</blockquote>
-              <figcaption className="mt-4 flex items-center gap-3 border-t border-gray-100 pt-4">
+              <blockquote className="flex-1 text-sm text-stone-700">«{r.текст}»</blockquote>
+              <figcaption className="mt-4 flex items-center gap-3 border-t border-dashed border-stone-200 pt-4">
                 <Avatar имя={r.имя} />
                 <div>
-                  <div className="text-sm font-semibold text-gray-900">{r.имя}</div>
-                  <div className="text-xs text-gray-500">{r.направление}</div>
+                  <div className="text-sm font-semibold text-ink">{r.имя}</div>
+                  <div className="text-xs text-stone-500">{r.направление}</div>
                 </div>
               </figcaption>
             </figure>

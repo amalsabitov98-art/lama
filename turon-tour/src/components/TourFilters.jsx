@@ -12,14 +12,14 @@ export default function TourFilters({
   const hasActiveFilter = destination !== allValue || month !== allValue
 
   return (
-    <div className="mb-8 flex flex-col gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mb-8 flex flex-col gap-4 rounded-xl border border-stone-200 bg-white p-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
         <label className="sm:w-48">
-          <span className="mb-1 block text-sm font-medium text-gray-700">Направление</span>
+          <span className="mb-1 block text-sm font-medium text-stone-700">Направление</span>
           <select
             value={destination}
             onChange={(e) => onDestinationChange(e.target.value)}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+            className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           >
             <option value={allValue}>Все направления</option>
             {destinationOptions.map((d) => (
@@ -31,11 +31,11 @@ export default function TourFilters({
         </label>
 
         <label className="sm:w-48">
-          <span className="mb-1 block text-sm font-medium text-gray-700">Месяц</span>
+          <span className="mb-1 block text-sm font-medium text-stone-700">Месяц</span>
           <select
             value={month}
             onChange={(e) => onMonthChange(e.target.value)}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm capitalize focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+            className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm capitalize focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           >
             <option value={allValue}>Любой месяц</option>
             {monthOptions.map((m) => (
@@ -47,15 +47,15 @@ export default function TourFilters({
         </label>
       </div>
 
-      <div className="flex items-center gap-4 text-sm text-gray-600">
+      <div className="flex items-center gap-4 text-sm text-stone-600">
         <span>
-          Найдено: <span className="font-semibold text-gray-900">{resultsCount}</span>
+          Найдено: <span className="font-semibold text-ink">{resultsCount}</span>
         </span>
         {hasActiveFilter && (
           <button
             type="button"
             onClick={onReset}
-            className="text-gray-600 underline underline-offset-2 hover:text-gray-900"
+            className="text-brand-dark underline underline-offset-2 hover:text-brand"
           >
             Сбросить
           </button>

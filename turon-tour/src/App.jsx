@@ -7,6 +7,7 @@ import TourModal from './components/TourModal.jsx'
 import About from './components/About.jsx'
 import Reviews from './components/Reviews.jsx'
 import Footer from './components/Footer.jsx'
+import RouteDivider from './components/RouteDivider.jsx'
 import { tours } from './data/tours.js'
 
 // Порядок месяцев для сортировки селектов.
@@ -67,7 +68,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-sand text-ink">
       <Header />
 
       <main>
@@ -82,10 +83,12 @@ export default function App() {
           onSubmit={scrollToTours}
         />
 
+        <RouteDivider />
+
         <section id="tours" className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold sm:text-3xl">Готовые туры</h2>
-            <p className="mt-2 text-gray-600">
+            <h2 className="font-heading text-3xl font-bold text-ink sm:text-4xl">Готовые туры</h2>
+            <p className="mt-2 text-stone-600">
               Проверенные программы с фиксированными датами выезда.
             </p>
           </div>
@@ -105,7 +108,9 @@ export default function App() {
           <TourGrid tours={visibleTours} onOpen={setActiveTour} onReset={resetFilters} />
         </section>
 
+        <RouteDivider />
         <About />
+        <RouteDivider />
         <Reviews />
       </main>
 

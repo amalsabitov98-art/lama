@@ -4,14 +4,14 @@ import { telegramBookingLink } from '../lib/contacts.js'
 const formatPrice = (n) => new Intl.NumberFormat('ru-RU').format(n) + ' сум'
 
 // Небольшой список-колонка с маркерами (входит / не входит).
-function List({ title, items, marker }) {
+function List({ title, items, marker, markerClass }) {
   return (
     <div>
-      <h4 className="mb-2 text-sm font-semibold text-gray-900">{title}</h4>
-      <ul className="space-y-1.5 text-sm text-gray-600">
+      <h4 className="mb-2 text-sm font-semibold text-ink">{title}</h4>
+      <ul className="space-y-1.5 text-sm text-stone-600">
         {items.map((item, i) => (
           <li key={i} className="flex gap-2">
-            <span aria-hidden className="select-none">
+            <span aria-hidden className={`select-none font-semibold ${markerClass}`}>
               {marker}
             </span>
             <span>{item}</span>
@@ -49,16 +49,16 @@ export default function TourModal({ tour, onClose }) {
     >
       {/* stopPropagation — клик внутри окна не закрывает модалку */}
       <div
-        className="relative my-8 w-full max-w-2xl rounded-lg bg-white shadow-xl"
+        className="relative my-8 w-full max-w-2xl rounded-2xl bg-white shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Шапка модалки */}
-        <div className="sticky top-0 flex items-start justify-between gap-4 rounded-t-lg border-b border-gray-200 bg-white p-5">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 rounded-t-2xl border-b border-stone-200 bg-white p-5">
           <div>
-            <h3 className="text-xl font-bold">
+            <h3 className="font-heading text-xl font-bold text-ink">
               {tour.город}, {tour.страна}
             </h3>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-stone-600">
               {tour.длительность} · {tour.размерГруппы}
             </p>
           </div>
@@ -66,7 +66,7 @@ export default function TourModal({ tour, onClose }) {
             type="button"
             onClick={onClose}
             aria-label="Закрыть"
-            className="shrink-0 rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            className="shrink-0 rounded-lg p-1 text-stone-400 transition-colors hover:bg-brand/10 hover:text-brand-dark"
           >
             <span className="text-2xl leading-none">&times;</span>
           </button>
@@ -93,14 +93,14 @@ export default function TourModal({ tour, onClose }) {
 
           {/* Программа по дням */}
           <div>
-            <h4 className="mb-3 text-sm font-semibold text-gray-900">Программа по дням</h4>
-            <ol className="space-y-3">
+            <h4 className="mb-3 text-sm font-semibold text-ink">Программа по дням</h4>
+            <ol className="space-y-3 border-l border-dashed border-brand/40 pl-5">
               {tour.программаПоДням.map((day, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-semibold text-white">
+                <li key={i} className="relative">
+                  <span className="absolute -left-[1.65rem] flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
                     {i + 1}
                   </span>
-                  <span className="text-sm text-gray-700">{day}</span>
+                  <span className="text-sm text-stone-700">{day}</span>
                 </li>
               ))}
             </ol>
@@ -108,22 +108,29 @@ export default function TourModal({ tour, onClose }) {
 
           {/* Входит / не входит */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <List title="Входит в стоимость" items={tour.входитВстоимость} marker="✓" />
-            <List title="Не входит" items={tour.неВходит} marker="—" />
+            <List
+              title="Входит в стоимость"
+              items={tour.входитВстоимость}
+              marker="✓"
+              markerClass="text-brand"
+            />
+            <List title="Не входит" items={tour.неВходит} marker="—" markerClass="text-stone-400" />
           </div>
         </div>
 
         {/* Подвал модалки: цена + бронь */}
-        <div className="sticky bottom-0 flex flex-col items-stretch justify-between gap-3 rounded-b-lg border-t border-gray-200 bg-white p-5 sm:flex-row sm:items-center">
+        <div className="sticky bottom-0 flex flex-col items-stretch justify-between gap-3 rounded-b-2xl border-t border-stone-200 bg-sand p-5 sm:flex-row sm:items-center">
           <div>
-            <span className="block text-xs text-gray-500">Стоимость</span>
-            <span className="text-2xl font-bold">от {formatPrice(tour.ценаОт)}</span>
+            <span className="block text-xs text-stone-500">Стоимость</span>
+            <span className="font-heading text-2xl font-bold text-brand-dark">
+              от {formatPrice(tour.ценаОт)}
+            </span>
           </div>
           <a
             href={telegramBookingLink(tour)}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-md bg-gray-900 px-6 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-gray-700"
+            className="rounded-lg bg-brand px-6 py-3 text-center text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
           >
             Забронировать в Telegram
           </a>

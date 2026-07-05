@@ -9,13 +9,13 @@ const NAV = [
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-brand/15 bg-sand/90 backdrop-blur">
       {/* Верхняя служебная строка: курс валют + номер лицензии (плейсхолдеры) */}
-      <div className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500">
+      <div className="border-b border-brand/10 bg-brand/5 text-xs text-stone-600">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-1.5">
           <span>
             Курс: 1 USD = {CONTACTS.currencyRate.usdToUzs} сум
-            <span className="ml-1 text-gray-400">(обновлено {CONTACTS.currencyRate.updatedAt})</span>
+            <span className="ml-1 text-stone-500">(обновлено {CONTACTS.currencyRate.updatedAt})</span>
           </span>
           <span>Лицензия {CONTACTS.licenseNumber}</span>
         </div>
@@ -25,10 +25,12 @@ export default function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         {/* Логотип */}
         <a href="#top" className="flex items-center gap-2 shrink-0">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-gray-900 text-sm font-bold text-white">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-sm font-bold text-white shadow-sm">
             TT
           </span>
-          <span className="text-lg font-bold tracking-tight">{CONTACTS.companyName}</span>
+          <span className="font-heading text-lg font-bold tracking-tight text-ink">
+            {CONTACTS.companyName}
+          </span>
         </a>
 
         {/* Меню (скрыто на мобильных — упростим/добавим бургер на этапе дизайна) */}
@@ -37,7 +39,7 @@ export default function Header() {
             <a
               key={item.href}
               href={item.href}
-              className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+              className="text-sm font-medium text-stone-600 transition-colors hover:text-brand"
             >
               {item.label}
             </a>
@@ -48,7 +50,7 @@ export default function Header() {
         <div className="flex items-center gap-3">
           <a
             href={CONTACTS.phoneHref}
-            className="hidden text-sm font-medium text-gray-700 hover:text-gray-900 sm:inline"
+            className="hidden text-sm font-semibold text-ink hover:text-brand sm:inline"
           >
             {CONTACTS.phone}
           </a>
@@ -56,7 +58,7 @@ export default function Header() {
             href={telegramContactLink()}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+            className="rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
           >
             Написать в Telegram
           </a>
