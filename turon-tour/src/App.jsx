@@ -8,6 +8,7 @@ import About from './components/About.jsx'
 import Reviews from './components/Reviews.jsx'
 import Footer from './components/Footer.jsx'
 import RouteDivider from './components/RouteDivider.jsx'
+import ThemeSwitcher from './components/ThemeSwitcher.jsx'
 import { tours } from './data/tours.js'
 
 // Порядок месяцев для сортировки селектов.
@@ -37,6 +38,8 @@ export default function App() {
   const [month, setMonth] = useState(ALL)
   // Тур, открытый в модалке (null — модалка закрыта).
   const [activeTour, setActiveTour] = useState(null)
+  // Превью дизайн-направления. Когда утвердим — состояние и ThemeSwitcher удалим.
+  const [theme, setTheme] = useState('theme-sunset')
 
   // Списки опций считаем из данных, а не хардкодим.
   const destinationOptions = useMemo(
@@ -68,7 +71,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-sand text-ink">
+    <div className={`${theme} min-h-screen bg-sand font-sans text-ink`}>
       <Header />
 
       <main>
@@ -117,6 +120,8 @@ export default function App() {
       <Footer />
 
       <TourModal tour={activeTour} onClose={() => setActiveTour(null)} />
+
+      <ThemeSwitcher theme={theme} onChange={setTheme} />
     </div>
   )
 }

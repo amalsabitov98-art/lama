@@ -15,7 +15,7 @@ export default function Hero({
 
   return (
     // Тёплый градиент под hero. Место под фоновое фото оставлено (можно положить image поверх градиента).
-    <section id="top" className="border-b border-brand/15 bg-hero-warm">
+    <section id="top" className="hero-bg border-b border-brand/15">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:py-24">
         <div className="max-w-2xl">
           <span className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-dark">
