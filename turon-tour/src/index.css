@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Базовые дефолты каркаса. Финальную типографику/палитру добавим на этапе дизайна. */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-white text-gray-900 antialiased;
+  }
+  /* Отступ под sticky-шапку при скролле к якорям (#tours и т.д.) */
+  :target {
+    scroll-margin-top: 5rem;
+  }
+}
