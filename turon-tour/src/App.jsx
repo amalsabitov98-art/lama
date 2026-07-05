@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Header from './components/Header.jsx'
 import Hero from './components/Hero.jsx'
 import TourFilters from './components/TourFilters.jsx'
@@ -8,7 +8,6 @@ import About from './components/About.jsx'
 import Reviews from './components/Reviews.jsx'
 import Footer from './components/Footer.jsx'
 import RouteDivider from './components/RouteDivider.jsx'
-import ThemeSwitcher from './components/ThemeSwitcher.jsx'
 import { tours } from './data/tours.js'
 
 // Порядок месяцев для сортировки селектов.
@@ -38,8 +37,19 @@ export default function App() {
   const [month, setMonth] = useState(ALL)
   // Тур, открытый в модалке (null — модалка закрыта).
   const [activeTour, setActiveTour] = useState(null)
-  // Превью дизайн-направления. Когда утвердим — состояние и ThemeSwitcher удалим.
-  const [theme, setTheme] = useState('theme-sunset')
+  // Тема оформления. Старт — от системной; тумблер в шапке переключает (без сохранения).
+  const [theme, setTheme] = useState(() =>
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light',
+  )
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
 
   // Списки опций считаем из данных, а не хардкодим.
   const destinationOptions = useMemo(
@@ -71,8 +81,8 @@ export default function App() {
   }
 
   return (
-    <div className={`${theme} min-h-screen bg-sand font-sans text-ink`}>
-      <Header />
+    <div className="min-h-screen bg-ground font-sans text-ink">
+      <Header theme={theme} onToggleTheme={toggleTheme} />
 
       <main>
         <Hero
@@ -90,10 +100,10 @@ export default function App() {
 
         <section id="tours" className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
           <div className="mb-8">
-            <h2 className="font-heading text-3xl font-bold text-ink sm:text-4xl">Готовые туры</h2>
-            <p className="mt-2 text-stone-600">
-              Проверенные программы с фиксированными датами выезда.
-            </p>
+            <h2 className="font-heading text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+              Готовые туры
+            </h2>
+            <p className="mt-2 text-muted">Проверенные программы с фиксированными датами выезда.</p>
           </div>
 
           <TourFilters
@@ -120,8 +130,6 @@ export default function App() {
       <Footer />
 
       <TourModal tour={activeTour} onClose={() => setActiveTour(null)} />
-
-      <ThemeSwitcher theme={theme} onChange={setTheme} />
     </div>
   )
 }

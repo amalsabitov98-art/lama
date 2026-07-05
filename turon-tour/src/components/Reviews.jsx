@@ -37,7 +37,7 @@ function Avatar({ имя }) {
     .slice(0, 2)
     .join('')
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand/15 text-sm font-semibold text-brand-dark">
+    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-sm font-semibold text-accent-strong">
       {initials}
     </div>
   )
@@ -45,23 +45,23 @@ function Avatar({ имя }) {
 
 export default function Reviews() {
   return (
-    <section id="reviews" className="bg-white">
+    <section id="reviews" className="bg-surface">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
         <h2 className="font-heading text-3xl font-bold text-ink sm:text-4xl">Отзывы</h2>
-        <p className="mt-2 text-stone-600">Что говорят туристы, которые уже съездили с нами.</p>
+        <p className="mt-2 text-muted">Что говорят туристы, которые уже съездили с нами.</p>
 
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {REVIEWS.map((r) => (
             <figure
               key={r.id}
-              className="flex flex-col rounded-xl border border-stone-200 bg-sand p-5"
+              className="flex flex-col rounded-xl border border-line bg-ground p-5"
             >
-              <blockquote className="flex-1 text-sm text-stone-700">«{r.текст}»</blockquote>
-              <figcaption className="mt-4 flex items-center gap-3 border-t border-dashed border-stone-200 pt-4">
+              <blockquote className="flex-1 text-sm text-muted">«{r.текст}»</blockquote>
+              <figcaption className="mt-4 flex items-center gap-3 border-t border-dashed border-line pt-4">
                 <Avatar имя={r.имя} />
                 <div>
                   <div className="text-sm font-semibold text-ink">{r.имя}</div>
-                  <div className="text-xs text-stone-500">{r.направление}</div>
+                  <div className="text-xs text-muted">{r.направление}</div>
                 </div>
               </figcaption>
             </figure>

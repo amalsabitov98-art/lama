@@ -1,100 +1,89 @@
-/* Шрифты всех трёх направлений (грузятся из Google Fonts; в проде отрисуются). */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Work+Sans:wght@400;500;600&family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800&display=swap');
+/* Шрифты: Manrope (заголовки/цены) + Inter (текст), с кириллицей. */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /*
-  Темы через CSS-переменные. Цвета заданы как RGB-каналы,
-  чтобы работали Tailwind-модификаторы прозрачности (brand/40 и т.п.).
-  Тема применяется классом .theme-* на корневом контейнере (см. App.jsx).
-  :root = дефолт (Тёплый закат), на случай если класс не выставлен.
+  Семантические токены (RGB-каналы -> работают модификаторы прозрачности).
+  Тёмная тема переопределяет только переменные: все утилиты, завязанные на
+  токены, подхватывают её автоматически. Источник — системная тема
+  (prefers-color-scheme) + ручной тумблер (data-theme на <html>).
 */
-:root,
-.theme-sunset {
-  --c-sand: 255 251 235; /* #FFFBEB кремовый */
-  --c-ink: 15 23 42; /* #0F172A slate-900 */
-  --c-brand-light: 251 191 36; /* amber-400 */
-  --c-brand: 217 119 6; /* amber-600 */
-  --c-brand-dark: 180 83 9; /* amber-700 */
-  --hero-gradient: linear-gradient(180deg, #fffbeb 0%, #fef3c7 55%, #ffffff 100%);
-  --font-heading: 'Outfit', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Work Sans', ui-sans-serif, system-ui, sans-serif;
+:root {
+  --c-ground: 236 230 219;
+  --c-surface: 255 255 255;
+  --c-ink: 28 23 20;
+  --c-muted: 122 114 104;
+  --c-line: 232 225 213;
+  --c-line-strong: 221 212 197;
+  --c-accent: 194 87 27;
+  --c-accent-strong: 168 72 15;
+  --c-accent-tint: 251 234 217;
+  --c-on-accent: 255 255 255;
 }
-
-/* B — Премиум-бирюза */
-.theme-teal {
-  --c-sand: 246 253 252; /* прохладный off-white для панелей */
-  --c-ink: 15 23 42;
-  --c-brand-light: 45 212 191; /* teal-400 */
-  --c-brand: 15 118 110; /* teal-700 */
-  --c-brand-dark: 17 94 89; /* teal-800 */
-  --hero-gradient: linear-gradient(180deg, #ecfeff 0%, #ccfbf1 55%, #ffffff 100%);
-  --font-heading: 'Sora', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-ground: 20 16 12;
+    --c-surface: 34 26 21;
+    --c-ink: 245 239 231;
+    --c-muted: 168 155 140;
+    --c-line: 52 41 31;
+    --c-line-strong: 63 50 38;
+    --c-accent: 240 137 74;
+    --c-accent-strong: 247 167 110;
+    --c-accent-tint: 58 35 23;
+    --c-on-accent: 27 16 9;
+  }
 }
-
-/* C — Шёлковый путь (Узбекистан) */
-.theme-silk {
-  --c-sand: 251 247 240; /* #FBF7F0 слоновая кость */
-  --c-ink: 28 25 23; /* тёплый near-black */
-  --c-brand-light: 59 130 246; /* blue-500 */
-  --c-brand: 30 64 175; /* indigo-800 */
-  --c-brand-dark: 30 58 138; /* indigo-900 */
-  --hero-gradient: linear-gradient(180deg, #fbf7f0 0%, #e0e7ff 55%, #ffffff 100%);
-  --font-heading: 'Playfair Display', ui-serif, Georgia, serif;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+:root[data-theme='light'] {
+  --c-ground: 236 230 219; --c-surface: 255 255 255; --c-ink: 28 23 20;
+  --c-muted: 122 114 104; --c-line: 232 225 213; --c-line-strong: 221 212 197;
+  --c-accent: 194 87 27; --c-accent-strong: 168 72 15; --c-accent-tint: 251 234 217;
+  --c-on-accent: 255 255 255;
+}
+:root[data-theme='dark'] {
+  --c-ground: 20 16 12; --c-surface: 34 26 21; --c-ink: 245 239 231;
+  --c-muted: 168 155 140; --c-line: 52 41 31; --c-line-strong: 63 50 38;
+  --c-accent: 240 137 74; --c-accent-strong: 247 167 110; --c-accent-tint: 58 35 23;
+  --c-on-accent: 27 16 9;
 }
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
   body {
-    @apply bg-sand font-sans text-ink antialiased;
+    @apply bg-ground font-sans text-ink antialiased;
   }
-  h1, h2, h3 {
-    @apply font-heading;
-  }
-  /* Отступ под sticky-шапку при скролле к якорям (#tours и т.д.) */
-  :target {
-    scroll-margin-top: 6rem;
-  }
+  h1, h2, h3 { @apply font-heading; }
+  :target { scroll-margin-top: 6rem; }
 }
 
 @layer components {
-  /* Тематический градиент под hero */
+  /* Тёплый градиент под hero (тематический, работает в обеих темах). */
   .hero-bg {
-    background-image: var(--hero-gradient);
+    background-image: linear-gradient(180deg, rgb(var(--c-accent-tint)) 0%, rgb(var(--c-ground)) 72%);
   }
 
-  /* Signature #1: пунктирная линия-«маршрут» между секциями. */
-  .route-divider {
-    @apply relative flex items-center justify-center;
-  }
+  /* Signature #1: линия-«маршрут» с иконкой самолёта между секциями. */
+  .route-divider { @apply relative flex items-center justify-center; }
   .route-divider::before {
     content: '';
-    @apply absolute left-0 right-0 top-1/2 border-t border-dashed border-brand/40;
+    @apply absolute left-0 right-0 top-1/2 border-t border-dashed border-line-strong;
   }
   .route-divider__pin {
-    @apply relative z-10 flex h-9 w-9 items-center justify-center rounded-full border border-brand/40 bg-sand text-brand;
+    @apply relative z-10 flex h-9 w-9 items-center justify-center rounded-full border border-line-strong bg-ground text-accent;
   }
 
-  /* Signature #2: «билетная» надсечка — два выреза цвета фона на стыке фото и тела карточки. */
+  /* Signature #2: «билетная» перфорация карточки (вырезы цвета фона). */
   .ticket-notch {
-    @apply pointer-events-none absolute h-4 w-4 rounded-full bg-sand;
+    @apply pointer-events-none absolute h-5 w-5 rounded-full bg-ground;
   }
 }
 
-/* Уважаем prefers-reduced-motion: гасим анимации и плавный скролл. */
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-  *,
-  *::before,
-  *::after {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
