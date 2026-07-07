@@ -20,6 +20,49 @@ function addTransfer(val=""){
 DEF_TRANSFERS.forEach(addTransfer);
 $('addTransfer').onclick=()=>addTransfer();
 
+// ---- route directions -------------------------------------------------------
+// A direction fixes the cities, airport codes, flight TIMES and hotel order.
+// Only the dates change: the user types one "outbound" date and the rest
+// (return date, hotel date ranges) are computed. Every filled field stays
+// editable afterwards. To add a new direction later, just extend this object.
+const DIRECTIONS={
+  trabzon:{
+    f1:{dc:'ТАШКЕНТ',dk:'ТАШКЕНТ (TAS)',dt:'14:30', ac:'ТРАБЗОН',ak:'ТРАБЗОН (TZX)',at:'16:20', dayOff:0},
+    f2:{dc:'БАТУМИ', dk:'БАТУМИ (BUS)', dt:'00:20', ac:'ТАШКЕНТ',ak:'ТАШКЕНТ (TAS)',at:'04:20', dayOff:8},
+    h1:{l:'ОТЕЛЬ РИЗЕ:', n:'RHISOS GOLD OTEL RIZE', from:0, nights:4},
+    h2:{l:'ОТЕЛЬ БАТУМИ:',n:'BATUMI VIEW LUXURY',   from:4, nights:3},
+  },
+  batumi:{
+    f1:{dc:'ТАШКЕНТ',dk:'ТАШКЕНТ (TAS)',dt:'20:40', ac:'БАТУМИ', ak:'БАТУМИ (BUS)', at:'23:20', dayOff:0},
+    f2:{dc:'ТРАБЗОН',dk:'ТРАБЗОН (TZX)',dt:'17:20', ac:'ТАШКЕНТ',ak:'ТАШКЕНТ (TAS)',at:'22:20', dayOff:7},
+    h1:{l:'ОТЕЛЬ БАТУМИ:',n:'BATUMI VIEW LUXURY',   from:0, nights:4},
+    h2:{l:'ОТЕЛЬ РИЗЕ:', n:'RHISOS GOLD OTEL RIZE', from:4, nights:3},
+  },
+};
+function nightsWord(n){ n=Math.abs(n)%100; const a=n%10;
+  if(a===1&&n!==11)return'ночь'; if(a>=2&&a<=4&&(n<12||n>14))return'ночи'; return'ночей'; }
+function applyDirection(){
+  const dir=DIRECTIONS[$('direction').value]; if(!dir) return;
+  const set=(id,val)=>{ const el=$(id); if(el) el.value=val; };
+  // cities / codes / times — constant for the direction
+  set('f1_dc',dir.f1.dc);set('f1_dk',dir.f1.dk);set('f1_dt',dir.f1.dt);
+  set('f1_ac',dir.f1.ac);set('f1_ak',dir.f1.ak);set('f1_at',dir.f1.at);
+  set('f2_dc',dir.f2.dc);set('f2_dk',dir.f2.dk);set('f2_dt',dir.f2.dt);
+  set('f2_ac',dir.f2.ac);set('f2_ak',dir.f2.ak);set('f2_at',dir.f2.at);
+  set('h1_l',dir.h1.l);set('h1_n',dir.h1.n);
+  set('h2_l',dir.h2.l);set('h2_n',dir.h2.n);
+  // dates — computed from the single outbound date (if valid)
+  const D=parseDate($('startDate').value.trim()); if(!D) return;
+  const add=days=>{ const d=new Date(D); d.setDate(d.getDate()+days); return d; };
+  set('f1_dd',fmtDate(D));set('f1_ad',fmtDate(D));
+  const R=add(dir.f2.dayOff); set('f2_dd',fmtDate(R));set('f2_ad',fmtDate(R));
+  set('depDate',fmtDate(D));
+  set('h1_d',`${fmtDate(add(dir.h1.from))} - ${fmtDate(add(dir.h1.from+dir.h1.nights))} (${dir.h1.nights} ${nightsWord(dir.h1.nights)})`);
+  set('h2_d',`${fmtDate(add(dir.h2.from))} - ${fmtDate(add(dir.h2.from+dir.h2.nights))} (${dir.h2.nights} ${nightsWord(dir.h2.nights)})`);
+}
+$('direction').addEventListener('change',applyDirection);
+$('startDate').addEventListener('change',applyDirection);
+
 // ---- collect group config from form ----
 function cfg(){
   const v=id=>$(id).value.trim();

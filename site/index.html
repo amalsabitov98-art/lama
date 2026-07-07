@@ -242,6 +242,25 @@
 <main class="console">
   <div class="grid">
 
+    <!-- direction + outbound date: fills flights & hotels automatically -->
+    <section class="panel full">
+      <div class="shead"><span class="eyebrow">Тур</span><h2>Направление и дата</h2>
+        <span class="aside">заполнит рейсы и отели автоматически</span></div>
+      <div class="pad">
+        <div class="row3">
+          <div><label>Направление</label>
+            <select id="direction">
+              <option value="">— выберите —</option>
+              <option value="trabzon">Прилёт Трабзон · обратно из Батуми</option>
+              <option value="batumi">Прилёт Батуми · обратно из Трабзона</option>
+            </select>
+          </div>
+          <div class="code"><label>Дата вылета (туда)</label><input id="startDate" placeholder="03.07.2026"></div>
+          <div style="align-self:end"><p class="hint">Города, коды, время и даты отелей подставятся сами. Любое поле ниже можно поправить вручную.</p></div>
+        </div>
+      </div>
+    </section>
+
     <!-- LEFT: flights -->
     <section class="panel">
       <div class="shead"><span class="eyebrow">Маршрут</span><h2>Перелёты</h2>
