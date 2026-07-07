@@ -935,12 +935,21 @@ $('dlAll').onclick=async()=>{
   const bytes=await makePdf(LAST);
   saveBlob(new Blob([bytes],{type:'application/pdf'}),'ALL_VOUCHERS.pdf');
 };
+// turn a passenger name into a safe file name: "KHOLIKOV MUKHAMMADAKHROR" -> "KHOLIKOV_MUKHAMMADAKHROR"
+function safeName(s){
+  return String(s||'').trim()
+    .replace(/[\/:*?"<>|]+/g,'') // strip filesystem-illegal chars
+    .replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_+|_+$/g,''); // -> single underscores
+}
 $('dlZip').onclick=async()=>{
   if(!LAST)return;
-  const zip=new JSZip();
+  const zip=new JSZip(); const seen={};
   for(const v of LAST){
     const bytes=await makePdf([v]);
-    zip.file(v.order_no+'.pdf',bytes);
+    let base=safeName((v.passengers[0]||{}).name) || v.order_no; // name of the main passenger
+    seen[base]=(seen[base]||0)+1;
+    const name=seen[base]===1?base:base+'_'+seen[base];          // dedupe collisions
+    zip.file(name+'.pdf',bytes);
   }
   const blob=await zip.generateAsync({type:'blob'});
   saveBlob(blob,'vouchers.zip');
