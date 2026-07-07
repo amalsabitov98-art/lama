@@ -31,14 +31,17 @@ const DIRECTIONS={
     f2:{dc:'БАТУМИ', dk:'БАТУМИ (BUS)', dt:'00:20', ac:'ТАШКЕНТ',ak:'ТАШКЕНТ (TAS)',at:'04:20', dayOff:8},
     h1:{l:'ОТЕЛЬ РИЗЕ:', n:'RHISOS GOLD OTEL RIZE', from:0, nights:4},
     h2:{l:'ОТЕЛЬ БАТУМИ:',n:'BATUMI VIEW LUXURY',   from:4, nights:3},
+    bag:'20 кг',
   },
   batumi:{
     f1:{dc:'ТАШКЕНТ',dk:'ТАШКЕНТ (TAS)',dt:'20:40', ac:'БАТУМИ', ak:'БАТУМИ (BUS)', at:'23:20', dayOff:0},
     f2:{dc:'ТРАБЗОН',dk:'ТРАБЗОН (TZX)',dt:'17:20', ac:'ТАШКЕНТ',ak:'ТАШКЕНТ (TAS)',at:'22:20', dayOff:7},
     h1:{l:'ОТЕЛЬ БАТУМИ:',n:'BATUMI VIEW LUXURY',   from:0, nights:4},
     h2:{l:'ОТЕЛЬ РИЗЕ:', n:'RHISOS GOLD OTEL RIZE', from:4, nights:3},
+    bag:'23 кг',
   },
 };
+const CABIN='8 кг'; // hand luggage — same for both directions
 function nightsWord(n){ n=Math.abs(n)%100; const a=n%10;
   if(a===1&&n!==11)return'ночь'; if(a>=2&&a<=4&&(n<12||n>14))return'ночи'; return'ночей'; }
 function applyDirection(){
@@ -82,6 +85,8 @@ function cfg(){
     agency:{name:v('ag_n'),phone:v('ag_p'),email:v('ag_e'),address:v('ag_a')},
     startNo:parseInt(v('startNo'))||364,
     depDate:v('depDate')||$('f1_dd').value.trim()||$('f1_dd').placeholder,
+    cabin:CABIN,                                        // ручная кладь — одинаковая
+    baggage:(DIRECTIONS[$('direction').value]||{}).bag||'', // багаж — по направлению
   };
 }
 
@@ -167,7 +172,9 @@ function buildVouchers(groups,c){
       category:category(p.dob,ref)}));
     const rooms=[...new Set(g.map(p=>p.room))];
     let warn=""; rooms.forEach(rm=>{ if(cap[rm]&&g.length>cap[rm]) warn=`${g.length} чел. в ${rm} (макс ${cap[rm]})`; });
-    return {order_no:no,passengers:pax,rooms,warn,
+    // cost box: price left blank, room from Excel, cabin fixed, baggage per direction
+    const cost={price:'',room:rooms.filter(Boolean).join(', '),cabin:c.cabin,baggage:c.baggage};
+    return {order_no:no,passengers:pax,rooms,warn,cost,
       flights:c.flights,hotels:c.hotels,transfers:c.transfers,agency:c.agency};
   });
 }

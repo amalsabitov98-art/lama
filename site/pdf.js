@@ -122,10 +122,16 @@ function drawVoucher(p,d,F){
   }
   const flightBottom=fTop+fgap, costH=routeTop-flightBottom;
   rr(costX,routeTop,costW,costH);
-  T("СТОИМОСТЬ:",costX+16,routeTop-32,8,F.bold,COL.ink);
-  T("РАЗМЕЩЕНИЕ:",costX+108,routeTop-32,8,F.bold,COL.ink);
-  T("РУЧНАЯ КЛАДЬ:",costX+16,routeTop-71,8,F.bold,COL.ink);
-  T("БАГАЖ:",costX+108,routeTop-71,8,F.bold,COL.ink);
+  const cst=d.cost||{};
+  const colW=87;                                   // width available for a value in each column
+  const cell=(label,val,x,y)=>{
+    T(label,x,y,8,F.bold,COL.ink);
+    if(val) T(String(val),x,y-14,fit(String(val),colW,10),F.bold,COL.green);
+  };
+  cell("СТОИМОСТЬ:",   cst.price,   costX+16,  routeTop-30);
+  cell("РАЗМЕЩЕНИЕ:",  cst.room,    costX+104, routeTop-30);
+  cell("РУЧНАЯ КЛАДЬ:",cst.cabin,   costX+16,  routeTop-74);
+  cell("БАГАЖ:",       cst.baggage, costX+104, routeTop-74);
 
   // ---- hotels ----
   const hw=(CW-16)/2, hh=44;
