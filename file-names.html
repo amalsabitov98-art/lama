@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Список названий файлов → TXT</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6fa;
+    color: #1c2330;
+    margin: 0;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+  }
+  .container {
+    width: 100%;
+    max-width: 720px;
+  }
+  h1 {
+    font-size: 24px;
+    margin: 0 0 8px;
+  }
+  .subtitle {
+    color: #6b7280;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    margin: 0 0 12px;
+  }
+  .dropzone {
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    background: #fafbfc;
+  }
+  .dropzone:hover, .dropzone.dragover {
+    border-color: #4f46e5;
+    background: rgba(79,70,229,0.04);
+  }
+  .dropzone .icon {
+    font-size: 34px;
+    margin-bottom: 8px;
+  }
+  .dropzone .big {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .dropzone .small {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+  input[type="file"] { display: none; }
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+  .options label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .count {
+    font-size: 13px;
+    color: #6b7280;
+  }
+  .btns { display: flex; gap: 8px; }
+  button {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #1c2330;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  button:hover:not(:disabled) { border-color: #9ca3af; }
+  button.primary {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: #fff;
+    border: none;
+  }
+  button.primary:hover:not(:disabled) { opacity: 0.92; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  textarea {
+    width: 100%;
+    min-height: 240px;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    color: #1c2330;
+  }
+  textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+  }
+  .empty {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+    padding: 24px 0;
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1c2330;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 0;
+    transition: transform 0.25s, opacity 0.25s;
+    pointer-events: none;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Список названий файлов → TXT</h1>
+  <p class="subtitle">Закинь файлы (хоть 50, хоть 500) — получи текстовый список их названий. Всё считается прямо в браузере, файлы никуда не загружаются.</p>
+
+  <div class="card">
+    <h2 class="section-title">Файлы</h2>
+    <div class="dropzone" id="dropzone">
+      <div class="icon">📁</div>
+      <div class="big">Перетащи файлы сюда или нажми, чтобы выбрать</div>
+      <div class="small">Можно выбрать сразу много файлов или целую папку</div>
+    </div>
+    <input type="file" id="fileInput" multiple>
+
+    <div class="options">
+      <label><input type="checkbox" id="optExt" checked> С расширением (.jpg, .pdf…)</label>
+      <label><input type="checkbox" id="optSort"> Сортировать по алфавиту</label>
+      <label><input type="checkbox" id="optNumber"> Нумеровать (1. 2. 3.)</label>
+      <label><input type="checkbox" id="optDedup"> Убрать повторы</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <span class="count" id="count">Пока ничего не выбрано</span>
+      <div class="btns">
+        <button id="copyBtn" disabled>Скопировать</button>
+        <button id="clearBtn" disabled>Очистить</button>
+        <button id="downloadBtn" class="primary" disabled>Скачать .txt</button>
+      </div>
+    </div>
+    <textarea id="output" placeholder="Здесь появится список названий…" spellcheck="false"></textarea>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("fileInput");
+const output = document.getElementById("output");
+const countEl = document.getElementById("count");
+const copyBtn = document.getElementById("copyBtn");
+const clearBtn = document.getElementById("clearBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const opts = {
+  ext: document.getElementById("optExt"),
+  sort: document.getElementById("optSort"),
+  number: document.getElementById("optNumber"),
+  dedup: document.getElementById("optDedup"),
+};
+
+let names = [];
+
+function stripExt(name) {
+  const dot = name.lastIndexOf(".");
+  return dot > 0 ? name.slice(0, dot) : name;
+}
+
+function render() {
+  let list = names.slice();
+  if (!opts.ext.checked) list = list.map(stripExt);
+  if (opts.dedup.checked) list = [...new Set(list)];
+  if (opts.sort.checked) list.sort((a, b) => a.localeCompare(b, "ru"));
+  if (opts.number.checked) list = list.map((n, i) => (i + 1) + ". " + n);
+
+  output.value = list.join("\n");
+
+  const has = names.length > 0;
+  copyBtn.disabled = clearBtn.disabled = downloadBtn.disabled = !has;
+  countEl.textContent = has
+    ? "Файлов: " + names.length + (opts.dedup.checked && list.length !== names.length ? " (уникальных: " + list.length + ")" : "")
+    : "Пока ничего не выбрано";
+}
+
+function addFiles(fileList) {
+  for (const f of fileList) names.push(f.name);
+  render();
+}
+
+// --- выбор файлов ---
+dropzone.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", e => {
+  addFiles(e.target.files);
+  fileInput.value = ""; // чтобы можно было выбрать те же файлы снова
+});
+
+// --- drag & drop ---
+["dragenter", "dragover"].forEach(ev =>
+  dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add("dragover"); })
+);
+["dragleave", "drop"].forEach(ev =>
+  dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove("dragover"); })
+);
+dropzone.addEventListener("drop", e => {
+  if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+});
+
+// --- опции ---
+Object.values(opts).forEach(cb => cb.addEventListener("change", render));
+
+// --- кнопки ---
+clearBtn.addEventListener("click", () => { names = []; render(); });
+
+copyBtn.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(output.value);
+    toast("Скопировано в буфер обмена");
+  } catch {
+    output.select();
+    document.execCommand("copy");
+    toast("Скопировано");
+  }
+});
+
+downloadBtn.addEventListener("click", () => {
+  const blob = new Blob([output.value], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "file-names.txt";
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("Файл file-names.txt скачан");
+});
+
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+render();
+</script>
+</body>
+</html>
