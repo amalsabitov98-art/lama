@@ -34,7 +34,7 @@ const DIRECTIONS={
     bag:'20 кг',
   },
   batumi:{
-    f1:{dc:'ТАШКЕНТ',dk:'ТАШКЕНТ (TAS)',dt:'20:40', ac:'БАТУМИ', ak:'БАТУМИ (BUS)', at:'23:20', dayOff:0},
+    f1:{dc:'ТАШКЕНТ',dk:'ТАШКЕНТ (TAS)',dt:'20:50', ac:'БАТУМИ', ak:'БАТУМИ (BUS)', at:'23:20', dayOff:0},
     f2:{dc:'ТРАБЗОН',dk:'ТРАБЗОН (TZX)',dt:'17:20', ac:'ТАШКЕНТ',ak:'ТАШКЕНТ (TAS)',at:'22:20', dayOff:7},
     h1:{l:'ОТЕЛЬ БАТУМИ:',n:'BATUMI VIEW LUXURY',   from:0, nights:4},
     h2:{l:'ОТЕЛЬ РИЗЕ:', n:'RHISOS GOLD OTEL RIZE', from:4, nights:3},
@@ -189,6 +189,19 @@ function renderReport(vs){
       <span class="pax">${v.passengers.map(p=>esc(p.name)).join('; ')}</span>
       <span class="rm">${esc(v.rooms.join(','))}</span>
       ${v.warn?`<span class="flag">⚠ ${esc(v.warn)}</span>`:''}`;
+    // per-voucher download button (named by the main passenger)
+    const btn=document.createElement('button'); btn.type='button'; btn.className='rdl';
+    btn.textContent='скачать';
+    btn.onclick=async()=>{
+      btn.disabled=true; btn.textContent='…';
+      try{
+        const bytes=await makePdf([v]);
+        const base=safeName((v.passengers[0]||{}).name)||v.order_no;
+        saveBlob(new Blob([bytes],{type:'application/pdf'}),base+'.pdf');
+      }catch(e){ alert('Не удалось создать PDF: '+e.message); }
+      finally{ btn.disabled=false; btn.textContent='скачать'; }
+    };
+    row.append(btn);
     list.append(row);
   });
   $('report').style.display='block';
