@@ -171,16 +171,16 @@ function buildVouchers(groups,c){
     const pax=g.map(p=>({name:p.name,passport:p.passport,dob:fmtDate(p.dob),
       category:category(p.dob,ref)}));
     const rooms=[...new Set(g.map(p=>p.room))];
-    // pre-generation checks — flag issues so nothing wrong gets printed
-    const issues=[];
-    rooms.forEach(rm=>{ if(cap[rm]&&g.length>cap[rm]) issues.push(`${g.length} чел. в ${rm} (макс ${cap[rm]})`); });
-    if(!rooms.filter(Boolean).length) issues.push('нет размещения (Room)');
-    if(g.some(p=>!p.passport)) issues.push('нет паспорта');
-    if(g.some(p=>!p.dob)) issues.push('нет даты рождения');
-    const warn=issues.join('; ');
+    // hard errors (real mistakes) vs soft notes (missing data — informational)
+    const hard=[], soft=[];
+    rooms.forEach(rm=>{ if(cap[rm]&&g.length>cap[rm]) hard.push(`${g.length} чел. в ${rm} (макс ${cap[rm]})`); });
+    if(!rooms.filter(Boolean).length) soft.push('нет размещения');
+    if(g.some(p=>!p.passport)) soft.push('нет паспорта');
+    if(g.some(p=>!p.dob)) soft.push('нет даты рождения');
+    const warn=hard.join('; '), note=soft.join('; ');
     // cost box: price left blank, room from Excel, cabin fixed, baggage per direction
     const cost={price:'',room:rooms.filter(Boolean).join(', '),cabin:c.cabin,baggage:c.baggage};
-    return {order_no:no,passengers:pax,rooms,warn,cost,
+    return {order_no:no,passengers:pax,rooms,warn,note,cost,
       flights:c.flights,hotels:c.hotels,transfers:c.transfers,agency:c.agency};
   });
 }
@@ -189,20 +189,24 @@ function buildVouchers(groups,c){
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function renderReport(vs){
   const list=$('rlist'); list.innerHTML='';
-  const bad=vs.filter(v=>v.warn).length, sum=$('rsummary');
+  const hard=vs.filter(v=>v.warn).length, soft=vs.filter(v=>v.note).length, sum=$('rsummary');
   if(sum){
     sum.style.display='block';
-    sum.className='rsum '+(bad?'bad':'ok');
-    sum.textContent=bad
-      ? `⚠ Замечания у ${bad} из ${vs.length} — проверьте выделенные строки перед печатью.`
-      : `✓ Всё в порядке — ${vs.length} ваучеров, замечаний нет.`;
+    if(hard){ sum.className='rsum bad';
+      sum.textContent=`⚠ Ошибки у ${hard} из ${vs.length} — проверьте выделенные строки перед печатью.`; }
+    else if(soft){ sum.className='rsum soft';
+      sum.textContent=`${soft} с пометками (нет паспорта/даты) — не критично, печатать можно.`; }
+    else { sum.className='rsum ok';
+      sum.textContent=`✓ Всё в порядке — ${vs.length} ваучеров.`; }
   }
   vs.forEach(v=>{
     const row=document.createElement('div'); row.className='rrow'+(v.warn?' warn':'');
+    const tag=v.warn?`<span class="flag">⚠ ${esc(v.warn)}</span>`
+      :v.note?`<span class="note">${esc(v.note)}</span>`:'';
     row.innerHTML=`<span class="no">${esc(v.order_no)}</span>
       <span class="pax">${v.passengers.map(p=>esc(p.name)).join('; ')}</span>
       <span class="rm">${esc(v.rooms.join(','))}</span>
-      ${v.warn?`<span class="flag">⚠ ${esc(v.warn)}</span>`:''}`;
+      ${tag}`;
     // per-voucher download button (named by the main passenger)
     const btn=document.createElement('button'); btn.type='button'; btn.className='rdl';
     btn.textContent='скачать';

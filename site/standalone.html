@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Etihad — Генератор ваучеров</title>
 <style>
   :root{
@@ -202,6 +207,8 @@
     font-size:13px;font-weight:600;border:1px solid}
   .rsum.ok{background:#eef5ef;border-color:#cfe2d4;color:var(--ok)}
   .rsum.bad{background:var(--amber-bg);border-color:#e6d8b4;color:var(--amber)}
+  .rsum.soft{background:#f3f4f2;border-color:var(--line);color:var(--muted)}
+  .rrow .note{font-size:11px;color:var(--faint);font-style:italic;white-space:nowrap}
   .linkbtn{background:none;border:0;padding:0;margin:0;font:inherit;cursor:pointer;
     color:var(--forest-600);font-weight:700;text-decoration:underline;text-underline-offset:2px}
   .linkbtn:hover{color:var(--forest-700)}
@@ -224,12 +231,50 @@
   .footnote{grid-column:1/-1;text-align:center;font-size:12px;color:#9fb1a6;
     padding:10px 0 4px}
 
+  /* password gate */
+  #gate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;
+    background:radial-gradient(1000px 400px at 50% -140px,rgba(44,115,80,.35),transparent 70%),
+      linear-gradient(180deg,var(--forest-900),#0c2016)}
+  #gate .gate-box{background:var(--ivory);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow-lg);padding:30px 28px;max-width:360px;width:100%;text-align:center}
+  #gate .gate-title{font-family:var(--serif);font-size:20px;color:var(--forest-700);font-weight:600}
+  #gate .gate-sub{font-size:13px;color:var(--muted);margin:6px 0 18px}
+  #gate input{margin-bottom:12px;text-align:center}
+  #gate button{width:100%;background:linear-gradient(180deg,var(--forest-600),var(--forest-700));color:#fff;
+    border:0;border-radius:10px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+  #gate button:hover{box-shadow:0 0 0 1px var(--gold-500)}
+  #gate .gate-err{color:var(--danger);font-size:12.5px;font-weight:600;margin:10px 0 0}
   @media(prefers-reduced-motion:reduce){
     .panel{animation:none;opacity:1;transform:none}
     *{transition:none!important}
   }
 </style>
+</head>
+<body>
 
+
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-title">Etihad · Ваучеры</div>
+    <p class="gate-sub">Введите пароль для доступа</p>
+    <input id="gatePass" type="password" placeholder="Пароль" autocomplete="off">
+    <button id="gateBtn" type="button">Войти</button>
+    <p id="gateErr" class="gate-err" style="display:none">Неверный пароль</p>
+  </div>
+</div>
+<script>
+(function(){
+  var KEY='etihad_gate', PW='qwerty237', g=document.getElementById('gate');
+  function open(){ g.style.display='none'; }
+  try{ if(localStorage.getItem(KEY)==='1') open(); }catch(e){}
+  function chk(){
+    if(document.getElementById('gatePass').value===PW){ try{localStorage.setItem(KEY,'1');}catch(e){} open(); }
+    else{ document.getElementById('gateErr').style.display='block'; }
+  }
+  document.getElementById('gateBtn').onclick=chk;
+  document.getElementById('gatePass').addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();chk();} });
+})();
+</script>
 
 <header class="masthead">
   <div class="brand">
@@ -891,16 +936,16 @@ function buildVouchers(groups,c){
     const pax=g.map(p=>({name:p.name,passport:p.passport,dob:fmtDate(p.dob),
       category:category(p.dob,ref)}));
     const rooms=[...new Set(g.map(p=>p.room))];
-    // pre-generation checks — flag issues so nothing wrong gets printed
-    const issues=[];
-    rooms.forEach(rm=>{ if(cap[rm]&&g.length>cap[rm]) issues.push(`${g.length} чел. в ${rm} (макс ${cap[rm]})`); });
-    if(!rooms.filter(Boolean).length) issues.push('нет размещения (Room)');
-    if(g.some(p=>!p.passport)) issues.push('нет паспорта');
-    if(g.some(p=>!p.dob)) issues.push('нет даты рождения');
-    const warn=issues.join('; ');
+    // hard errors (real mistakes) vs soft notes (missing data — informational)
+    const hard=[], soft=[];
+    rooms.forEach(rm=>{ if(cap[rm]&&g.length>cap[rm]) hard.push(`${g.length} чел. в ${rm} (макс ${cap[rm]})`); });
+    if(!rooms.filter(Boolean).length) soft.push('нет размещения');
+    if(g.some(p=>!p.passport)) soft.push('нет паспорта');
+    if(g.some(p=>!p.dob)) soft.push('нет даты рождения');
+    const warn=hard.join('; '), note=soft.join('; ');
     // cost box: price left blank, room from Excel, cabin fixed, baggage per direction
     const cost={price:'',room:rooms.filter(Boolean).join(', '),cabin:c.cabin,baggage:c.baggage};
-    return {order_no:no,passengers:pax,rooms,warn,cost,
+    return {order_no:no,passengers:pax,rooms,warn,note,cost,
       flights:c.flights,hotels:c.hotels,transfers:c.transfers,agency:c.agency};
   });
 }
@@ -909,20 +954,24 @@ function buildVouchers(groups,c){
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function renderReport(vs){
   const list=$('rlist'); list.innerHTML='';
-  const bad=vs.filter(v=>v.warn).length, sum=$('rsummary');
+  const hard=vs.filter(v=>v.warn).length, soft=vs.filter(v=>v.note).length, sum=$('rsummary');
   if(sum){
     sum.style.display='block';
-    sum.className='rsum '+(bad?'bad':'ok');
-    sum.textContent=bad
-      ? `⚠ Замечания у ${bad} из ${vs.length} — проверьте выделенные строки перед печатью.`
-      : `✓ Всё в порядке — ${vs.length} ваучеров, замечаний нет.`;
+    if(hard){ sum.className='rsum bad';
+      sum.textContent=`⚠ Ошибки у ${hard} из ${vs.length} — проверьте выделенные строки перед печатью.`; }
+    else if(soft){ sum.className='rsum soft';
+      sum.textContent=`${soft} с пометками (нет паспорта/даты) — не критично, печатать можно.`; }
+    else { sum.className='rsum ok';
+      sum.textContent=`✓ Всё в порядке — ${vs.length} ваучеров.`; }
   }
   vs.forEach(v=>{
     const row=document.createElement('div'); row.className='rrow'+(v.warn?' warn':'');
+    const tag=v.warn?`<span class="flag">⚠ ${esc(v.warn)}</span>`
+      :v.note?`<span class="note">${esc(v.note)}</span>`:'';
     row.innerHTML=`<span class="no">${esc(v.order_no)}</span>
       <span class="pax">${v.passengers.map(p=>esc(p.name)).join('; ')}</span>
       <span class="rm">${esc(v.rooms.join(','))}</span>
-      ${v.warn?`<span class="flag">⚠ ${esc(v.warn)}</span>`:''}`;
+      ${tag}`;
     // per-voucher download button (named by the main passenger)
     const btn=document.createElement('button'); btn.type='button'; btn.className='rdl';
     btn.textContent='скачать';
@@ -1083,3 +1132,6 @@ function saveBlob(blob,name){
   });
 })();
 </script>
+
+</body>
+</html>
