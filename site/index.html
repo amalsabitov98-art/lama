@@ -203,6 +203,13 @@
     cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap}
   .rrow .rdl:hover{background:var(--forest-600);color:#fff;border-color:var(--forest-600)}
   .rrow .rdl:disabled{opacity:.5;cursor:default}
+  .rsum{margin-bottom:12px;padding:11px 14px;border-radius:var(--radius-sm);
+    font-size:13px;font-weight:600;border:1px solid}
+  .rsum.ok{background:#eef5ef;border-color:#cfe2d4;color:var(--ok)}
+  .rsum.bad{background:var(--amber-bg);border-color:#e6d8b4;color:var(--amber)}
+  .linkbtn{background:none;border:0;padding:0;margin:0;font:inherit;cursor:pointer;
+    color:var(--forest-600);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+  .linkbtn:hover{color:var(--forest-700)}
   .dl{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
   .dl button{background:#fff;border:1px solid var(--forest-500);color:var(--forest-700);
     border-radius:var(--radius-sm);padding:11px 17px;font-weight:600;cursor:pointer;
@@ -263,6 +270,22 @@
           <div class="code"><label>Дата вылета (туда)</label><input id="startDate" placeholder="03.07.2026"></div>
           <div style="align-self:end"><p class="hint">Города, коды, время и даты отелей подставятся сами. Любое поле ниже можно поправить вручную.</p></div>
         </div>
+      </div>
+    </section>
+
+    <!-- upload (moved to top, right under direction) -->
+    <section class="panel full">
+      <div class="shead"><span class="eyebrow">Источник</span><h2>Таблица туристов</h2>
+        <span class="aside">Excel · .xlsx</span></div>
+      <div class="pad">
+        <div class="drop" id="drop">
+          <span class="dicon"><svg viewBox="0 0 24 24"><path d="M19 13v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4h2v4h10v-4h2zM11 3h2v8.17l2.59-2.58L17 10l-5 5-5-5 1.41-1.41L11 11.17V3z"/></svg></span>
+          <strong>Выберите Excel-файл</strong> или перетащите сюда
+          <small>Колонки: № · Full Name · Date of Birth · Passport № · Expiry · Room.
+          Номера DBL / TWIN / TRPL подсвечены цветом — смена цвета в колонке Room начинает новый ваучер.</small>
+          <input type="file" id="file" accept=".xlsx,.xls" hidden>
+        </div>
+        <p class="hint" style="margin-top:10px">Нет готовой таблицы? <button class="linkbtn" id="dlTemplate" type="button">Скачать шаблон Excel</button> — заполните его и загрузите обратно.</p>
       </div>
     </section>
 
@@ -351,21 +374,6 @@
       </div>
     </section>
 
-    <!-- upload -->
-    <section class="panel full">
-      <div class="shead"><span class="eyebrow">Источник</span><h2>Таблица туристов</h2>
-        <span class="aside">Excel · .xlsx</span></div>
-      <div class="pad">
-        <div class="drop" id="drop">
-          <span class="dicon"><svg viewBox="0 0 24 24"><path d="M19 13v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4h2v4h10v-4h2zM11 3h2v8.17l2.59-2.58L17 10l-5 5-5-5 1.41-1.41L11 11.17V3z"/></svg></span>
-          <strong>Выберите Excel-файл</strong> или перетащите сюда
-          <small>Колонки: № · Full Name · Date of Birth · Passport № · Expiry · Room.
-          Номера DBL / TWIN / TRPL подсвечены цветом — смена цвета в колонке Room начинает новый ваучер.</small>
-          <input type="file" id="file" accept=".xlsx,.xls" hidden>
-        </div>
-      </div>
-    </section>
-
     <!-- peek / sample -->
     <section class="panel full">
       <div class="pad peek">
@@ -386,6 +394,7 @@
     <section class="panel full" id="report" style="display:none">
       <div class="shead"><span class="eyebrow">Готово</span><h2>Ваучеры</h2></div>
       <div class="pad">
+        <div id="rsummary" class="rsum" style="display:none"></div>
         <div class="rlist" id="rlist"></div>
         <div class="dl">
           <button id="dlAll">Скачать всё одним PDF</button>

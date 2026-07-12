@@ -171,7 +171,13 @@ function buildVouchers(groups,c){
     const pax=g.map(p=>({name:p.name,passport:p.passport,dob:fmtDate(p.dob),
       category:category(p.dob,ref)}));
     const rooms=[...new Set(g.map(p=>p.room))];
-    let warn=""; rooms.forEach(rm=>{ if(cap[rm]&&g.length>cap[rm]) warn=`${g.length} чел. в ${rm} (макс ${cap[rm]})`; });
+    // pre-generation checks — flag issues so nothing wrong gets printed
+    const issues=[];
+    rooms.forEach(rm=>{ if(cap[rm]&&g.length>cap[rm]) issues.push(`${g.length} чел. в ${rm} (макс ${cap[rm]})`); });
+    if(!rooms.filter(Boolean).length) issues.push('нет размещения (Room)');
+    if(g.some(p=>!p.passport)) issues.push('нет паспорта');
+    if(g.some(p=>!p.dob)) issues.push('нет даты рождения');
+    const warn=issues.join('; ');
     // cost box: price left blank, room from Excel, cabin fixed, baggage per direction
     const cost={price:'',room:rooms.filter(Boolean).join(', '),cabin:c.cabin,baggage:c.baggage};
     return {order_no:no,passengers:pax,rooms,warn,cost,
@@ -183,6 +189,14 @@ function buildVouchers(groups,c){
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function renderReport(vs){
   const list=$('rlist'); list.innerHTML='';
+  const bad=vs.filter(v=>v.warn).length, sum=$('rsummary');
+  if(sum){
+    sum.style.display='block';
+    sum.className='rsum '+(bad?'bad':'ok');
+    sum.textContent=bad
+      ? `⚠ Замечания у ${bad} из ${vs.length} — проверьте выделенные строки перед печатью.`
+      : `✓ Всё в порядке — ${vs.length} ваучеров, замечаний нет.`;
+  }
   vs.forEach(v=>{
     const row=document.createElement('div'); row.className='rrow'+(v.warn?' warn':'');
     row.innerHTML=`<span class="no">${esc(v.order_no)}</span>
@@ -228,6 +242,16 @@ function handleFile(f){
   rd.readAsArrayBuffer(f);
 }
 
+// ---- Excel template download ----
+$('dlTemplate').onclick=()=>{
+  const bin=atob(XLSX_TEMPLATE_B64), arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+  saveBlob(new Blob([arr],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'Etihad_template.xlsx');
+};
+
+// ---- continue numbering across sessions ----
+try{ const n=localStorage.getItem('etihad_nextNo'); if(n) $('startNo').value=n; }catch(e){}
+
 // ---- generate on click ----
 let LAST=null;
 $('go').onclick=async()=>{
@@ -237,6 +261,7 @@ $('go').onclick=async()=>{
   renderReport(vs);
   $('go').textContent='Готово ✓ '+vs.length+' ваучеров';
   LAST=vs;
+  try{ localStorage.setItem('etihad_nextNo',String(c.startNo+vs.length)); }catch(e){} // next batch continues
 };
 
 $('dlAll').onclick=async()=>{
