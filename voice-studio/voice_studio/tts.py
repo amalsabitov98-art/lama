@@ -9,9 +9,14 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from .voices import Voice, VoiceLibrary
+
+# XTTS при первом скачивании спрашивает согласие с лицензией через stdin ([y/n]).
+# В неинтерактивной среде (Colab, сервер) это виснет навечно. Авто-соглашаемся.
+os.environ.setdefault("COQUI_TOS_AGREED", "1")
 
 # Модель по умолчанию. Многоязычная, умеет клон голоса из короткого сэмпла.
 DEFAULT_MODEL = "tts_models/multilingual/multi-dataset/xtts_v2"
