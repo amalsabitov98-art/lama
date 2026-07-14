@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .lipsync import Wav2LipBackend, LipSyncError, default_backend
 from .mux import replace_audio
+from .transcribe import Transcriber
 from .tts import TTSEngine
 from .voices import Voice, VoiceLibrary
 
@@ -35,16 +36,26 @@ class Pipeline:
         library: VoiceLibrary,
         tts: TTSEngine | None = None,
         lipsync: Wav2LipBackend | None = None,
+        transcriber: Transcriber | None = None,
         output_dir: str | Path = "data/output",
     ):
         self.library = library
         self.tts = tts or TTSEngine(library)
         self.lipsync = lipsync or default_backend()
+        self.transcriber = transcriber or Transcriber()
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def _stamp(self, prefix: str, suffix: str) -> Path:
         return self.output_dir / f"{prefix}_{int(time.time())}{suffix}"
+
+    def transcribe(self, video_path: str | Path, language: str | None = None) -> str:
+        """Шаг 1 основного флоу: распознать речь из ролика в редактируемый текст.
+
+        Пользователь загружает видео → получает текст оригинала → правит его →
+        и уже этот текст уходит в `run()` на озвучку выбранным голосом.
+        """
+        return self.transcriber.transcribe(video_path, language=language)
 
     def run(
         self,
