@@ -17,6 +17,18 @@ from .mux import _require
 DEFAULT_MODEL = "base"
 
 
+def _pick_device(prefer: str = "auto") -> str:
+    """cuda, если есть GPU (Colab T4), иначе cpu."""
+    if prefer in ("cpu", "cuda"):
+        return prefer
+    try:
+        import torch
+
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except Exception:
+        return "cpu"
+
+
 def _extract_audio(video_path: Path, wav_path: Path) -> None:
     ffmpeg = _require("ffmpeg")
     proc = subprocess.run(
@@ -31,9 +43,9 @@ def _extract_audio(video_path: Path, wav_path: Path) -> None:
 class Transcriber:
     """Обёртка над faster-whisper с ленивой загрузкой модели."""
 
-    def __init__(self, model_name: str = DEFAULT_MODEL, device: str = "cpu"):
+    def __init__(self, model_name: str = DEFAULT_MODEL, device: str = "auto"):
         self.model_name = model_name
-        self.device = device
+        self.device = _pick_device(device)
         self._model = None
 
     def _ensure_model(self):
@@ -46,8 +58,14 @@ class Transcriber:
                 "Не установлен faster-whisper. Поставь зависимости: "
                 "pip install -r requirements.txt"
             ) from exc
-        # int8 — компактно и быстро на CPU
-        self._model = WhisperModel(self.model_name, device=self.device, compute_type="int8")
+        try:
+            # GPU → float16 (быстро); CPU → int8 (компактно)
+            ct = "float16" if self.device == "cuda" else "int8"
+            self._model = WhisperModel(self.model_name, device=self.device, compute_type=ct)
+        except Exception:
+            # GPU не завёлся (например, не подхватился cuDNN) — откат на CPU без падения
+            self.device = "cpu"
+            self._model = WhisperModel(self.model_name, device="cpu", compute_type="int8")
         return self._model
 
     def transcribe(self, video_path: str | Path, language: str | None = None) -> str:
