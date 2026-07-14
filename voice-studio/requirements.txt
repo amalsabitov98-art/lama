@@ -4,8 +4,9 @@
 TTS>=0.22.0
 
 # --- Распознавание речи из ролика ---
-# faster-whisper: достаёт текст оригинала, чтобы не печатать с нуля. CPU-friendly.
-faster-whisper>=1.0.0
+# openai-whisper: достаёт текст оригинала. Работает поверх torch (как и XTTS),
+# поэтому стабилен на GPU (не роняет процесс, как faster-whisper/CTranslate2).
+openai-whisper>=20231117
 
 # --- Интерфейс ---
 gradio>=4.0.0

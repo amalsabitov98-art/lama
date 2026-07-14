@@ -1,8 +1,12 @@
 """Распознавание речи из ролика (Whisper) — чтобы не печатать текст с нуля.
 
-Достаём звук из видео (ffmpeg) и прогоняем через faster-whisper. Работает на CPU.
-Пользователь получает готовый текст оригинала, правит его и уже этот текст
-озвучивается выбранным голосом.
+Достаём звук из видео (ffmpeg) и прогоняем через openai-whisper. Whisper работает
+поверх torch — той же библиотеки, что и синтез голоса (XTTS), поэтому на Colab GPU
+он стабилен (в отличие от faster-whisper/CTranslate2, который конфликтует с cuDNN
+и роняет процесс).
+
+Пользователь получает текст оригинала, правит его — и уже этот текст озвучивается
+выбранным голосом.
 """
 
 from __future__ import annotations
@@ -13,7 +17,7 @@ from pathlib import Path
 
 from .mux import _require
 
-# tiny/base — быстро на CPU; small/medium — точнее, но медленнее.
+# tiny/base — быстро; small/medium — точнее, но медленнее.
 DEFAULT_MODEL = "base"
 
 
@@ -41,7 +45,7 @@ def _extract_audio(video_path: Path, wav_path: Path) -> None:
 
 
 class Transcriber:
-    """Обёртка над faster-whisper с ленивой загрузкой модели."""
+    """Обёртка над openai-whisper с ленивой загрузкой модели."""
 
     def __init__(self, model_name: str = DEFAULT_MODEL, device: str = "auto"):
         self.model_name = model_name
@@ -52,24 +56,17 @@ class Transcriber:
         if self._model is not None:
             return self._model
         try:
-            from faster_whisper import WhisperModel
+            import whisper
         except ImportError as exc:
             raise RuntimeError(
-                "Не установлен faster-whisper. Поставь зависимости: "
+                "Не установлен openai-whisper. Поставь зависимости: "
                 "pip install -r requirements.txt"
             ) from exc
-        try:
-            # GPU → float16 (быстро); CPU → int8 (компактно)
-            ct = "float16" if self.device == "cuda" else "int8"
-            self._model = WhisperModel(self.model_name, device=self.device, compute_type=ct)
-        except Exception:
-            # GPU не завёлся (например, не подхватился cuDNN) — откат на CPU без падения
-            self.device = "cpu"
-            self._model = WhisperModel(self.model_name, device="cpu", compute_type="int8")
+        self._model = whisper.load_model(self.model_name, device=self.device)
         return self._model
 
     def transcribe(self, video_path: str | Path, language: str | None = None) -> str:
-        """Вернуть распознанный текст речи из видео (одной строкой/абзацем)."""
+        """Вернуть распознанный текст речи из видео."""
         video_path = Path(video_path)
         if not video_path.is_file():
             raise FileNotFoundError(f"Видео не найдено: {video_path}")
@@ -78,6 +75,8 @@ class Transcriber:
         with tempfile.TemporaryDirectory() as tmp:
             wav = Path(tmp) / "audio.wav"
             _extract_audio(video_path, wav)
-            segments, _info = model.transcribe(str(wav), language=language)
-            text = " ".join(seg.text.strip() for seg in segments)
-        return text.strip()
+            # fp16 только на GPU; на CPU — fp32, иначе whisper предупреждает
+            result = model.transcribe(
+                str(wav), language=language, fp16=(self.device == "cuda")
+            )
+        return (result.get("text") or "").strip()
