@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import os
 import traceback
 
 import gradio as gr
@@ -161,4 +162,6 @@ with gr.Blocks(title="Voice Studio", theme=gr.themes.Soft()) as demo:
 
 
 if __name__ == "__main__":
-    demo.queue().launch()
+    # В облаке (Google Colab) нужна публичная ссылка: задай VOICE_STUDIO_SHARE=1.
+    share = os.getenv("VOICE_STUDIO_SHARE", "0").lower() in ("1", "true", "yes")
+    demo.queue().launch(share=share)
