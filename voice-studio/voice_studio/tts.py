@@ -62,7 +62,24 @@ class TTSEngine:
                 "Не установлен пакет TTS (Coqui). Поставь зависимости: "
                 "pip install -r requirements.txt"
             ) from exc
-        self._tts = TTS(self.model_name).to(self.device)
+
+        # PyTorch 2.6+ по умолчанию грузит с weights_only=True и отказывается
+        # открывать чекпойнт XTTS (падает "Weights only load failed"). Модель —
+        # из официального доверенного источника Coqui, поэтому на время её загрузки
+        # форсим weights_only=False, потом возвращаем стандартное поведение.
+        import torch
+
+        _orig_load = torch.load
+
+        def _load_full(*args, **kwargs):
+            kwargs["weights_only"] = False
+            return _orig_load(*args, **kwargs)
+
+        torch.load = _load_full
+        try:
+            self._tts = TTS(self.model_name).to(self.device)
+        finally:
+            torch.load = _orig_load
         return self._tts
 
     def synthesize(
