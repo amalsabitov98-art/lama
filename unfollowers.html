@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кто отписался — без логина и без риска</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6fa;
+    color: #1c2330;
+    margin: 0;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+  }
+  .container { width: 100%; max-width: 760px; }
+  h1 { font-size: 24px; margin: 0 0 8px; }
+  .subtitle { color: #6b7280; margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    margin: 0 0 12px;
+  }
+  details.help { margin-bottom: 16px; }
+  details.help summary {
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #4f46e5;
+    padding: 12px 16px;
+    background: #eef2ff;
+    border-radius: 10px;
+    list-style: none;
+  }
+  details.help summary::-webkit-details-marker { display: none; }
+  details.help[open] summary { border-radius: 10px 10px 0 0; }
+  .help-body {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    padding: 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #374151;
+  }
+  .help-body ol { margin: 8px 0 0; padding-left: 20px; }
+  .help-body li { margin-bottom: 6px; }
+  .help-body code {
+    background: #f3f4f6;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .drops { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 560px) { .drops { grid-template-columns: 1fr; } }
+  .drop {
+    border: 2px dashed #d1d5db;
+    border-radius: 10px;
+    padding: 18px 14px;
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+    cursor: pointer;
+    position: relative;
+  }
+  .drop.dragover { border-color: #4f46e5; background: #eef2ff; }
+  .drop.loaded { border-color: #16a34a; border-style: solid; background: #f0fdf4; }
+  .drop-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .drop-hint { font-size: 12px; color: #9ca3af; }
+  .drop-status { font-size: 12px; color: #16a34a; font-weight: 500; margin-top: 6px; min-height: 16px; }
+  .drop input[type=file] { display: none; }
+  .btn {
+    display: inline-block;
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: #4338ca; }
+  .btn:disabled { background: #c7c9d9; cursor: not-allowed; }
+  .btn.ghost { background: #eef2ff; color: #4f46e5; }
+  .btn.ghost:hover { background: #e0e7ff; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tab {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab.active { background: #4f46e5; color: #fff; }
+  .tab .count {
+    background: rgba(0,0,0,0.08);
+    border-radius: 999px;
+    padding: 0 7px;
+    font-size: 12px;
+    min-width: 20px;
+    text-align: center;
+  }
+  .tab.active .count { background: rgba(255,255,255,0.25); }
+  .search {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    margin-bottom: 12px;
+  }
+  .search:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.12); }
+  .list { list-style: none; margin: 0; padding: 0; max-height: 420px; overflow-y: auto; }
+  .list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 4px;
+    border-bottom: 1px solid #f0f1f5;
+    font-size: 14px;
+  }
+  .list li:last-child { border-bottom: none; }
+  .uname { font-weight: 500; }
+  .list a { color: #4f46e5; text-decoration: none; font-size: 13px; }
+  .list a:hover { text-decoration: underline; }
+  .empty { color: #9ca3af; font-size: 14px; text-align: center; padding: 28px 0; }
+  .desc { font-size: 13px; color: #6b7280; margin: 0 0 12px; line-height: 1.5; }
+  .stats { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stat .n { font-size: 22px; font-weight: 700; }
+  .stat .l { font-size: 12px; color: #6b7280; }
+  .snapshot-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 13px;
+    color: #92400e;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .privacy {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: center;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .privacy b { color: #16a34a; }
+  .hidden { display: none !important; }
+  .badge-new { color: #16a34a; font-size: 12px; font-weight: 600; }
+  .badge-gone { color: #dc2626; font-size: 12px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Кто от меня отписался</h1>
+  <p class="subtitle">
+    Без логина, без пароля, без риска для аккаунта. Всё считается прямо в твоём браузере
+    из файла, который Instagram отдаёт тебе сам. Данные никуда не отправляются.
+  </p>
+
+  <details class="help">
+    <summary>📥 Как получить свои файлы (2 минуты)</summary>
+    <div class="help-body">
+      Платные «чекеры» просят твой пароль и парсят Инсту в обход — за это можно словить бан.
+      Тут по-другому: ты скачиваешь <b>свою собственную</b> выгрузку данных, которую соцсеть
+      обязана тебе дать.
+      <ol>
+        <li>Открой Instagram → <b>Настройки</b> → <b>Аккаунт (Центр аккаунтов)</b> →
+          <b>Ваша информация и разрешения</b> → <b>Экспорт информации</b>.</li>
+        <li>Создай экспорт: выбери <b>«Подписчики и подписки»</b>, формат — <b>JSON</b>,
+          диапазон — <b>«Всё время»</b>.</li>
+        <li>Через несколько минут (иногда до суток) придёт ссылка — скачай и распакуй архив.</li>
+        <li>Внутри найди папку <code>followers_and_following</code>. Там два файла:
+          <code>followers_1.json</code> (подписчики) и <code>following.json</code> (подписки).</li>
+        <li>Перетащи их в окошки ниже.</li>
+      </ol>
+      Работает и с другими соцсетями, если они дают JSON-выгрузку списков в похожем формате.
+    </div>
+  </details>
+
+  <div class="card">
+    <h2 class="section-title">Твои файлы</h2>
+    <div class="drops">
+      <label class="drop" id="dropFollowers">
+        <input type="file" accept=".json,application/json" data-role="followers">
+        <div class="drop-title">👥 Подписчики</div>
+        <div class="drop-hint">followers_1.json</div>
+        <div class="drop-status"></div>
+      </label>
+      <label class="drop" id="dropFollowing">
+        <input type="file" accept=".json,application/json" data-role="following">
+        <div class="drop-title">➡️ Подписки</div>
+        <div class="drop-hint">following.json</div>
+        <div class="drop-status"></div>
+      </label>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="analyzeBtn" disabled>Проанализировать</button>
+      <button class="btn ghost" id="demoBtn">Показать на примере</button>
+    </div>
+    <p class="privacy">🔒 <b>Файлы не покидают устройство.</b> Ни сервера, ни загрузки — только твой браузер.</p>
+  </div>
+
+  <div class="card hidden" id="results">
+    <div class="stats" id="stats"></div>
+
+    <div class="snapshot-box" id="snapshotBox">
+      <b>Отслеживание отписок.</b> Сохрани текущий список подписчиков как «снимок».
+      В следующий раз, когда обновишь выгрузку, тут покажет, <b>кто именно отписался</b> и кто пришёл.
+      <div class="btn-row">
+        <button class="btn ghost" id="saveSnapBtn">💾 Сохранить снимок подписчиков</button>
+        <button class="btn ghost hidden" id="clearSnapBtn">Удалить снимок</button>
+      </div>
+    </div>
+
+    <div class="tabs" id="tabs"></div>
+    <p class="desc" id="tabDesc"></p>
+    <input type="text" class="search" id="search" placeholder="Поиск по нику…">
+    <ul class="list" id="list"></ul>
+    <div class="btn-row">
+      <button class="btn ghost" id="copyBtn">📋 Скопировать список</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Разбор выгрузки ----------
+// Instagram-экспорт: followers_1.json — массив объектов со string_list_data;
+// following.json — объект с ключом relationships_following. Парсер устойчив к обоим формам.
+function extractUsers(json) {
+  const out = new Map(); // username -> href
+  function pushItem(item) {
+    if (!item || typeof item !== "object") return;
+    const sld = item.string_list_data;
+    if (Array.isArray(sld)) {
+      for (const s of sld) {
+        const value = s && (s.value || s.href);
+        if (value) {
+          const uname = String(s.value || value).replace(/^@/, "").trim();
+          if (uname) out.set(uname.toLowerCase(), { name: uname, href: s.href || ("https://instagram.com/" + uname) });
+        }
+      }
+    }
+  }
+  function walk(node) {
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (node && typeof node === "object") {
+      if ("string_list_data" in node) { pushItem(node); return; }
+      Object.values(node).forEach(walk);
+    }
+  }
+  walk(json);
+  return out;
+}
+
+// ---------- Состояние ----------
+const state = { followers: null, following: null };
+const SNAP_KEY = "unfollowers_snapshot_v1";
+let activeTab = null;
+let currentGroups = {};
+
+const els = {
+  analyze: document.getElementById("analyzeBtn"),
+  demo: document.getElementById("demoBtn"),
+  results: document.getElementById("results"),
+  stats: document.getElementById("stats"),
+  tabs: document.getElementById("tabs"),
+  tabDesc: document.getElementById("tabDesc"),
+  search: document.getElementById("search"),
+  list: document.getElementById("list"),
+  copy: document.getElementById("copyBtn"),
+  saveSnap: document.getElementById("saveSnapBtn"),
+  clearSnap: document.getElementById("clearSnapBtn"),
+  snapshotBox: document.getElementById("snapshotBox"),
+};
+
+// ---------- Загрузка файлов ----------
+document.querySelectorAll('.drop').forEach(drop => {
+  const input = drop.querySelector('input');
+  const role = input.dataset.role;
+  const status = drop.querySelector('.drop-status');
+
+  function handleFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const json = JSON.parse(e.target.result);
+        const users = extractUsers(json);
+        if (users.size === 0) throw new Error("empty");
+        state[role] = users;
+        drop.classList.add('loaded');
+        status.textContent = "✓ " + users.size + " найдено";
+      } catch (err) {
+        drop.classList.remove('loaded');
+        status.textContent = "";
+        status.style.color = "#dc2626";
+        status.textContent = "Не похоже на нужный JSON";
+      }
+      refreshAnalyzeBtn();
+    };
+    reader.readAsText(file);
+  }
+
+  input.addEventListener('change', e => handleFile(e.target.files[0]));
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('dragover'); }));
+  drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+});
+
+function refreshAnalyzeBtn() {
+  els.analyze.disabled = !(state.followers || state.following);
+}
+
+// ---------- Анализ ----------
+els.analyze.addEventListener('click', analyze);
+
+function analyze() {
+  const followers = state.followers || new Map();
+  const following = state.following || new Map();
+
+  const notFollowingBack = []; // ты подписан, они — нет
+  const fans = [];             // они подписаны на тебя, ты — нет
+  const mutuals = [];
+
+  for (const [key, u] of following) {
+    if (followers.has(key)) mutuals.push(u);
+    else notFollowingBack.push(u);
+  }
+  for (const [key, u] of followers) {
+    if (!following.has(key)) fans.push(u);
+  }
+
+  // Сравнение со снимком (отписки/новые)
+  const snap = loadSnapshot();
+  const unfollowed = [];
+  const newFollowers = [];
+  if (snap && state.followers) {
+    const prev = new Map(snap.users.map(u => [u.name.toLowerCase(), u]));
+    for (const [key, u] of prev) if (!followers.has(key)) unfollowed.push(u);
+    for (const [key, u] of followers) if (!prev.has(key)) newFollowers.push(u);
+  }
+
+  currentGroups = {
+    unfollowed: { label: "Отписались", icon: "💔", items: unfollowed, badge: "gone",
+      desc: snap ? ("Были в снимке от " + snap.date + ", а теперь их нет среди подписчиков.") : "" },
+    notback: { label: "Не фолловят в ответ", icon: "🚫", items: notFollowingBack,
+      desc: "Ты на них подписан, а они на тебя — нет." },
+    fans: { label: "Фанаты", icon: "⭐", items: fans,
+      desc: "Подписаны на тебя, а ты на них — нет." },
+    newfollowers: { label: "Новые", icon: "✨", items: newFollowers, badge: "new",
+      desc: snap ? ("Появились среди подписчиков после снимка от " + snap.date + ".") : "" },
+    mutuals: { label: "Взаимные", icon: "🤝", items: mutuals,
+      desc: "Вы подписаны друг на друга." },
+  };
+
+  renderStats(followers.size, following.size, mutuals.length);
+  renderTabs();
+  renderSnapshotBox();
+
+  els.results.classList.remove('hidden');
+  els.results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderStats(f, g, m) {
+  els.stats.innerHTML = "";
+  const data = [
+    { n: f, l: "подписчиков" },
+    { n: g, l: "подписок" },
+    { n: m, l: "взаимных" },
+  ];
+  for (const d of data) {
+    if (d.n === 0 && d.l !== "взаимных") continue;
+    const div = document.createElement('div');
+    div.className = 'stat';
+    div.innerHTML = '<div class="n">' + d.n.toLocaleString('ru-RU') + '</div><div class="l">' + d.l + '</div>';
+    els.stats.appendChild(div);
+  }
+}
+
+function renderTabs() {
+  els.tabs.innerHTML = "";
+  const order = ["unfollowed", "notback", "fans", "newfollowers", "mutuals"];
+  const visible = order.filter(k => {
+    const g = currentGroups[k];
+    // отписки/новые показываем только если есть снимок и данные
+    if ((k === "unfollowed" || k === "newfollowers") && !loadSnapshot()) return false;
+    if ((k === "notback" || k === "fans" || k === "mutuals") && !(state.followers && state.following)) return false;
+    return true;
+  });
+  if (!visible.includes(activeTab)) activeTab = visible[0] || null;
+  for (const k of visible) {
+    const g = currentGroups[k];
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (k === activeTab ? ' active' : '');
+    btn.innerHTML = g.icon + ' ' + g.label + ' <span class="count">' + g.items.length + '</span>';
+    btn.addEventListener('click', () => { activeTab = k; renderTabs(); renderList(); });
+    els.tabs.appendChild(btn);
+  }
+  renderList();
+}
+
+function renderList() {
+  const g = currentGroups[activeTab];
+  els.tabDesc.textContent = g ? g.desc : "";
+  const q = els.search.value.trim().toLowerCase();
+  els.list.innerHTML = "";
+  if (!g) return;
+  const items = g.items
+    .filter(u => u.name.toLowerCase().includes(q))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  if (items.length === 0) {
+    els.list.innerHTML = '<div class="empty">' + (g.items.length === 0 ? "Никого — и это хорошо 🙂" : "Ничего не найдено") + '</div>';
+    return;
+  }
+  for (const u of items) {
+    const li = document.createElement('li');
+    const badge = g.badge === "gone" ? '<span class="badge-gone">ушёл</span>' :
+                  g.badge === "new" ? '<span class="badge-new">новый</span>' : '';
+    li.innerHTML = '<span class="uname">@' + escapeHtml(u.name) + ' ' + badge + '</span>' +
+      '<a href="' + escapeAttr(u.href) + '" target="_blank" rel="noopener">открыть ↗</a>';
+    els.list.appendChild(li);
+  }
+}
+
+els.search.addEventListener('input', renderList);
+
+els.copy.addEventListener('click', () => {
+  const g = currentGroups[activeTab];
+  if (!g) return;
+  const text = g.items.map(u => "@" + u.name).join("\n");
+  navigator.clipboard.writeText(text).then(() => {
+    els.copy.textContent = "✓ Скопировано";
+    setTimeout(() => els.copy.textContent = "📋 Скопировать список", 1500);
+  });
+});
+
+// ---------- Снимки (localStorage) ----------
+function loadSnapshot() {
+  try { return JSON.parse(localStorage.getItem(SNAP_KEY)); } catch { return null; }
+}
+function renderSnapshotBox() {
+  const snap = loadSnapshot();
+  if (snap) {
+    els.clearSnap.classList.remove('hidden');
+    els.saveSnap.textContent = "💾 Обновить снимок (сейчас от " + snap.date + ")";
+  } else {
+    els.clearSnap.classList.add('hidden');
+    els.saveSnap.textContent = "💾 Сохранить снимок подписчиков";
+  }
+}
+els.saveSnap.addEventListener('click', () => {
+  if (!state.followers) { alert("Сначала загрузи файл подписчиков."); return; }
+  const users = Array.from(state.followers.values());
+  localStorage.setItem(SNAP_KEY, JSON.stringify({ date: new Date().toLocaleDateString('ru-RU'), users }));
+  renderSnapshotBox();
+  analyze();
+});
+els.clearSnap.addEventListener('click', () => {
+  localStorage.removeItem(SNAP_KEY);
+  renderSnapshotBox();
+  analyze();
+});
+
+// ---------- Демо ----------
+els.demo.addEventListener('click', () => {
+  const mk = names => new Map(names.map(n => [n.toLowerCase(), { name: n, href: "https://instagram.com/" + n }]));
+  state.followers = mk(["anna_k", "denis.travel", "kotopes", "maria_art", "old_school_92", "cyber_dev", "lena_photo"]);
+  state.following = mk(["anna_k", "denis.travel", "maria_art", "cyber_dev", "influencer_top", "brand_official", "meme_lord", "lena_photo"]);
+  document.querySelectorAll('.drop').forEach(d => {
+    d.classList.add('loaded');
+    const role = d.querySelector('input').dataset.role;
+    d.querySelector('.drop-status').textContent = "✓ " + state[role].size + " (демо)";
+  });
+  refreshAnalyzeBtn();
+  analyze();
+});
+
+// ---------- Утилиты ----------
+function escapeHtml(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+function escapeAttr(s) { return String(s).replace(/"/g, '&quot;'); }
+
+renderSnapshotBox();
+</script>
+</body>
+</html>
