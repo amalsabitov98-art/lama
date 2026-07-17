@@ -31,7 +31,7 @@ const DIRECTIONS={
     f2:{dc:'БАТУМИ', dk:'БАТУМИ (BUS)', dt:'00:20', ac:'ТАШКЕНТ',ak:'ТАШКЕНТ (TAS)',at:'04:20', dayOff:8},
     h1:{l:'ОТЕЛЬ РИЗЕ:', n:'RHISOS GOLD OTEL RIZE', from:0, nights:4},
     h2:{l:'ОТЕЛЬ БАТУМИ:',n:'BATUMI VIEW LUXURY',   from:4, nights:3},
-    bag:'20 кг',
+    bag:'23 кг',
   },
   batumi:{
     f1:{dc:'ТАШКЕНТ',dk:'ТАШКЕНТ (TAS)',dt:'20:50', ac:'БАТУМИ', ak:'БАТУМИ (BUS)', at:'23:20', dayOff:0},
