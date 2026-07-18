@@ -18,3 +18,148 @@
 .day,.day:nth-child(odd){background:transparent}
 .day-photo{display:none}
 @media(prefers-reduced-motion:reduce){.day-bg .layer{transform:none}}
+
+/* ============ v2: навигация, секции, форма ============ */
+:root{--ink:#0b2c2b;--cream:#eee6d4;--lime:#d5ff57;--sea:#0c3634}
+
+/* header становится фиксированным, с подложкой после скролла */
+header{position:fixed;transition:background .3s,backdrop-filter .3s,border-color .3s;background:transparent}
+header.scrolled{background:#082221ee;backdrop-filter:blur(10px);border-bottom-color:#ffffff1f}
+.mainnav{display:flex;gap:26px}
+.mainnav a{color:#fff;text-decoration:none;font:600 11px Manrope;letter-spacing:.04em;opacity:.85;transition:opacity .2s,color .2s}
+.mainnav a:hover{opacity:1;color:var(--lime)}
+.head-right{display:flex;align-items:center;gap:18px}
+.lang{display:flex;border:1px solid #ffffff40;border-radius:99px;overflow:hidden}
+.lang button{background:transparent;border:0;color:#fff;font:700 10px Manrope;letter-spacing:.06em;padding:6px 9px;cursor:pointer;opacity:.7;transition:.2s}
+.lang button.on{background:var(--lime);color:var(--ink);opacity:1}
+.head-book{color:#fff;text-decoration:none;font:700 10px Manrope;letter-spacing:.06em;white-space:nowrap}
+.head-book b{font-size:15px;margin-left:5px;display:inline-block;transition:transform .3s}
+.head-book:hover b{transform:translate(3px,-3px)}
+@media(max-width:860px){.mainnav{display:none}}
+
+/* ---- МАРШРУТ ---- */
+.route{position:relative;z-index:1;background:var(--ink);color:var(--cream);padding:13vw 8vw 11vw}
+.route-head{max-width:900px;margin:0 0 8vw}
+.route .tag{color:var(--lime)}
+.route h2{font-size:clamp(42px,6vw,92px);line-height:.9}
+.route-sub{font-size:14px;line-height:1.7;max-width:440px;margin:26px 0 0;color:#cfe0d3}
+.route-line{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;position:relative}
+.route-line:before{content:'';position:absolute;top:7px;left:5%;right:5%;height:1px;background:linear-gradient(90deg,#ffffff22,var(--lime),#ffffff22)}
+.route-line li{position:relative;padding-top:34px;text-align:left}
+.route-line .dot{position:absolute;top:0;left:0;width:15px;height:15px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 5px #d5ff5722}
+.route-line b{display:block;font:800 18px Manrope;letter-spacing:.02em}
+.route-line em{display:block;font-style:normal;font-size:11px;color:#9fb6a6;margin-top:5px;letter-spacing:.03em}
+@media(max-width:700px){.route-line{grid-template-columns:1fr 1fr;gap:26px 18px}.route-line:before{display:none}}
+
+/* ---- ЦЕНА ---- */
+.price{background:var(--cream);color:var(--ink);padding:13vw 8vw}
+.price .tag{color:#5b7c64}
+.price h2{font-size:clamp(42px,6vw,92px);line-height:.9;margin-bottom:6vw}
+.price-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:5vw;align-items:start}
+.price-card{background:var(--ink);color:var(--cream);padding:38px 34px;border-radius:4px}
+.pc-label{font:10px 'DM Mono';letter-spacing:.15em;color:var(--lime);margin:0 0 18px}
+.pc-value{margin:0;font-size:clamp(44px,6vw,72px);font-weight:700;line-height:1;letter-spacing:-.04em}
+.pc-value span{font-size:.5em;font-weight:600;opacity:.8;margin-right:2px}
+.pc-per{font-size:12px;color:#cfe0d3;margin:14px 0 0}
+.pc-note{font-size:10px;color:#8fae9c;margin:8px 0 26px;font-style:italic}
+.price-card .button{width:100%;justify-content:center}
+.incl{display:grid;grid-template-columns:1fr 1fr;gap:36px}
+.incl h4{font:800 12px Manrope;letter-spacing:.1em;text-transform:uppercase;margin:0 0 16px;color:#3f5c48}
+.incl ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+.incl li{font-size:13px;line-height:1.4;padding-left:26px;position:relative;color:#25392e}
+.incl .yes li:before{content:'✓';position:absolute;left:0;color:#2f8f5e;font-weight:800}
+.incl .no li{color:#6a5350}
+.incl .no li:before{content:'✕';position:absolute;left:0;color:#b06a5e;font-weight:800}
+@media(max-width:820px){.price-grid{grid-template-columns:1fr;gap:34px}.incl{gap:26px}}
+@media(max-width:520px){.incl{grid-template-columns:1fr}}
+
+/* ---- ДАТЫ ---- */
+.dates{background:var(--ink);color:var(--cream);padding:13vw 8vw}
+.dates .tag{color:var(--lime)}
+.dates h2{font-size:clamp(42px,6vw,92px);line-height:.9}
+.dates-sub{font-size:11px;color:#8fae9c;font-style:italic;margin:16px 0 5vw}
+.dates-list{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.date-card{cursor:pointer;text-align:left;background:#0d3634;border:1px solid #ffffff1f;border-radius:4px;padding:24px 22px;color:var(--cream);transition:border-color .25s,transform .25s,background .25s;display:flex;flex-direction:column;gap:8px}
+.date-card:hover{border-color:var(--lime);transform:translateY(-4px)}
+.date-card.sel{border-color:var(--lime);background:#12433f}
+.dc-date{font-size:19px;font-weight:700;letter-spacing:-.02em}
+.dc-date b{font-weight:700}
+.dc-year{font:10px 'DM Mono';letter-spacing:.14em;color:#9fb6a6}
+.dc-spots{margin-top:6px;font-size:10px;letter-spacing:.05em;color:#8fd0b0}
+.dc-spots.low{color:#ffcf6f}
+@media(max-width:820px){.dates-list{grid-template-columns:1fr 1fr}}
+@media(max-width:460px){.dates-list{grid-template-columns:1fr}}
+
+/* ---- ОТЗЫВЫ ---- */
+.reviews{background:var(--cream);color:var(--ink);padding:13vw 8vw}
+.reviews .tag{color:#5b7c64}
+.reviews h2{font-size:clamp(40px,5.5vw,84px);line-height:.9;margin-bottom:5vw}
+.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.review{margin:0;background:#fff8ec;border:1px solid #0b2c2b14;border-radius:4px;padding:30px 28px;display:flex;flex-direction:column;gap:18px}
+.review blockquote{margin:0;font-family:'Playfair Display',serif;font-size:18px;line-height:1.4;font-style:italic;color:#22382c}
+.review figcaption{font:10px 'DM Mono';letter-spacing:.1em;color:#5b7c64}
+@media(max-width:820px){.reviews-grid{grid-template-columns:1fr}}
+
+/* ---- О НАС ---- */
+.about{background:var(--ink);color:var(--cream);padding:13vw 8vw;display:grid;grid-template-columns:1.1fr .9fr;gap:6vw;align-items:center}
+.about .tag{color:var(--lime)}
+.about h2{font-size:clamp(38px,5vw,80px);line-height:.92}
+.about-copy p{font-size:14px;line-height:1.75;max-width:460px;color:#cfe0d3;margin:24px 0 0}
+.about-stats{display:grid;gap:24px}
+.about-stats div{border-left:2px solid var(--lime);padding-left:18px}
+.about-stats b{display:block;font-size:clamp(34px,4vw,52px);font-weight:800;letter-spacing:-.03em}
+.about-stats span{font-size:12px;color:#9fb6a6;letter-spacing:.03em}
+@media(max-width:820px){.about{grid-template-columns:1fr;gap:40px}}
+
+/* ---- FAQ ---- */
+.faq{background:var(--cream);color:var(--ink);padding:13vw 8vw}
+.faq .tag{color:#5b7c64}
+.faq h2{font-size:clamp(40px,5.5vw,84px);line-height:.9;margin-bottom:5vw}
+.faq-list{max-width:820px}
+.faq details{border-top:1px solid #0b2c2b26;padding:6px 0}
+.faq details:last-child{border-bottom:1px solid #0b2c2b26}
+.faq summary{cursor:pointer;list-style:none;padding:22px 40px 22px 0;position:relative;font-size:clamp(17px,2.2vw,22px);font-weight:600;letter-spacing:-.01em}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary:after{content:'+';position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:24px;font-weight:400;transition:transform .3s;color:#5b7c64}
+.faq details[open] summary:after{transform:translateY(-50%) rotate(45deg)}
+.faq details p{margin:0 0 22px;font-size:14px;line-height:1.7;max-width:640px;color:#3a5244}
+
+/* ---- БРОНИРОВАНИЕ (форма) ---- */
+.manifest{display:block;height:auto;min-height:0;padding:0}
+.manifest>img{position:absolute;inset:0;height:100%;object-fit:cover}
+.book-wrap{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:14vw 7vw;text-align:center}
+.book-wrap h2{font-size:clamp(40px,6vw,88px);line-height:.9}
+.book-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:34px 0 16px;text-align:left}
+.book-form input,.book-form textarea{width:100%;background:#ffffff10;border:1px solid #ffffff33;border-radius:4px;padding:14px 16px;color:#fff;font:500 14px Manrope;backdrop-filter:blur(6px)}
+.book-form input::placeholder,.book-form textarea::placeholder{color:#ffffff8c}
+.book-form input:focus,.book-form textarea:focus{outline:none;border-color:var(--lime);background:#ffffff1a}
+.book-form textarea,.book-form button{grid-column:1/-1}
+.book-form .button{justify-content:center;border:0;cursor:pointer;font:800 12px Manrope;letter-spacing:.04em}
+.chat-btns{display:flex;gap:12px;justify-content:center}
+.chat{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font:700 12px Manrope;letter-spacing:.03em;padding:13px 22px;border-radius:4px}
+.chat.wa{background:#25d366;color:#053b1e}
+.chat.tg{background:#2aabee;color:#04283a}
+.chat:hover{filter:brightness(1.06)}
+.form-hint{font-size:11px;color:#cfe0d3cc;margin:16px 0 0}
+@media(max-width:560px){.book-form{grid-template-columns:1fr}}
+
+/* footer contacts */
+.foot-contact a{color:#bdc8b4;text-decoration:none}
+.foot-contact a:hover{color:var(--lime)}
+@media(max-width:700px){.foot-contact{display:none}}
+
+/* ---- прогресс дней (правый рельс) ---- */
+.progress-rail{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;gap:9px;opacity:0;transition:opacity .4s;pointer-events:none}
+.progress-rail.show{opacity:1}
+.progress-rail i{width:8px;height:8px;border-radius:50%;background:#ffffff40;transition:background .3s,transform .3s}
+.progress-rail i.on{background:var(--lime);transform:scale(1.5)}
+@media(max-width:860px){.progress-rail{display:none}}
+
+/* ---- липкая мобильная CTA ---- */
+.sticky-cta{position:fixed;left:0;right:0;bottom:0;z-index:40;display:none;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#082221f2;backdrop-filter:blur(10px);border-top:1px solid #ffffff1f}
+.sticky-cta .button{flex:1;justify-content:center;text-decoration:none}
+.sticky-cta .chat{padding:13px 18px}
+@media(max-width:860px){.sticky-cta{display:flex}body{padding-bottom:64px}}
+
+/* усиленное затемнение под формой бронирования (фото Батуми днём — светлое) */
+.manifest .manifest-shade{background:linear-gradient(0deg,#061d20f4 0%,#061d20e0 52%,#08282899 100%)}
