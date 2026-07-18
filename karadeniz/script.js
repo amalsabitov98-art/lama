@@ -14,6 +14,7 @@ const CONFIG = {
 const I18N = {
   ru: {
     'nav.route':'Маршрут','nav.price':'Цена','nav.dates':'Даты','nav.reviews':'Отзывы','nav.faq':'FAQ','nav.book':'Забронировать <b>↗</b>',
+    'word.day':'ДЕНЬ','stamp':'ТУРЦИЯ<br>×<br>ГРУЗИЯ','date.d1':'12 — 19 <b>мая</b>','date.d2':'02 — 09 <b>июня</b>','date.d3':'07 — 14 <b>июля</b>','date.d4':'01 — 08 <b>сент.</b>',
     'hero.tag':'BLACK SEA ESCAPE / 2027','hero.h1':'Загадочный<br><i>Karadeniz</i>','hero.lead':'8 дней по маршруту Ризе, Узунгёль, Айдер и Батуми.','hero.scroll':'Листайте, чтобы начать <span>↓</span>',
     'stmt.tag':'ТАМ, ГДЕ ГОРЫ ВСТРЕЧАЮТ МОРЕ','stmt.h2':'Один берег.<br>Два <i>мира.</i><br>Восемь дней.','stmt.text':'Мы собрали оба маршрута в одно выразительное путешествие: с мягким ритмом первых дней, природными открытиями, свободным временем и финальным возвращением домой.',
     'route.tag':'МАРШРУТ','route.h2':'Один берег,<br>четыре точки <i>притяжения.</i>','route.sub':'Черноморская дуга из Турции в Грузию — через горы, чайные яйлы, озёра и вечерний город у моря.','route.p1':'Чай, яйлы, горы','route.p2':'Озеро в облаках','route.p3':'Высокогорье 1350 м','route.p4':'Море и огни',
@@ -47,6 +48,7 @@ const I18N = {
   },
   uz: {
     'nav.route':'Marshrut','nav.price':'Narx','nav.dates':'Sanalar','nav.reviews':'Sharhlar','nav.faq':'Savollar','nav.book':'Band qilish <b>↗</b>',
+    'word.day':'KUN','stamp':'TURKIYA<br>×<br>GRUZIYA','date.d1':'12 — 19 <b>may</b>','date.d2':'02 — 09 <b>iyun</b>','date.d3':'07 — 14 <b>iyul</b>','date.d4':'01 — 08 <b>sent.</b>',
     'hero.tag':'BLACK SEA ESCAPE / 2027','hero.h1':'Sirli<br><i>Karadeniz</i>','hero.lead':'Rize, Uzungöl, Ayder va Batumi bo‘ylab 8 kun.','hero.scroll':'Boshlash uchun pastga suring <span>↓</span>',
     'stmt.tag':'TOG‘LAR DENGIZ BILAN UCHRASHGAN JOY','stmt.h2':'Bitta qirg‘oq.<br>Ikki <i>olam.</i><br>Sakkiz kun.','stmt.text':'Ikkala marshrutni bitta yorqin sayohatga jamladik: dastlabki kunlarning bosiq ritmi, tabiat kashfiyotlari, erkin vaqt va uyga qaytish.',
     'route.tag':'MARSHRUT','route.h2':'Bitta qirg‘oq,<br>to‘rt <i>joziba nuqtasi.</i>','route.sub':'Turkiyadan Gruziyaga Qora dengiz yoyi — tog‘lar, choy yaylovlari, ko‘llar va dengiz bo‘yidagi kechki shahar orqali.','route.p1':'Choy, yaylov, tog‘','route.p2':'Bulutlar orasidagi ko‘l','route.p3':'Baland tog‘ 1350 m','route.p4':'Dengiz va chiroqlar',
@@ -80,6 +82,7 @@ const I18N = {
   },
   en: {
     'nav.route':'Route','nav.price':'Price','nav.dates':'Dates','nav.reviews':'Reviews','nav.faq':'FAQ','nav.book':'Book now <b>↗</b>',
+    'word.day':'DAY','stamp':'TÜRKİYE<br>×<br>GEORGIA','date.d1':'12 — 19 <b>May</b>','date.d2':'02 — 09 <b>June</b>','date.d3':'07 — 14 <b>July</b>','date.d4':'01 — 08 <b>Sept.</b>',
     'hero.tag':'BLACK SEA ESCAPE / 2027','hero.h1':'Mysterious<br><i>Karadeniz</i>','hero.lead':'8 days across Rize, Uzungöl, Ayder and Batumi.','hero.scroll':'Scroll to begin <span>↓</span>',
     'stmt.tag':'WHERE THE MOUNTAINS MEET THE SEA','stmt.h2':'One coast.<br>Two <i>worlds.</i><br>Eight days.','stmt.text':'We merged both routes into one expressive journey: a gentle rhythm in the first days, nature discoveries, free time and a final return home.',
     'route.tag':'ROUTE','route.h2':'One coast,<br>four points of <i>attraction.</i>','route.sub':'A Black Sea arc from Türkiye to Georgia — through mountains, tea highlands, lakes and an evening city by the sea.','route.p1':'Tea, highlands, peaks','route.p2':'Lake in the clouds','route.p3':'Highland 1350 m','route.p4':'Sea and lights',
@@ -156,7 +159,9 @@ document.querySelectorAll('.date-card').forEach(card => {
   card.addEventListener('click', () => {
     document.querySelectorAll('.date-card').forEach(c => c.classList.remove('sel'));
     card.classList.add('sel');
-    SELECTED_DATE = card.dataset.date;
+    const dtxt = card.querySelector('.dc-date').textContent.trim().replace(/\s+/g, ' ');
+    const yr = card.querySelector('.dc-year').textContent.trim();
+    SELECTED_DATE = dtxt + ' ' + yr;
     const dateInput = document.querySelector('.book-form [name="date"]');
     if (dateInput) dateInput.value = SELECTED_DATE;
     document.getElementById('book').scrollIntoView({ behavior: 'smooth' });
