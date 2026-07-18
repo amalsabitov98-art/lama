@@ -4,8 +4,11 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Загадочный Karadeniz — тур Ризе + Батуми">
 <meta property="og:description" content="8 дней по Черноморью: горы Ризе, озеро Узунгёль, яйлы Айдера и вечерний Батуми.">
-<!-- og:image / og:url укажите с вашим доменом, напр. https://ваш-домен/assets/batumi-skyline.webp -->
-<meta property="og:image" content="assets/batumi-skyline.webp">
+<!-- ВАЖНО: замените https://ВАШ-ДОМЕН на реальный домен — иначе превью в WhatsApp/Telegram придёт без картинки -->
+<meta property="og:url" content="https://ВАШ-ДОМЕН/">
+<meta property="og:image" content="https://ВАШ-ДОМЕН/assets/batumi-skyline.webp">
+<meta property="og:image:width" content="1920">
+<meta property="og:image:height" content="1200">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%8A%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,6 +22,7 @@
     <a href="#price" data-i18n="nav.price">Цена</a>
     <a href="#dates" data-i18n="nav.dates">Даты</a>
     <a href="#reviews" data-i18n="nav.reviews">Отзывы</a>
+    <a href="#about" data-i18n="nav.about">О нас</a>
     <a href="#faq" data-i18n="nav.faq">FAQ</a>
   </nav>
   <div class="head-right">
@@ -48,6 +52,7 @@
       <p class="tag" data-i18n="hero.tag">BLACK SEA ESCAPE / 2027</p>
       <h1 data-i18n="hero.h1">Загадочный<br><i>Karadeniz</i></h1>
       <p class="lead" data-i18n="hero.lead">8 дней по маршруту Ризе, Узунгёль, Айдер и Батуми.</p>
+      <p class="hero-facts"><span data-i18n="hero.from">от</span>&nbsp;$<b data-price>690</b><span class="hf-dot"></span><span data-i18n="hero.audience">вылет из Ташкента · 8 дней / 7 ночей</span><a href="#price" class="hf-link" data-i18n="hero.pricelink">что входит →</a></p>
       <a class="scroll" href="#route" data-i18n="hero.scroll">Листайте, чтобы начать <span>↓</span></a>
     </div>
     <div class="hero-stamp" data-i18n="stamp">ТУРЦИЯ<br>×<br>ГРУЗИЯ</div>
@@ -244,7 +249,8 @@
       <div class="trip-meta"><span data-i18n="book.m1">8 ДНЕЙ</span><span data-i18n="book.m2">7 НОЧЕЙ</span><span data-i18n="book.m3">ТУРЦИЯ × ГРУЗИЯ</span></div>
       <form class="book-form" novalidate>
         <input name="name" type="text" required data-i18n-ph="form.name" placeholder="Ваше имя">
-        <input name="phone" type="tel" required data-i18n-ph="form.phone" placeholder="Телефon +998 __ ___ __ __">
+        <input name="phone" type="tel" required data-i18n-ph="form.phone" placeholder="Телефон +998 __ ___ __ __">
+        <input name="email" type="email" data-i18n-ph="form.email" placeholder="Email">
         <input name="date" type="text" readonly data-i18n-ph="form.date" placeholder="Дата выезда (выберите выше)">
         <input name="people" type="number" min="1" value="2" data-i18n-ph="form.people" placeholder="Человек">
         <textarea name="msg" rows="2" data-i18n-ph="form.msg" placeholder="Комментарий (необязательно)"></textarea>
@@ -255,6 +261,7 @@
         <a class="chat tg" data-chat="tg" href="#" data-i18n="form.tg">Telegram</a>
       </div>
       <p class="form-hint" data-i18n="form.hint">Заявка откроет готовое сообщение в мессенджере — ничего не потеряется.</p>
+      <p class="form-fallback">Нет WhatsApp? <a data-mail href="#" data-i18n="form.mail">Отправьте на email →</a></p>
     </div>
   </section>
 </main>
@@ -268,6 +275,8 @@
 
 <!-- прогресс дней -->
 <div class="progress-rail" aria-hidden="true"></div>
+<!-- плавающая CTA (десктоп) -->
+<a href="#price" class="float-cta" data-i18n="float.cta">Цена и бронь <b>↗</b></a>
 <!-- липкая мобильная CTA -->
 <div class="sticky-cta">
   <a href="#book" class="button" data-i18n="sticky.book">Забронировать</a>

@@ -194,3 +194,25 @@ header.scrolled{background:#082221ee;backdrop-filter:blur(10px);border-bottom-co
 .faq details:last-child{border-bottom-color:#ffffff1f}
 .faq summary:after{color:#9fb6a6}
 .faq details p{color:#cfe0d3}
+
+/* ============ Правки по ревью ============ */
+/* цена + аудитория в hero */
+.hero-facts{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 26px;font:600 13px Manrope;color:#f2ecdd;letter-spacing:.01em}
+.hero-facts b{font-weight:800;font-size:16px}
+.hf-dot{width:4px;height:4px;border-radius:50%;background:var(--lime)}
+.hf-link{color:var(--lime);text-decoration:none;font-weight:700;border-bottom:1px solid #d5ff5766;padding-bottom:1px}
+.hf-link:hover{border-color:var(--lime)}
+@media(max-width:700px){.hero-facts{font-size:12px;gap:8px}}
+
+/* плавающая CTA на десктопе (появляется после hero) */
+.float-cta{position:fixed;right:22px;bottom:22px;z-index:35;display:none;align-items:center;gap:6px;
+  background:var(--lime);color:var(--ink);font:800 12px Manrope;letter-spacing:.03em;
+  padding:14px 20px;border-radius:99px;text-decoration:none;box-shadow:0 12px 30px #0006;
+  opacity:0;transform:translateY(14px);transition:opacity .35s,transform .35s}
+.float-cta b{font-size:15px}
+.float-cta.show{opacity:1;transform:translateY(0)}
+@media(min-width:861px){.float-cta{display:inline-flex}}
+/* запасная email-ссылка в форме */
+.form-fallback{font-size:11px;color:#cfe0d3aa;margin:10px 0 0}
+.form-fallback a{color:var(--lime);text-decoration:none;border-bottom:1px solid #d5ff5766}
+.form-fallback a:hover{border-color:var(--lime)}

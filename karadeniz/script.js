@@ -5,7 +5,8 @@ const CONFIG = {
   phone: '998901234567',          // WhatsApp/Telegram номер без + и пробелов
   telegram: 'karadeniz_travel',   // username в Telegram без @
   email: 'hello@karadeniz.travel',
-  price: '690'                    // цена «от $…» за человека
+  price: '690',                   // цена «от $…» за человека
+  webhook: ''                     // URL для приёма заявок на сервер (Google Sheet/CRM). Пусто = только мессенджеры
 };
 
 /* ============================================================
@@ -15,6 +16,7 @@ const I18N = {
   ru: {
     'nav.route':'Маршрут','nav.price':'Цена','nav.dates':'Даты','nav.reviews':'Отзывы','nav.faq':'FAQ','nav.book':'Забронировать <b>↗</b>',
     'word.day':'ДЕНЬ','stamp':'ТУРЦИЯ<br>×<br>ГРУЗИЯ','date.d1':'12 — 19 <b>мая</b>','date.d2':'02 — 09 <b>июня</b>','date.d3':'07 — 14 <b>июля</b>','date.d4':'01 — 08 <b>сент.</b>',
+    'nav.about':'О нас','hero.from':'от','hero.audience':'вылет из Ташкента · 8 дней / 7 ночей','hero.pricelink':'что входит →','form.email':'Email','form.mail':'Отправьте на email →','float.cta':'Цена и бронь <b>↗</b>',
     'hero.tag':'BLACK SEA ESCAPE / 2027','hero.h1':'Загадочный<br><i>Karadeniz</i>','hero.lead':'8 дней по маршруту Ризе, Узунгёль, Айдер и Батуми.','hero.scroll':'Листайте, чтобы начать <span>↓</span>',
     'stmt.tag':'ТАМ, ГДЕ ГОРЫ ВСТРЕЧАЮТ МОРЕ','stmt.h2':'Один берег.<br>Два <i>мира.</i><br>Восемь дней.','stmt.text':'Мы собрали оба маршрута в одно выразительное путешествие: с мягким ритмом первых дней, природными открытиями, свободным временем и финальным возвращением домой.',
     'route.tag':'МАРШРУТ','route.h2':'Один берег,<br>четыре точки <i>притяжения.</i>','route.sub':'Черноморская дуга из Турции в Грузию — через горы, чайные яйлы, озёра и вечерний город у моря.','route.p1':'Чай, яйлы, горы','route.p2':'Озеро в облаках','route.p3':'Высокогорье 1350 м','route.p4':'Море и огни',
@@ -39,7 +41,7 @@ const I18N = {
     'faq.q3':'Какой размер группы?','faq.a3':'Обычно 8–16 человек. Небольшие группы — больше внимания и гибкости в маршруте.',
     'faq.q4':'На каком языке гид?','faq.a4':'Русскоговорящий гид на всём маршруте. По запросу — узбекский или английский.',
     'faq.q5':'Можно с детьми?','faq.a5':'Да, маршрут подходит для семей. Для детей — специальные условия, уточняйте при бронировании.',
-    'faq.q6':'Как оплатить и вернуть?','faq.a6':'Бронь по предоплате, остаток — до выезда. Условия возврата обсуждаем индивидуально. Напишите нам — всё расскажем.',
+    'faq.q6':'Как оплатить и вернуть?','faq.a6':'Бронь — по предоплате, остаток до выезда. Возврат по договору: при отмене заранее возвращаем предоплату за вычетом уже понесённых расходов (брони отелей, билеты). Точные сроки и суммы — в договоре, пришлём до оплаты.',
     'book.tag':'KARADENIZ / ЗАЯВКА','book.h2':'Ваше путешествие<br>начинается <i>здесь.</i>','book.m1':'8 ДНЕЙ','book.m2':'7 НОЧЕЙ','book.m3':'ТУРЦИЯ × ГРУЗИЯ',
     'form.name':'Ваше имя','form.phone':'Телефон +998 __ ___ __ __','form.date':'Дата выезда (выберите выше)','form.people':'Человек','form.msg':'Комментарий (необязательно)','form.submit':'Отправить заявку <b>↗</b>','form.wa':'WhatsApp','form.tg':'Telegram','form.hint':'Заявка откроет готовое сообщение в мессенджере — ничего не потеряется.',
     'sticky.book':'Забронировать',
@@ -49,6 +51,7 @@ const I18N = {
   uz: {
     'nav.route':'Marshrut','nav.price':'Narx','nav.dates':'Sanalar','nav.reviews':'Sharhlar','nav.faq':'Savollar','nav.book':'Band qilish <b>↗</b>',
     'word.day':'KUN','stamp':'TURKIYA<br>×<br>GRUZIYA','date.d1':'12 — 19 <b>may</b>','date.d2':'02 — 09 <b>iyun</b>','date.d3':'07 — 14 <b>iyul</b>','date.d4':'01 — 08 <b>sent.</b>',
+    'nav.about':'Biz haqimizda','hero.from':'narxi','hero.audience':'Toshkentdan uchish · 8 kun / 7 kecha','hero.pricelink':'nima kiradi →','form.email':'Email','form.mail':'Email orqali yuboring →','float.cta':'Narx va bandlik <b>↗</b>',
     'hero.tag':'BLACK SEA ESCAPE / 2027','hero.h1':'Sirli<br><i>Karadeniz</i>','hero.lead':'Rize, Uzungöl, Ayder va Batumi bo‘ylab 8 kun.','hero.scroll':'Boshlash uchun pastga suring <span>↓</span>',
     'stmt.tag':'TOG‘LAR DENGIZ BILAN UCHRASHGAN JOY','stmt.h2':'Bitta qirg‘oq.<br>Ikki <i>olam.</i><br>Sakkiz kun.','stmt.text':'Ikkala marshrutni bitta yorqin sayohatga jamladik: dastlabki kunlarning bosiq ritmi, tabiat kashfiyotlari, erkin vaqt va uyga qaytish.',
     'route.tag':'MARSHRUT','route.h2':'Bitta qirg‘oq,<br>to‘rt <i>joziba nuqtasi.</i>','route.sub':'Turkiyadan Gruziyaga Qora dengiz yoyi — tog‘lar, choy yaylovlari, ko‘llar va dengiz bo‘yidagi kechki shahar orqali.','route.p1':'Choy, yaylov, tog‘','route.p2':'Bulutlar orasidagi ko‘l','route.p3':'Baland tog‘ 1350 m','route.p4':'Dengiz va chiroqlar',
@@ -73,7 +76,7 @@ const I18N = {
     'faq.q3':'Guruh hajmi qanday?','faq.a3':'Odatda 8–16 kishi. Kichik guruhlar — ko‘proq e’tibor va marshrutda moslashuvchanlik.',
     'faq.q4':'Gid qaysi tilda?','faq.a4':'Butun marshrutda rus tilida gid. So‘rov bo‘yicha — o‘zbek yoki ingliz tilida.',
     'faq.q5':'Bolalar bilan bo‘ladimi?','faq.a5':'Ha, marshrut oilalar uchun mos. Bolalarga maxsus shartlar — bandlik vaqtida aniqlashtiring.',
-    'faq.q6':'Qanday to‘lash va qaytarish?','faq.a6':'Oldindan to‘lov bilan bandlik, qolgani — chiqishdan oldin. Qaytarish shartlarini alohida muhokama qilamiz. Bizga yozing.',
+    'faq.q6':'Qanday to‘lash va qaytarish?','faq.a6':'Bandlik — oldindan to‘lov bilan, qolgani chiqishdan oldin. Qaytarish shartnoma bo‘yicha: oldindan bekor qilinsa, to‘lovni haqiqiy xarajatlar (mehmonxona, chipta) chegirib qaytaramiz. Aniq shartlar shartnomada, to‘lovdan oldin yuboramiz.',
     'book.tag':'KARADENIZ / ARIZA','book.h2':'Sayohatingiz<br>shu yerda <i>boshlanadi.</i>','book.m1':'8 KUN','book.m2':'7 KECHA','book.m3':'TURKIYA × GRUZIYA',
     'form.name':'Ismingiz','form.phone':'Telefon +998 __ ___ __ __','form.date':'Chiqish sanasi (yuqoridan tanlang)','form.people':'Kishi','form.msg':'Izoh (ixtiyoriy)','form.submit':'Ariza yuborish <b>↗</b>','form.wa':'WhatsApp','form.tg':'Telegram','form.hint':'Ariza messenjerda tayyor xabarni ochadi — hech narsa yo‘qolmaydi.',
     'sticky.book':'Band qilish',
@@ -83,6 +86,7 @@ const I18N = {
   en: {
     'nav.route':'Route','nav.price':'Price','nav.dates':'Dates','nav.reviews':'Reviews','nav.faq':'FAQ','nav.book':'Book now <b>↗</b>',
     'word.day':'DAY','stamp':'TÜRKİYE<br>×<br>GEORGIA','date.d1':'12 — 19 <b>May</b>','date.d2':'02 — 09 <b>June</b>','date.d3':'07 — 14 <b>July</b>','date.d4':'01 — 08 <b>Sept.</b>',
+    'nav.about':'About','hero.from':'from','hero.audience':'departure from Tashkent · 8 days / 7 nights','hero.pricelink':'what’s included →','form.email':'Email','form.mail':'Send by email →','float.cta':'Price & booking <b>↗</b>',
     'hero.tag':'BLACK SEA ESCAPE / 2027','hero.h1':'Mysterious<br><i>Karadeniz</i>','hero.lead':'8 days across Rize, Uzungöl, Ayder and Batumi.','hero.scroll':'Scroll to begin <span>↓</span>',
     'stmt.tag':'WHERE THE MOUNTAINS MEET THE SEA','stmt.h2':'One coast.<br>Two <i>worlds.</i><br>Eight days.','stmt.text':'We merged both routes into one expressive journey: a gentle rhythm in the first days, nature discoveries, free time and a final return home.',
     'route.tag':'ROUTE','route.h2':'One coast,<br>four points of <i>attraction.</i>','route.sub':'A Black Sea arc from Türkiye to Georgia — through mountains, tea highlands, lakes and an evening city by the sea.','route.p1':'Tea, highlands, peaks','route.p2':'Lake in the clouds','route.p3':'Highland 1350 m','route.p4':'Sea and lights',
@@ -107,7 +111,7 @@ const I18N = {
     'faq.q3':'What’s the group size?','faq.a3':'Usually 8–16 people. Small groups mean more attention and flexibility on the route.',
     'faq.q4':'What language is the guide?','faq.a4':'A Russian-speaking guide for the whole route. On request — Uzbek or English.',
     'faq.q5':'Can I come with kids?','faq.a5':'Yes, the route suits families. Special terms for children — please ask when booking.',
-    'faq.q6':'How to pay and refund?','faq.a6':'Booking by prepayment, the rest before departure. Refund terms are discussed individually. Message us — we’ll explain everything.',
+    'faq.q6':'How to pay and refund?','faq.a6':'Booking by prepayment, the balance before departure. Refunds per contract: on early cancellation we return the prepayment minus costs already incurred (hotel bookings, tickets). Exact terms are in the contract, sent before payment.',
     'book.tag':'KARADENIZ / REQUEST','book.h2':'Your journey<br>begins <i>here.</i>','book.m1':'8 DAYS','book.m2':'7 NIGHTS','book.m3':'TÜRKİYE × GEORGIA',
     'form.name':'Your name','form.phone':'Phone +998 __ ___ __ __','form.date':'Departure date (pick above)','form.people':'People','form.msg':'Comment (optional)','form.submit':'Send request <b>↗</b>','form.wa':'WhatsApp','form.tg':'Telegram','form.hint':'Your request opens a ready message in the messenger — nothing gets lost.',
     'sticky.book':'Book now',
@@ -134,7 +138,7 @@ function applyLang(lang) {
   });
   document.querySelectorAll('.lang button').forEach(b =>
     b.classList.toggle('on', b.dataset.lang === LANG));
-  document.querySelector('[data-price]').textContent = CONFIG.price;
+  document.querySelectorAll('[data-price]').forEach(el => el.textContent = CONFIG.price);
   buildChatLinks();
 }
 document.querySelectorAll('.lang button').forEach(b =>
@@ -176,20 +180,31 @@ if (form) {
     const f = form;
     const name = f.name.value.trim();
     const phone = f.phone.value.trim();
+    const email = f.email ? f.email.value.trim() : '';
     if (!name || !phone) {
       (!name ? f.name : f.phone).focus();
       return;
     }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { f.email.focus(); return; }
     const L = I18N[LANG];
+    const data = { name, phone, email, date: SELECTED_DATE, people: f.people.value || '', message: f.msg.value.trim(), lang: LANG, page: location.href };
     const lines = [
       L['msg.lead'] + ':',
       '👤 ' + name,
       '📞 ' + phone,
+      email ? '✉️ ' + email : '',
       SELECTED_DATE ? '📅 ' + SELECTED_DATE : '',
       '👥 ' + (f.people.value || '—'),
       f.msg.value.trim() ? '💬 ' + f.msg.value.trim() : ''
     ].filter(Boolean);
+    // серверный fallback: если задан webhook — фиксируем лид на сервере (не зависит от WhatsApp)
+    if (CONFIG.webhook) {
+      fetch(CONFIG.webhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(() => {});
+    }
+    // открываем готовое сообщение в WhatsApp; если не откроется — остаётся email-ссылка ниже
     window.open(waLink(lines.join('\n')), '_blank');
+    const mail = document.querySelector('.form-fallback a');
+    if (mail) mail.href = 'mailto:' + CONFIG.email + '?subject=' + encodeURIComponent(L['msg.lead']) + '&body=' + encodeURIComponent(lines.slice(1).join('\n'));
   });
 }
 
@@ -197,7 +212,16 @@ if (form) {
    Шапка: подложка после скролла
    ============================================================ */
 const header = document.querySelector('header');
-addEventListener('scroll', () => header.classList.toggle('scrolled', scrollY > 60), { passive: true });
+const floatCta = document.querySelector('.float-cta');
+const bookSection = document.getElementById('book');
+addEventListener('scroll', () => {
+  header.classList.toggle('scrolled', scrollY > 60);
+  if (floatCta) {
+    const pastHero = scrollY > innerHeight * 0.85;
+    const nearBook = bookSection && bookSection.getBoundingClientRect().top < innerHeight * 0.9;
+    floatCta.classList.toggle('show', pastHero && !nearBook);
+  }
+}, { passive: true });
 
 /* ============================================================
    Анимации появления (каскад)
