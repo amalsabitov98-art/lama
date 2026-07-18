@@ -58,7 +58,7 @@ if (bg) {
       const layer = layers[i];
       if (!layer) return;
       layer.style.opacity = vis.toFixed(3);
-      if (!reduce) layer.style.transform = 'scale(' + (1.06 + 0.05 * vis).toFixed(3) + ')';
+      if (!reduce) layer.style.transform = 'scale(' + (1.03 + 0.03 * vis).toFixed(3) + ')';
     });
   }
   function onScroll() {
