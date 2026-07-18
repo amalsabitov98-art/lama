@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Загадочный Karadeniz — Turon Tour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep:#101E1B;
+    --mist:#182A26;
+    --panel:#1E332E;
+    --ink:#F1EDE4;
+    --ink-dim:#B9C4BE;
+    --brass:#C89B3C;
+    --sage:#7FA98C;
+    --rust:#B5623A;
+    --line: rgba(241,237,228,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--deep); color:var(--ink); font-family:'Inter',sans-serif; overflow-x:hidden;}
+  h1,h2{font-family:'Instrument Serif', serif; font-weight:400; letter-spacing:0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  :focus-visible{outline:2px solid var(--brass); outline-offset:3px;}
+
+  .progress-top{position:fixed; top:0; left:0; width:100%; height:3px; background:rgba(255,255,255,0.08); z-index:60;}
+  .progress-top-fill{height:100%; width:0%; background:var(--brass);}
+
+  .ribbon{position:fixed; left:36px; top:50%; transform:translateY(-50%); height:56vh; width:2px; z-index:55;}
+  .ribbon-track{position:relative; width:2px; height:100%; background:var(--line); border-radius:2px;}
+  .ribbon-fill{position:absolute; top:0; left:0; width:100%; height:0%; background:linear-gradient(var(--brass), var(--sage)); border-radius:2px;}
+  .ribbon-dots{position:absolute; top:0; left:50%; transform:translateX(-50%); height:100%; width:2px;}
+  .dot{position:absolute; left:50%; transform:translate(-50%,-50%); width:9px; height:9px; border-radius:50%;
+    background:var(--mist); border:1.5px solid var(--ink-dim); cursor:pointer; padding:0; transition:background .25s, border-color .25s, transform .25s;}
+  .dot:hover{border-color:var(--brass);}
+  .dot.active{background:var(--brass); border-color:var(--brass); transform:translate(-50%,-50%) scale(1.4);}
+  .dot-label{position:absolute; left:18px; top:50%; transform:translateY(-50%); font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px; letter-spacing:.05em; color:var(--ink-dim); white-space:nowrap; opacity:0; transition:opacity .2s; pointer-events:none;}
+  .dot:hover .dot-label, .dot.active .dot-label{opacity:1;}
+  @media (max-width: 900px){ .ribbon{display:none;} }
+
+  .day-indicator{
+    position:fixed; top:26px; right:36px; z-index:56; font-size:11.5px; letter-spacing:.08em; color:var(--ink-dim);
+    text-align:right; max-width:260px; transition:opacity .3s;
+  }
+  .day-indicator b{color:var(--brass); font-weight:600;}
+  @media (max-width:900px){ .day-indicator{left:14px; right:14px; top:12px; text-align:center; max-width:none; font-size:10.5px;} }
+
+  section{position:relative; overflow:hidden; padding:0 8vw;}
+
+  /* HERO */
+  .hero{height:100svh; display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+    background:radial-gradient(120% 100% at 15% 0%, #1B322B 0%, var(--deep) 55%);}
+  .hero-scenery{position:absolute; inset:0; z-index:0; pointer-events:none;}
+  .hero-scenery svg{position:absolute; bottom:-2px; left:0; width:100%; height:auto;}
+  .hero-content{position:relative; z-index:2; max-width:720px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.16em; color:var(--sage); margin-bottom:22px;}
+  .hero-title{font-size:clamp(48px, 9vw, 108px); line-height:0.98; color:var(--ink);}
+  .hero-title .italic{font-style:italic; color:var(--brass);}
+  .hero-sub{font-size:clamp(15px,1.6vw,19px); color:var(--ink-dim); margin-top:26px; max-width:480px; line-height:1.5;}
+  .route-toggle{display:flex; gap:10px; margin-top:38px;}
+  .toggle-btn{background:transparent; border:1px solid var(--line); color:var(--ink-dim); padding:11px 20px; border-radius:100px; font-size:13px; cursor:pointer; transition:all .25s;}
+  .toggle-btn.active{background:var(--brass); border-color:var(--brass); color:var(--deep); font-weight:600;}
+  .toggle-btn:not(.active):hover{border-color:var(--sage); color:var(--ink);}
+  .scroll-cue{margin-top:64px; background:none; border:none; color:var(--ink-dim); font-size:12px; letter-spacing:.1em; display:flex; align-items:center; gap:10px; cursor:pointer;}
+  .scroll-cue span{width:1px; height:34px; background:var(--ink-dim); position:relative; overflow:hidden;}
+  .scroll-cue span::after{content:''; position:absolute; top:-100%; left:0; width:100%; height:100%; background:var(--brass); animation:cue 1.8s ease-in-out infinite;}
+  @keyframes cue{ 0%{top:-100%;} 60%{top:100%;} 100%{top:100%;} }
+
+  /* DAY sections */
+  .day{min-height:100svh; display:flex; flex-direction:column; justify-content:center; padding-top:120px; padding-bottom:120px;}
+  .day-scenery{position:absolute; inset:0; z-index:0; opacity:.9;}
+  .day-content{position:relative; z-index:2; max-width:620px;}
+  .day-num{font-family:'IBM Plex Mono',monospace; font-size:15px; color:var(--brass); letter-spacing:.1em; display:block; margin-bottom:18px;}
+  .day-num::before{content:'ДЕНЬ '; color:var(--ink-dim);}
+  .day h2{font-size:clamp(30px,4.2vw,52px); margin-bottom:22px; color:var(--ink);}
+  .day p{font-size:16px; line-height:1.7; color:var(--ink-dim); max-width:520px;}
+  .day-tags{list-style:none; display:flex; flex-wrap:wrap; gap:10px; margin-top:26px;}
+  .day-tags li{font-size:12.5px; color:var(--sage); border:1px solid rgba(127,169,140,0.4); padding:7px 14px; border-radius:100px;}
+
+  /* scenery: urban */
+  .scenery-urban .ridge{position:absolute; bottom:0; width:100%; clip-path:polygon(0 100%,0 72%,12% 60%,24% 74%,38% 55%,52% 70%,66% 50%,80% 68%,92% 58%,100% 66%,100% 100%);}
+  .scenery-urban .ridge-1{height:46%; background:#213D36; opacity:.9;}
+  .scenery-urban .ridge-2{height:30%; background:#182A26;}
+  .scenery-urban .lights{position:absolute; bottom:8%; left:0; width:100%; height:2px;}
+  .scenery-urban .lights i{position:absolute; bottom:0; width:2px; height:2px; border-radius:50%; background:var(--brass); box-shadow:0 0 6px 1px var(--brass);}
+
+  /* scenery: water */
+  .scenery-water .ring{position:absolute; border:1px solid rgba(127,169,140,.35); border-radius:50%; left:50%; top:60%; transform:translate(-50%,-50%);}
+  .scenery-water .r1{width:340px; height:340px;} .scenery-water .r2{width:520px; height:520px; opacity:.6;} .scenery-water .r3{width:720px; height:720px; opacity:.35;}
+  .scenery-water .ridge{position:absolute; bottom:0; width:100%; height:34%; background:#1B322B; clip-path:polygon(0 100%,0 55%,20% 30%,40% 58%,60% 22%,80% 50%,100% 35%,100% 100%);}
+
+  /* scenery: mountain */
+  .scenery-mountain .ridge{position:absolute; bottom:0; width:110%; left:-5%;}
+  .scenery-mountain .p1{height:30%; background:#213D36; clip-path:polygon(0 100%,0 60%,18% 35%,34% 62%,50% 28%,66% 58%,82% 32%,100% 55%,100% 100%);}
+  .scenery-mountain .p2{height:44%; background:#182A26; opacity:.85; clip-path:polygon(0 100%,0 70%,15% 45%,32% 72%,48% 38%,64% 68%,80% 42%,100% 65%,100% 100%);}
+  .scenery-mountain .p3{height:58%; background:#101E1B; clip-path:polygon(0 100%,0 80%,20% 58%,40% 82%,60% 52%,80% 78%,100% 60%,100% 100%);}
+
+  /* scenery: route (transfer/border day) */
+  .scenery-route .route-svg{position:absolute; inset:0; width:100%; height:100%;}
+  .scenery-route .route-marker{position:absolute; width:8px; height:8px; border-radius:50%; background:var(--brass); box-shadow:0 0 10px 3px var(--brass); animation:moveMarker 7s linear infinite;}
+  @keyframes moveMarker{0%{left:4%; top:72%;} 50%{left:50%; top:18%;} 100%{left:94%; top:55%;}}
+
+  /* scenery: departure */
+  .scenery-departure .stars i{position:absolute; width:2px; height:2px; border-radius:50%; background:#EDEAE2;}
+  .scenery-departure .horizon{position:absolute; bottom:18%; width:100%; height:1px; background:rgba(241,237,228,.15);}
+  .scenery-departure .moon{position:absolute; top:14%; right:12%; width:64px; height:64px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #F1EDE4, #C89B3C 70%); opacity:.85; filter:blur(0.5px);}
+
+  /* horizontal gallery */
+  .gallery-pin{position:relative; width:100%; height:78vh; overflow:hidden; z-index:2; margin-top:20px; border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .gallery-pin.gallery-scroll{overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;}
+  .gallery-track{display:flex; height:100%; width:max-content;}
+  .gallery-card{width:min(78vw,560px); height:100%; flex-shrink:0; display:flex; flex-direction:column; justify-content:flex-end; padding:36px; border-right:1px solid var(--line); background:linear-gradient(180deg, transparent 40%, rgba(16,30,27,.9)); position:relative;}
+  .gallery-card .tag{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--brass); letter-spacing:.1em;}
+  .gallery-card h3{font-family:'Instrument Serif',serif; font-size:28px; margin-top:10px; font-weight:400;}
+  .gallery-card p{font-size:14px; color:var(--ink-dim); margin-top:10px; max-width:400px;}
+  .gc-0{background-color:#1B322B;} .gc-1{background-color:#182A26;} .gc-2{background-color:#213D36;} .gc-3{background-color:#152420;}
+
+  /* CTA */
+  .cta{min-height:70svh; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; background:linear-gradient(0deg, #0C1613 0%, var(--deep) 100%);}
+  .cta h2{font-size:clamp(30px,4vw,48px); max-width:640px;}
+  .cta p{color:var(--ink-dim); max-width:560px; margin-top:20px; line-height:1.7; font-size:15.5px;}
+  .cta-btn{margin-top:36px; background:var(--rust); color:var(--ink); border:none; padding:16px 30px; border-radius:100px; font-size:14.5px; font-weight:600; cursor:pointer; transition:transform .2s, background .2s;}
+  .cta-btn:hover{background:#C6713F; transform:translateY(-2px);}
+
+  .reveal-line{opacity:0; transform:translateY(24px);}
+  @media (prefers-reduced-motion: reduce){ .reveal-line{opacity:1 !important; transform:none !important;} html{scroll-behavior:auto;} }
+</style>
+</head>
+<body>
+
+<div class="progress-top"><div class="progress-top-fill"></div></div>
+<div class="day-indicator mono" id="dayIndicator">Прокрутите, чтобы начать маршрут</div>
+<nav class="ribbon" aria-label="Навигация по дням">
+  <div class="ribbon-track"><div class="ribbon-fill"></div></div>
+  <div class="ribbon-dots" id="ribbonDots"></div>
+</nav>
+
+<section id="hero" class="hero">
+  <div class="hero-scenery"><svg viewBox="0 0 1440 200" preserveAspectRatio="none"><path fill="#182A26" d="M0,120 C240,180 480,60 720,110 C960,160 1200,60 1440,100 L1440,200 L0,200 Z"/></svg></div>
+  <div class="hero-content">
+    <p class="eyebrow reveal-line">TURON TOUR · ЧЁРНОМОРСКОЕ ПОБЕРЕЖЬЕ</p>
+    <h1 class="hero-title">
+      <span class="reveal-line" style="display:block;">Загадочный</span>
+      <span class="reveal-line italic" style="display:block;">Karadeniz</span>
+    </h1>
+    <p class="hero-sub reveal-line">Ризе + Батуми · 8 дней / 7 ночей. Авторский групповой маршрут вдоль Чёрного моря — от чайных плантаций Турции до набережной Батуми.</p>
+    <div class="route-toggle reveal-line" role="group" aria-label="Порядок маршрута">
+      <button class="toggle-btn active" data-route="A" aria-pressed="true">Через Трабзон</button>
+      <button class="toggle-btn" data-route="B" aria-pressed="false">Через Батуми</button>
+    </div>
+    <button class="scroll-cue reveal-line" id="scrollCue"><span></span>Листайте, чтобы начать маршрут</button>
+  </div>
+</section>
+
+<div id="daysContainer"></div>
+
+<section id="cta" class="cta">
+  <h2 class="reveal-line">Восемь дней вдоль Чёрного моря</h2>
+  <p class="reveal-line">Это полный маршрут в обоих направлениях — переключите вариант вверху страницы, чтобы увидеть, как меняется порядок дней. В финальной версии сайта здесь появятся живые фото и видео каждой точки маршрута, а также форма бронирования.</p>
+  <button class="cta-btn reveal-line">Обсудить сайт целиком</button>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var ROUTES = {
+    A: [
+      {num:'01', title:'Ризе. Первый вечер у моря', scenery:'urban',
+       text:'Прилёт в Трабзон в 17:45, встреча группы и трансфер в отель Rhisos Gold Hotel Rize. После заселения — свободное время: набережная Чёрного моря, вечерние улицы, первое знакомство с городом. По желанию — ужин в ресторане турецкой кухни.',
+       tags:['Rhisos Gold Hotel Rize','Набережная Чёрного моря','Турецкая кухня · по желанию']},
+      {num:'02', title:'Узунгёль и дорога чудес', scenery:'water',
+       text:'Горное озеро, чайные кафе и свободное время для фото — а затем переезд в Трабзон с остановками у самых снимаемых точек региона.',
+       gallery:[
+         {tag:'ОСТАНОВКА 1', title:'Узунгёль', text:'Живописное горное озеро Черноморского региона — прогулка вдоль воды, турецкий чай, сувениры.'},
+         {tag:'ОСТАНОВКА 2', title:'Пещера Карача', text:'Природный комплекс со сталактитами и сталагмитами по дороге в Трабзон.'},
+         {tag:'ОСТАНОВКА 3', title:'Torul Cam Teras', text:'Стеклянная смотровая площадка с панорамными видами на горное ущелье.'},
+         {tag:'ВЕЧЕР', title:'Трабзон', text:'Шоппинг в Forum AVM или прогулка по центральным улицам города.'}]},
+      {num:'03', title:'Айдер Яйласы. Горы над облаками', scenery:'mountain',
+       text:'Дорога через чайные плантации и горные реки к крепости Zilkale, водопаду Palovit и плато Айдер на высоте 1350 м. По желанию — подъём на гору Хусер к закату над облаками.',
+       tags:['Крепость Zilkale','Водопад Palovit','Плато 1350 м']},
+      {num:'04', title:'Свободный день в Ризе', scenery:'urban',
+       text:'День — на ваше усмотрение: отдых и атмосфера города, шоппинг в торговых центрах и на рынках Ризе. По желанию — смотровая площадка Duatepe с видом на город и море, чайные плантации Ceceve Bahcesi с дегустацией.',
+       tags:['Шоппинг и рынки','Duatepe','Ceceve Bahcesi']},
+      {num:'05', title:'В путь. Ризе → Батуми', scenery:'route',
+       text:'Выезд в сторону Батуми через живописные горные перевалы и побережье Чёрного моря. На границе — паспортный контроль. В пути — около 3–4 часов с остановками. Вечером — прогулка по Батуми: танцующие фонтаны, площадь Европы, старый город.',
+       tags:['Паспортный контроль','3–4 часа в пути','Танцующие фонтаны']},
+      {num:'06', title:'Батуми и Махунцети', scenery:'mountain',
+       text:'Обед с грузинской или узбекской кухней в Батуми, а после — выезд за город к историческим и природным местам. Вечером — ужин в гостеприимной грузинской семье с музыкой и танцами.',
+       gallery:[
+         {tag:'МЕСТО 1', title:'Мост царицы Тамары', text:'Исторический мост через ущелье реки Аджарисцкали.'},
+         {tag:'МЕСТО 2', title:'Водопад Махунцети', text:'Один из самых живописных водопадов региона.'},
+         {tag:'МЕСТО 3', title:'Гонио-Апсарос', text:'Древнеримская крепость на побережье. Для смелых — зиплайн.'},
+         {tag:'ВЕЧЕР', title:'Ужин в грузинской семье', text:'Халяльные блюда, национальная музыка и танцы с панорамным видом на горы.'}]},
+      {num:'07', title:'Свободный день в Батуми', scenery:'urban',
+       text:'Атмосфера Батуми по вашему желанию: набережная с видом на море, дельфинарий (за доплату), Ботанический сад — один из самых популярных в мире. Хинкали, хачапури и десерты в кафе старого города, фото у башни Алфавита.',
+       tags:['Набережная','Ботанический сад','Старый город']},
+      {num:'08', title:'Возвращение домой', scenery:'departure',
+       text:'Свободное время для последних прогулок и покупки сувениров. Вечером — выезд в аэропорт, регистрация на рейс Батуми–Ташкент, вылет в 00:20. Прибытие в родной город завершает программу.',
+       tags:['Вылет 00:20']}
+    ],
+    B: [
+      {num:'01', title:'Батуми. Первый вечер у моря', scenery:'urban',
+       text:'Прилёт в Батуми в 23:20, встреча группы и трансфер в отель Batumi View Luxury. По желанию — прогулка по ночному Батуми и ужин в ресторане грузинской кухни.',
+       tags:['Batumi View Luxury','Ночной Батуми']},
+      {num:'02', title:'Батуми и Махунцети', scenery:'mountain',
+       text:'Обед с грузинской или узбекской кухней в Батуми, а после — выезд за город к историческим и природным местам. Вечером — ужин в гостеприимной грузинской семье с музыкой и танцами.',
+       gallery:[
+         {tag:'МЕСТО 1', title:'Мост царицы Тамары', text:'Исторический мост через ущелье реки Аджарисцкали.'},
+         {tag:'МЕСТО 2', title:'Водопад Махунцети', text:'Один из самых живописных водопадов региона.'},
+         {tag:'МЕСТО 3', title:'Гонио-Апсарос', text:'Древнеримская крепость на побережье. Для смелых — зиплайн.'},
+         {tag:'ВЕЧЕР', title:'Ужин в грузинской семье', text:'Халяльные блюда, национальная музыка и танцы с панорамным видом на горы.'}]},
+      {num:'03–04', title:'Свободные дни в Батуми', scenery:'urban',
+       text:'Два дня в свободном ритме: набережная, дельфинарий (за доплату), Ботанический сад. Шоппинг на рынках и в лавках с грузинскими сладостями и вином. Хинкали и хачапури в кафе старого города, фото у башни Алфавита.',
+       tags:['Дельфинарий','Ботанический сад','Старый город']},
+      {num:'05', title:'В путь. Батуми → Ризе', scenery:'route',
+       text:'Выезд из Батуми в сторону Ризе через горные перевалы и побережье Чёрного моря. Паспортный контроль на границе, в пути — 3–4 часа с остановками. Вечером — прогулка по Ризе: набережная, центральные улицы.',
+       tags:['Паспортный контроль','3–4 часа в пути']},
+      {num:'06', title:'Узунгёль и дорога чудес', scenery:'water',
+       text:'Горное озеро, чайные кафе и свободное время для фото — а затем переезд в Трабзон с остановками у самых снимаемых точек региона.',
+       gallery:[
+         {tag:'ОСТАНОВКА 1', title:'Узунгёль', text:'Живописное горное озеро Черноморского региона — прогулка вдоль воды, турецкий чай, сувениры.'},
+         {tag:'ОСТАНОВКА 2', title:'Пещера Карача', text:'Природный комплекс со сталактитами и сталагмитами по дороге в Трабзон.'},
+         {tag:'ОСТАНОВКА 3', title:'Torul Cam Teras', text:'Стеклянная смотровая площадка с панорамными видами на горное ущелье.'},
+         {tag:'ВЕЧЕР', title:'Трабзон', text:'Шоппинг в Forum AVM или прогулка по центральным улицам города.'}]},
+      {num:'07', title:'Айдер Яйласы. Горы над облаками', scenery:'mountain',
+       text:'Дорога через чайные плантации и горные реки к крепости Zilkale, водопаду Palovit и плато Айдер на высоте 1350 м. По желанию — подъём на гору Хусер к закату над облаками.',
+       tags:['Крепость Zilkale','Водопад Palovit','Плато 1350 м']},
+      {num:'08', title:'Возвращение домой', scenery:'departure',
+       text:'Свободное время для отдыха, выселение из отеля и выезд в аэропорт. Регистрация на рейс Трабзон–Ташкент, вылет в 18:45. Прибытие в родной город завершает программу.',
+       tags:['Вылет 18:45']}
+    ]
+  };
+
+  var container   = document.getElementById('daysContainer');
+  var indicator   = document.getElementById('dayIndicator');
+  var ribbonDots  = document.getElementById('ribbonDots');
+  var currentRoute = 'A';
+  var ribbonDotEls = [];
+
+  // Итоговое число дней тура выводим из номера последнего дня (учитывая '03–04'),
+  // чтобы знаменатель в индикаторе всегда совпадал с реальной нумерацией.
+  function totalDaysOf(days){
+    var last = days[days.length - 1].num;
+    var n = parseInt(String(last).split('–').pop(), 10);
+    return isNaN(n) ? days.length : n;
+  }
+
+  function setActiveDot(i){
+    ribbonDotEls.forEach(function(d, idx){
+      var on = idx === i;
+      d.classList.toggle('active', on);
+      d.setAttribute('aria-current', on ? 'true' : 'false');
+    });
+  }
+
+  function sceneryMarkup(type){
+    if(type==='urban') return '<div class="ridge ridge-1"></div><div class="ridge ridge-2"></div><div class="lights"></div>';
+    if(type==='water') return '<div class="ring r3"></div><div class="ring r2"></div><div class="ring r1"></div><div class="ridge"></div>';
+    if(type==='mountain') return '<div class="ridge p3"></div><div class="ridge p2"></div><div class="ridge p1"></div>';
+    if(type==='route') return '<svg class="route-svg" viewBox="0 0 800 200" preserveAspectRatio="none"><path d="M-20,180 C200,60 400,220 820,40" stroke="#C89B3C" stroke-width="2" fill="none" stroke-dasharray="8 10"/></svg><div class="route-marker"></div>';
+    if(type==='departure') return '<div class="moon"></div><div class="stars"></div><div class="horizon"></div>';
+    return '';
+  }
+
+  function scatterDots(el, count){
+    var isStars = el.classList.contains('stars');
+    var frag = document.createDocumentFragment();
+    for(var i=0;i<count;i++){
+      var d = document.createElement('i');
+      d.style.left = (Math.random()*100)+'%';
+      // Звёзды позиционируем по вертикали через top, огни набережной — прижимаем к низу.
+      if(isStars){
+        d.style.top = (Math.random()*70)+'%';
+      } else {
+        d.style.bottom = (Math.random()*10)+'px';
+      }
+      d.style.opacity = (0.3+Math.random()*0.7).toFixed(2);
+      frag.appendChild(d);
+    }
+    el.appendChild(frag);
+  }
+
+  function buildRibbonDots(days){
+    ribbonDots.innerHTML = '';
+    ribbonDotEls = [];
+    var n = days.length;
+    days.forEach(function(day, i){
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'dot';
+      dot.style.top = (n > 1 ? (i/(n-1))*100 : 50) + '%';
+      dot.setAttribute('aria-label', 'День ' + day.num + ' — ' + day.title);
+      var lbl = document.createElement('span');
+      lbl.className = 'dot-label';
+      lbl.textContent = day.num;
+      dot.appendChild(lbl);
+      dot.addEventListener('click', function(){
+        var target = document.getElementById('day-' + i);
+        if(target) target.scrollIntoView({behavior: reduce ? 'auto' : 'smooth'});
+      });
+      ribbonDots.appendChild(dot);
+      ribbonDotEls.push(dot);
+    });
+  }
+
+  function renderDays(routeKey){
+    currentRoute = routeKey;
+    var days = ROUTES[routeKey];
+    container.innerHTML = '';
+    days.forEach(function(day, i){
+      var sec = document.createElement('section');
+      sec.className = 'day';
+      sec.id = 'day-' + i;
+
+      var scenery = document.createElement('div');
+      scenery.className = 'day-scenery scenery-' + day.scenery;
+      scenery.innerHTML = sceneryMarkup(day.scenery);
+      sec.appendChild(scenery);
+
+      var content = document.createElement('div');
+      content.className = 'day-content';
+      var tagsHtml = (day.tags || []).map(function(t){ return '<li class="reveal-line">'+t+'</li>'; }).join('');
+      content.innerHTML =
+        '<span class="day-num mono">'+day.num+'</span>' +
+        '<h2 class="reveal-line">'+day.title+'</h2>' +
+        '<p class="reveal-line">'+day.text+'</p>' +
+        (tagsHtml ? '<ul class="day-tags">'+tagsHtml+'</ul>' : '');
+      sec.appendChild(content);
+
+      if(day.gallery){
+        var pin = document.createElement('div');
+        pin.className = 'gallery-pin';
+        var track = document.createElement('div');
+        track.className = 'gallery-track';
+        day.gallery.forEach(function(card, ci){
+          var c = document.createElement('div');
+          c.className = 'gallery-card gc-' + (ci % 4);
+          c.innerHTML = '<span class="tag mono">'+card.tag+'</span><h3>'+card.title+'</h3><p>'+card.text+'</p>';
+          track.appendChild(c);
+        });
+        pin.appendChild(track);
+        sec.appendChild(pin);
+      }
+
+      container.appendChild(sec);
+    });
+
+    document.querySelectorAll('.scenery-urban .lights, .scenery-departure .stars').forEach(function(el){
+      scatterDots(el, el.classList.contains('stars') ? 40 : 22);
+    });
+
+    buildRibbonDots(days);
+
+    if(typeof gsap !== 'undefined'){ initDayAnimations(days); }
+  }
+
+  function initDayAnimations(days){
+    // Убиваем только триггеры, относящиеся к секциям дней (внутри #daysContainer).
+    // Триггеры hero/cta и прогресс-бара создаются один раз и здесь не трогаются.
+    ScrollTrigger.getAll().forEach(function(st){
+      var trig = st.vars && st.vars.trigger;
+      if(trig && trig.closest && trig.closest('#daysContainer')){ st.kill(); }
+    });
+
+    var total = totalDaysOf(days);
+
+    var sections = container.querySelectorAll('.day');
+    sections.forEach(function(sec, i){
+      var lines = sec.querySelectorAll('.reveal-line');
+      if(reduce){
+        gsap.set(lines, {opacity:1, y:0});
+      } else {
+        gsap.set(lines, {opacity:0, y:24});
+        ScrollTrigger.create({
+          trigger: sec, start:'top 72%',
+          onEnter: function(){ gsap.to(lines, {opacity:1, y:0, duration:0.9, stagger:0.1, ease:'power3.out'}); }
+        });
+        var scenery = sec.querySelector('.day-scenery');
+        gsap.to(scenery, {yPercent:12, ease:'none',
+          scrollTrigger:{trigger:sec, start:'top bottom', end:'bottom top', scrub:true}});
+      }
+
+      ScrollTrigger.create({
+        trigger: sec, start:'top center', end:'bottom center',
+        onEnter: function(){ indicator.innerHTML = '<b>'+days[i].num+' / '+total+'</b> — '+days[i].title; setActiveDot(i); },
+        onEnterBack: function(){ indicator.innerHTML = '<b>'+days[i].num+' / '+total+'</b> — '+days[i].title; setActiveDot(i); }
+      });
+
+      var track = sec.querySelector('.gallery-track');
+      var pin = sec.querySelector('.gallery-pin');
+      if(track && pin){
+        if(reduce){
+          // При prefers-reduced-motion не пинним и не скрабим — даём обычную горизонтальную прокрутку.
+          pin.classList.add('gallery-scroll');
+        } else {
+          var getDistance = function(){ return Math.max(0, track.scrollWidth - pin.clientWidth); };
+          gsap.to(track, {x:function(){ return -getDistance(); }, ease:'none',
+            scrollTrigger:{
+              trigger: pin, start:'top top',
+              end:function(){ return '+=' + getDistance(); },
+              scrub:1, pin:true, invalidateOnRefresh:true
+            }});
+        }
+      }
+    });
+
+    setTimeout(function(){ ScrollTrigger.refresh(); }, 250);
+  }
+
+  if(typeof gsap !== 'undefined'){
+    // Регистрируем плагин ДО первого рендера, иначе scrollTrigger-shorthand
+    // в параллаксе и галерее не сработает на начальной загрузке.
+    gsap.registerPlugin(ScrollTrigger);
+
+    renderDays('A');
+
+    gsap.to('.hero .reveal-line', {opacity:1, y:0, duration:1, ease:'power3.out', stagger:0.13, delay:0.2});
+
+    if(!reduce){
+      var ctaLines = document.querySelectorAll('.cta .reveal-line');
+      gsap.set(ctaLines, {opacity:0, y:24});
+      ScrollTrigger.create({
+        trigger:'.cta', start:'top 72%', once:true,
+        onEnter: function(){ gsap.to(ctaLines, {opacity:1, y:0, duration:0.9, stagger:0.1, ease:'power3.out'}); }
+      });
+    } else {
+      gsap.set('.cta .reveal-line', {opacity:1, y:0});
+    }
+
+    // Триггеры hero/cta индикатора создаём один раз — они не зависят от маршрута
+    // и не должны накапливаться при переключении вариантов.
+    ScrollTrigger.create({ trigger:'#hero', start:'top top', end:'bottom top',
+      onEnterBack: function(){ indicator.textContent = 'Прокрутите, чтобы начать маршрут'; setActiveDot(-1); } });
+    ScrollTrigger.create({ trigger:'#cta', start:'top center',
+      onEnter: function(){ indicator.textContent = 'Маршрут завершён'; setActiveDot(-1); } });
+
+    ScrollTrigger.create({
+      trigger: document.body, start:'top top', end:'bottom bottom',
+      onUpdate: function(self){
+        var pct = (self.progress*100)+'%';
+        document.querySelector('.ribbon-fill').style.height = pct;
+        document.querySelector('.progress-top-fill').style.width = pct;
+      }
+    });
+
+    document.getElementById('scrollCue').addEventListener('click', function(){
+      var first = document.querySelector('#daysContainer .day');
+      if(first) first.scrollIntoView({behavior: reduce ? 'auto' : 'smooth'});
+    });
+  } else {
+    // GSAP не загрузился (нет сети) — показываем контент без анимаций.
+    renderDays('A');
+    document.querySelectorAll('.reveal-line').forEach(function(el){ el.style.opacity = 1; el.style.transform = 'none'; });
+    document.querySelectorAll('.gallery-pin').forEach(function(p){ p.classList.add('gallery-scroll'); });
+  }
+
+  document.querySelectorAll('.toggle-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(btn.dataset.route === currentRoute) return;
+      document.querySelectorAll('.toggle-btn').forEach(function(b){
+        var on = b === btn;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      renderDays(btn.dataset.route);
+      var first = document.querySelector('#daysContainer .day');
+      if(first) first.scrollIntoView({behavior: reduce ? 'auto' : 'smooth'});
+    });
+  });
+})();
+</script>
+</body>
+</html>
