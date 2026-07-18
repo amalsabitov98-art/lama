@@ -8,9 +8,9 @@
 /* --- Бесшовный переход между фото дней: общий фиксированный фон с cross-fade --- */
 .day-bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:#061d1d}
 .day-bg .layer{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.03);filter:saturate(1.02) contrast(1.01) brightness(1.03);will-change:opacity,transform}
-/* день 07 — маяк с колесом (широкий кадр); день 08 — дельфиний фонтан (квадрат, кадрируем ниже) */
+/* день 07 — маяк с колесом; день 08 — мост над рекой (широкие кадры) */
 .day-bg .layer:nth-child(7){background-position:center 50%}
-.day-bg .layer:nth-child(8){background-position:center 68%}
+.day-bg .layer:nth-child(8){background-position:center 42%}
 /* лёгкий скрим только слева под текстом — фото остаётся светлым и сочным */
 .day-bg:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(6,24,26,.68) 0%,rgba(9,36,36,.32) 40%,rgba(6,29,29,0) 64%),linear-gradient(0deg,rgba(6,24,26,.42),transparent 32%)}
 /* карточки дней теперь прозрачные — сквозь них виден фиксированный фон */
