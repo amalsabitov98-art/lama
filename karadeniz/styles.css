@@ -4,3 +4,14 @@
 .hero>img{transform-origin:62% 42%;animation:kenburns 26s ease-in-out infinite alternate;will-change:transform}
 @keyframes kenburns{from{transform:scale(1.06) translate(0,0)}to{transform:scale(1.2) translate(-2.5%,-1.8%)}}
 @media(prefers-reduced-motion:reduce){.hero>img{animation:none;transform:none}}
+
+/* --- Бесшовный переход между фото дней: общий фиксированный фон с cross-fade --- */
+.day-bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:#061d1d}
+.day-bg .layer{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.06);filter:saturate(.95) contrast(1.04);will-change:opacity,transform}
+/* единый скрим поверх всех слоёв — равномерный, без полос на стыках */
+.day-bg:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#061d1dd1 0%,#0a252885 48%,#061d1d12 84%),linear-gradient(0deg,#061d1daa,transparent 52%)}
+/* карточки дней теперь прозрачные — сквозь них виден фиксированный фон */
+.days{background:transparent}
+.day,.day:nth-child(odd){background:transparent}
+.day-photo{display:none}
+@media(prefers-reduced-motion:reduce){.day-bg .layer{transform:none}}

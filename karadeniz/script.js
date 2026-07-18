@@ -38,3 +38,33 @@ if (reduce) {
   document.querySelectorAll('.statement, .days-intro, .day, .manifest > div:last-child')
     .forEach((el) => io.observe(el));
 }
+
+// 3) Бесшовный cross-fade между фото дней (общий фиксированный фон)
+const bg = document.querySelector('.day-bg');
+if (bg) {
+  const layers = [...bg.querySelectorAll('.layer')];
+  const days = [...document.querySelectorAll('.day')];
+  let ticking = false;
+
+  function paint() {
+    ticking = false;
+    const vh = window.innerHeight;
+    const viewCenter = window.scrollY + vh / 2;
+    days.forEach((day, i) => {
+      const rect = day.getBoundingClientRect();
+      const center = rect.top + window.scrollY + rect.height / 2;
+      const dist = Math.abs(center - viewCenter) / vh;      // 0 — по центру, 1 — экран прочь
+      const vis = Math.max(0, 1 - dist);                    // «сколько видно» этого дня
+      const layer = layers[i];
+      if (!layer) return;
+      layer.style.opacity = vis.toFixed(3);
+      if (!reduce) layer.style.transform = 'scale(' + (1.06 + 0.05 * vis).toFixed(3) + ')';
+    });
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; requestAnimationFrame(paint); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', paint);
+  paint();
+}
