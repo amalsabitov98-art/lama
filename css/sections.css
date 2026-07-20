@@ -148,3 +148,33 @@
 }
 .feature h3 { font-size: 1.12rem; margin-bottom: 6px; }
 .feature p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+
+/* ------------------------------ Отзывы --------------------------------- */
+.reviews { background: var(--bg-elevated); }
+.reviews__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-5);
+}
+.review {
+  margin: 0;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  position: relative;
+}
+.review::after {
+  content: "\201D";
+  position: absolute;
+  top: 4px; right: 18px;
+  font-family: var(--font-display);
+  font-size: 4rem;
+  color: var(--sea-200);
+  line-height: 1;
+}
+.review__stars { color: var(--coral-500); letter-spacing: 2px; margin-bottom: var(--space-3); }
+.review blockquote { margin: 0 0 var(--space-4); font-size: 0.98rem; color: var(--ink-700); }
+.review figcaption { display: flex; flex-direction: column; }
+.review__name { font-weight: 700; }
+.review__from { font-size: 0.85rem; color: var(--text-muted); }
