@@ -122,3 +122,29 @@
 .tour-card__foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .tour-card__price strong { font-family: var(--font-display); font-size: 1.6rem; display: block; line-height: 1; }
 .tour-card__price span { font-size: 0.78rem; color: var(--text-muted); }
+
+/* ---------------------------- Преимущества ----------------------------- */
+.services { background: var(--bg); }
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-5);
+}
+.feature {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.feature:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.feature__icon {
+  display: inline-grid; place-items: center;
+  width: 52px; height: 52px;
+  font-size: 1.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--sea-100);
+  margin-bottom: var(--space-3);
+}
+.feature h3 { font-size: 1.12rem; margin-bottom: 6px; }
+.feature p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
