@@ -1,0 +1,70 @@
+/* ==========================================================================
+   Turon Tour — стили контентных секций (маршрут, туры, услуги, отзывы и др.)
+   ========================================================================== */
+
+/* ------------------------------ Маршрут -------------------------------- */
+.route { background: var(--bg); }
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 27px;
+  top: 24px;
+  bottom: 24px;
+  width: 2px;
+  background: linear-gradient(var(--sea-300), var(--coral-300));
+}
+.timeline__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+}
+.timeline__dot {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 2px solid var(--sea-300);
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  z-index: 1;
+  box-shadow: var(--shadow-sm);
+}
+.timeline__dot::before { content: attr(data-icon); }
+.timeline__body {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.timeline__item:hover .timeline__body { transform: translateX(4px); box-shadow: var(--shadow); }
+.timeline__time {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+.timeline__body h3 { margin: 0 0 4px; font-size: 1.1rem; }
+.timeline__body p { margin: 0; color: var(--text-muted); font-size: 0.96rem; }
+
+@media (max-width: 520px) {
+  .timeline__item { grid-template-columns: 44px 1fr; gap: var(--space-3); }
+  .timeline__dot { width: 44px; height: 44px; font-size: 1.1rem; }
+  .timeline::before { left: 21px; }
+}
