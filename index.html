@@ -257,10 +257,150 @@
   </div>
 </section>
 
+<!-- ========================= Бронирование ========================= -->
+<section class="section booking" id="booking">
+  <div class="container booking__inner">
+    <div class="booking__intro reveal">
+      <span class="eyebrow">Оставьте заявку</span>
+      <h2>Забронируйте поездку за минуту</h2>
+      <p class="lead">Заполните форму — менеджер свяжется с вами в WhatsApp, уточнит детали
+        и зафиксирует цену. Предоплата не требуется.</p>
+      <ul class="booking__perks">
+        <li>✅ Подтверждение в течение 15 минут</li>
+        <li>✅ Оплата после подтверждения маршрута</li>
+        <li>✅ Бесплатная отмена за 24 часа</li>
+      </ul>
+    </div>
+
+    <form class="booking-form reveal" id="bookingForm" novalidate>
+      <div class="booking-form__row">
+        <label class="field field--dark">
+          <span>Ваше имя</span>
+          <input type="text" name="name" id="bookName" placeholder="Как к вам обращаться" required>
+        </label>
+        <label class="field field--dark">
+          <span>Телефон / WhatsApp</span>
+          <input type="tel" name="phone" id="bookPhone" placeholder="+995 ..." required>
+        </label>
+      </div>
+      <div class="booking-form__row">
+        <label class="field field--dark">
+          <span>Тур или трансфер</span>
+          <select name="tour" id="bookTour">
+            <option value="transfer-direct">Прямой трансфер Батуми → Ризе</option>
+            <option value="tea-hills">Чайные холмы Ризе</option>
+            <option value="waterfalls-firtina">Долина Фыртына и водопады</option>
+            <option value="round-trip">Батуми ⇄ Ризе, туда-обратно</option>
+            <option value="shopping">Шопинг-тур в Ризе</option>
+            <option value="family">Семейный день у моря</option>
+          </select>
+        </label>
+        <label class="field field--dark">
+          <span>Дата</span>
+          <input type="date" name="date" id="bookDate" required>
+        </label>
+      </div>
+      <label class="field field--dark">
+        <span>Комментарий <small>(необязательно)</small></span>
+        <textarea name="comment" id="bookComment" rows="3" placeholder="Пассажиров, багаж, пожелания…"></textarea>
+      </label>
+      <button type="submit" class="btn btn--primary btn--block">Отправить заявку</button>
+      <p class="booking-form__status" id="bookStatus" role="status"></p>
+    </form>
+  </div>
+</section>
+
+<!-- ========================= Контакты ========================= -->
+<section class="section contact" id="contact">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Контакты</span>
+      <h2>Свяжитесь с нами удобным способом</h2>
+    </div>
+    <div class="contact__grid reveal">
+      <a class="contact-card" href="https://wa.me/995555000111" target="_blank" rel="noopener">
+        <span class="contact-card__icon">💬</span>
+        <h3>WhatsApp</h3>
+        <p>+995 555 000 111</p>
+        <span class="contact-card__hint">Круглосуточно</span>
+      </a>
+      <a class="contact-card" href="tel:+905321234567">
+        <span class="contact-card__icon">📞</span>
+        <h3>Телефон (Турция)</h3>
+        <p>+90 532 123 45 67</p>
+        <span class="contact-card__hint">09:00–21:00</span>
+      </a>
+      <a class="contact-card" href="https://t.me/turontour" target="_blank" rel="noopener">
+        <span class="contact-card__icon">✈️</span>
+        <h3>Telegram</h3>
+        <p>@turontour</p>
+        <span class="contact-card__hint">Быстрые ответы</span>
+      </a>
+      <div class="contact-card contact-card--static">
+        <span class="contact-card__icon">📍</span>
+        <h3>Офис в Батуми</h3>
+        <p>ул. Чавчавадзе, 21</p>
+        <span class="contact-card__hint">Ежедневно 09:00–20:00</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 </main>
+
+<!-- ========================= Подвал ========================= -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="brand" href="index.html" style="color:#fff">
+          <svg class="brand__mark" viewBox="0 0 48 48" aria-hidden="true">
+            <circle cx="24" cy="24" r="23" fill="#17a2bd"/>
+            <path d="M6 30c5-1 7-5 12-5s7 4 12 4 6-3 12-4v8c-6 1-7 4-12 4s-7-4-12-4-7 5-12 5z" fill="#e3f5f9" opacity=".9"/>
+            <path d="M24 8l3.2 6.7 7.3.9-5.4 5 1.4 7.2L24 30.4 17.5 27.8l1.4-7.2-5.4-5 7.3-.9z" fill="#f26440"/>
+          </svg>
+          <span>Turon Tour<span class="brand__sub">Батуми ⇄ Ризе</span></span>
+        </a>
+        <p style="margin-top:16px;max-width:34ch;color:#9fc4cd">Трансферы и авторские туры по
+          черноморскому побережью Грузии и Турции с 2017 года.</p>
+      </div>
+      <div>
+        <h4>Маршруты</h4>
+        <ul class="footer-list">
+          <li><a href="#tours">Батуми → Ризе</a></li>
+          <li><a href="#tours">Ризе → Батуми</a></li>
+          <li><a href="#tours">Туры по Ризе</a></li>
+          <li><a href="#tours">Долина Фыртына</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Компания</h4>
+        <ul class="footer-list">
+          <li><a href="#services">Услуги</a></li>
+          <li><a href="#reviews">Отзывы</a></li>
+          <li><a href="#booking">Бронирование</a></li>
+          <li><a href="#contact">Контакты</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Связь</h4>
+        <ul class="footer-list">
+          <li><a href="https://wa.me/995555000111">WhatsApp</a></li>
+          <li><a href="https://t.me/turontour">Telegram</a></li>
+          <li><a href="tel:+995555000111">+995 555 000 111</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Turon Tour. Все права защищены.</span>
+      <span>Батуми · Сарпи · Хопа · Ризе</span>
+    </div>
+  </div>
+</footer>
 
 <script src="js/main.js" defer></script>
 <script src="js/quote.js" defer></script>
 <script src="js/tours.js" defer></script>
+<script src="js/booking.js" defer></script>
 </body>
 </html>

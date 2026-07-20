@@ -178,3 +178,62 @@
 .review figcaption { display: flex; flex-direction: column; }
 .review__name { font-weight: 700; }
 .review__from { font-size: 0.85rem; color: var(--text-muted); }
+
+/* ---------------------------- Бронирование ----------------------------- */
+.booking {
+  background: linear-gradient(150deg, var(--sea-800), var(--sea-600));
+  color: #fff;
+}
+.booking__inner { display: grid; grid-template-columns: 1fr 1.1fr; gap: var(--space-8); align-items: center; }
+.booking .eyebrow { color: var(--coral-300); }
+.booking h2 { color: #fff; }
+.booking .lead { color: rgba(255,255,255,0.88); }
+.booking__perks { list-style: none; margin: var(--space-5) 0 0; padding: 0; display: grid; gap: var(--space-2); font-size: 0.98rem; }
+.booking-form {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-lg);
+}
+.booking-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.field--dark > span { color: rgba(255,255,255,0.9); }
+.field--dark input, .field--dark select, .field--dark textarea {
+  width: 100%; padding: 0.7rem 0.9rem; border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.94);
+  color: var(--ink-900); font-family: inherit; font-size: 0.98rem; resize: vertical;
+}
+.field--dark input:focus, .field--dark select:focus, .field--dark textarea:focus {
+  outline: none; border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.35);
+}
+.field small { font-weight: 400; opacity: 0.7; }
+.booking-form__status { margin: 0; text-align: center; font-size: 0.9rem; min-height: 1.2em; }
+.booking-form__status.is-ok { color: #d5ffe4; }
+.booking-form__status.is-error { color: #ffd9d0; }
+
+@media (max-width: 860px) {
+  .booking__inner { grid-template-columns: 1fr; }
+  .booking-form__row { grid-template-columns: 1fr; }
+}
+
+/* ------------------------------ Контакты ------------------------------- */
+.contact { background: var(--bg); }
+.contact__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
+.contact-card {
+  display: block;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  color: var(--text);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+.contact-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--sea-300); color: var(--text); }
+.contact-card--static:hover { transform: none; box-shadow: none; border-color: var(--line); }
+.contact-card__icon { font-size: 1.8rem; display: block; margin-bottom: var(--space-2); }
+.contact-card h3 { font-size: 1.05rem; margin: 0 0 4px; }
+.contact-card p { margin: 0 0 4px; font-weight: 600; color: var(--brand); }
+.contact-card__hint { font-size: 0.82rem; color: var(--text-muted); }
