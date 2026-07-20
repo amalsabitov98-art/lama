@@ -1,0 +1,93 @@
+/* ==========================================================================
+   Turon Tour — дизайн-система
+   Маршрут Батуми (Грузия) → Ризе (Турция)
+   Палитра вдохновлена черноморским побережьем: бирюза моря, закатный коралл,
+   чайные плантации Ризе и песчаный беж батумской набережной.
+   ========================================================================== */
+
+:root {
+  /* --- Брендовые цвета --- */
+  --sea-900: #06323b;
+  --sea-800: #0a4f5c;
+  --sea-700: #0e6b7d;
+  --sea-600: #12879e;
+  --sea-500: #17a2bd;
+  --sea-400: #3fb9d0;
+  --sea-300: #7fd0e0;
+  --sea-200: #b7e6ef;
+  --sea-100: #e3f5f9;
+
+  --coral-600: #d94f30;
+  --coral-500: #f26440;
+  --coral-400: #f78164;
+  --coral-300: #fbaa96;
+
+  --tea-600: #3f7d3a;
+  --tea-500: #5aa153;
+  --tea-400: #82bd7c;
+
+  --sand-100: #fbf7f0;
+  --sand-200: #f3ecdf;
+  --sand-300: #e6d9c3;
+
+  /* --- Нейтральные --- */
+  --ink-900: #14202a;
+  --ink-700: #33404b;
+  --ink-500: #5c6a75;
+  --ink-300: #9aa6b0;
+  --line: #e4e9ee;
+  --white: #ffffff;
+
+  /* --- Семантические токены --- */
+  --bg: var(--sand-100);
+  --bg-elevated: var(--white);
+  --text: var(--ink-900);
+  --text-muted: var(--ink-500);
+  --brand: var(--sea-600);
+  --brand-strong: var(--sea-800);
+  --accent: var(--coral-500);
+
+  /* --- Типографика --- */
+  --font-sans: "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Georgia", "Times New Roman", serif;
+
+  /* --- Радиусы и тени --- */
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(6, 50, 59, 0.06), 0 1px 3px rgba(6, 50, 59, 0.08);
+  --shadow: 0 6px 20px rgba(6, 50, 59, 0.10);
+  --shadow-lg: 0 18px 48px rgba(6, 50, 59, 0.18);
+
+  /* --- Отступы (8px scale) --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* --- Слои --- */
+  --z-header: 100;
+  --z-overlay: 200;
+  --z-modal: 300;
+
+  --maxw: 1160px;
+  --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1a20;
+    --bg-elevated: #10262e;
+    --text: #eaf3f5;
+    --text-muted: #9db4bb;
+    --line: #1d3a44;
+    --sand-100: #0b1a20;
+    --sand-200: #10262e;
+  }
+}
