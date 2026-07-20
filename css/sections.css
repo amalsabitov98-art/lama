@@ -68,3 +68,57 @@
   .timeline__dot { width: 44px; height: 44px; font-size: 1.1rem; }
   .timeline::before { left: 21px; }
 }
+
+/* ------------------------------- Туры ---------------------------------- */
+.tours { background: var(--bg-elevated); }
+.tours__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-5);
+}
+.tours__loading { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: var(--space-6); }
+
+.tour-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+.tour-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: var(--sea-500);
+}
+.tour-card--sea::before { background: linear-gradient(90deg, var(--sea-600), var(--sea-400)); }
+.tour-card--coral::before { background: linear-gradient(90deg, var(--coral-600), var(--coral-400)); }
+.tour-card--tea::before { background: linear-gradient(90deg, var(--tea-600), var(--tea-400)); }
+.tour-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: transparent; }
+
+.tour-card__top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
+.tour-card__badge {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: #fff; background: var(--accent); padding: 4px 10px; border-radius: var(--radius-pill);
+}
+.tour-card--sea .tour-card__badge { background: var(--sea-600); }
+.tour-card--tea .tour-card__badge { background: var(--tea-600); }
+.tour-card__meta { display: flex; gap: var(--space-3); font-size: 0.8rem; color: var(--text-muted); }
+.tour-card__title { font-size: 1.25rem; margin: 0 0 var(--space-2); }
+.tour-card__summary { color: var(--text-muted); font-size: 0.95rem; margin-bottom: var(--space-4); }
+.tour-card__includes {
+  list-style: none; margin: 0 0 var(--space-5); padding: 0;
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.tour-card__includes li {
+  font-size: 0.8rem; background: var(--sand-200); color: var(--ink-700);
+  padding: 4px 10px; border-radius: var(--radius-pill);
+}
+.tour-card__foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.tour-card__price strong { font-family: var(--font-display); font-size: 1.6rem; display: block; line-height: 1; }
+.tour-card__price span { font-size: 0.78rem; color: var(--text-muted); }
