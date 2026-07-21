@@ -15,12 +15,27 @@ import imageio_ffmpeg
 import numpy as np
 
 
-LAMA_MODEL_URL = (
-    "https://huggingface.co/opencv/inpainting_lama/resolve/main/"
-    "inpainting_lama_2025jan.onnx?download=true"
-)
-LAMA_MODEL_SHA256 = "7df918ac3921d3daf0aae1d219776cf0dc4e4935f035af81841b40adcf74fdf2"
-LAMA_MODEL_NAME = "inpainting_lama_2025jan.onnx"
+# Both models share one I/O contract: image (1,3,512,512) in 0..1, binary
+# mask (1,1,512,512), output in 0..255. The fp32 big-LaMa gives visibly
+# richer texture than the small quantized OpenCV Zoo export, which stays as
+# a fallback when the larger download fails.
+LAMA_MODELS = {
+    "fp32": {
+        "name": "lama_fp32.onnx",
+        "url": "https://huggingface.co/Carve/LaMa-ONNX/resolve/main/lama_fp32.onnx?download=true",
+        "sha256": "1faef5301d78db7dda502fe59966957ec4b79dd64e16f03ed96913c7a4eb68d6",
+        "size_text": "208 МБ",
+    },
+    "quantized": {
+        "name": "inpainting_lama_2025jan.onnx",
+        "url": (
+            "https://huggingface.co/opencv/inpainting_lama/resolve/main/"
+            "inpainting_lama_2025jan.onnx?download=true"
+        ),
+        "sha256": "7df918ac3921d3daf0aae1d219776cf0dc4e4935f035af81841b40adcf74fdf2",
+        "size_text": "92,6 МБ",
+    },
+}
 
 
 ProgressCallback = Callable[[int, int, str], None]
@@ -39,10 +54,10 @@ class VideoInfo:
     duration: float
 
 
-def _default_model_path() -> Path:
+def _default_model_dir() -> Path:
     local_data = os.environ.get("LOCALAPPDATA")
     base = Path(local_data) if local_data else Path.home() / "AppData" / "Local"
-    return base / "WatermarkCleaner" / "models" / LAMA_MODEL_NAME
+    return base / "WatermarkCleaner" / "models"
 
 
 def _file_sha256(path: Path) -> str:
@@ -53,33 +68,56 @@ def _file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def ensure_lama_model(model_path: str | Path | None = None) -> Path:
-    path = Path(model_path) if model_path else _default_model_path()
-    if path.exists() and _file_sha256(path) == LAMA_MODEL_SHA256:
+def _download_model(spec: dict, model_dir: Path) -> Path:
+    path = model_dir / spec["name"]
+    if path.exists() and _file_sha256(path) == spec["sha256"]:
         return path
-    path.parent.mkdir(parents=True, exist_ok=True)
+    model_dir.mkdir(parents=True, exist_ok=True)
     partial = path.with_suffix(path.suffix + ".part")
     try:
-        with urllib.request.urlopen(LAMA_MODEL_URL, timeout=60) as response, partial.open("wb") as target:
+        with urllib.request.urlopen(spec["url"], timeout=60) as response, partial.open("wb") as target:
             while True:
                 chunk = response.read(1024 * 1024)
                 if not chunk:
                     break
                 target.write(chunk)
-        if _file_sha256(partial) != LAMA_MODEL_SHA256:
+        if _file_sha256(partial) != spec["sha256"]:
             raise RuntimeError("Контрольная сумма AI-модели не совпала.")
         partial.replace(path)
-    except Exception as exc:
+    finally:
         if partial.exists():
             try:
                 partial.unlink()
             except OSError:
                 pass
-        raise RuntimeError(
-            "Не удалось скачать AI-модель LaMa (92,6 МБ). "
-            "Проверьте интернет и повторите запуск."
-        ) from exc
     return path
+
+
+def ensure_lama_model(model_path: str | Path | None = None) -> Path:
+    if model_path:
+        return Path(model_path)
+    model_dir = _default_model_dir()
+
+    # Prefer the full fp32 big-LaMa (much richer texture); if either an
+    # existing copy or a fresh download is unavailable, fall back to the
+    # smaller quantized OpenCV Zoo model so the AI mode still works offline.
+    for key in ("fp32", "quantized"):
+        spec = LAMA_MODELS[key]
+        existing = model_dir / spec["name"]
+        if existing.exists() and _file_sha256(existing) == spec["sha256"]:
+            return existing
+
+    errors = []
+    for key in ("fp32", "quantized"):
+        spec = LAMA_MODELS[key]
+        try:
+            return _download_model(spec, model_dir)
+        except Exception as exc:  # noqa: BLE001 - try the next model
+            errors.append(f"{spec['name']}: {exc}")
+    raise RuntimeError(
+        "Не удалось скачать AI-модель LaMa. Проверьте интернет и повторите запуск.\n"
+        + "\n".join(errors)
+    )
 
 
 def _reflect_pad_to(image: np.ndarray, height: int, width: int) -> np.ndarray:
@@ -98,7 +136,7 @@ def _reflect_pad_to(image: np.ndarray, height: int, width: int) -> np.ndarray:
 
 
 class LamaInpainter:
-    """Sharp local AI inpainting using OpenCV's Apache-licensed LaMa model.
+    """Sharp local AI inpainting using the LaMa model.
 
     The ONNX model has a fixed 512x512 input, so feeding it a large downscaled
     crop and stretching the answer back is what produces the familiar blurry
@@ -136,11 +174,16 @@ class LamaInpainter:
         self._cache.clear()
 
     def _run(self, image: np.ndarray, mask: np.ndarray) -> np.ndarray:
-        image_blob = image.transpose(2, 0, 1)[None].astype(np.float32) / 255.0
+        # LaMa was trained on RGB; frames here are OpenCV BGR. Feeding BGR
+        # straight in swaps the red/blue channels of the generated patch, so
+        # convert in and back out around the model.
+        rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image_blob = rgb.transpose(2, 0, 1)[None].astype(np.float32) / 255.0
         mask_blob = (mask[None, None] > 0).astype(np.float32)
         output = self.session.run(None, {"image": image_blob, "mask": mask_blob})[0][0]
-        # This quantized OpenCV Zoo model returns pixels directly in 0..255.
-        return np.clip(output.transpose(1, 2, 0), 0, 255).astype(np.uint8)
+        # Both LaMa exports return pixels directly in the 0..255 range.
+        generated = np.clip(output.transpose(1, 2, 0), 0, 255).astype(np.uint8)
+        return cv2.cvtColor(generated, cv2.COLOR_RGB2BGR)
 
     def _crop512(self, image: np.ndarray, mask: np.ndarray, top: int, left: int):
         frame_h, frame_w = image.shape[:2]
@@ -522,7 +565,7 @@ def process_video(
     lama: LamaInpainter | None = None
     if mode == "ai":
         if progress is not None:
-            progress(0, info.frame_count, "Подготовка AI-модели (при первом запуске скачивается 92,6 МБ)")
+            progress(0, info.frame_count, "Подготовка AI-модели (при первом запуске скачивается ~208 МБ)")
         lama = LamaInpainter()
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     command = [
