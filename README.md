@@ -18,9 +18,9 @@ npm run preview  # предпросмотр собранной версии
 Деплой автоматический через GitHub Actions (`.github/workflows/deploy-pages.yml`):
 
 1. В настройках репозитория **Settings → Pages → Build and deployment → Source** выберите **GitHub Actions** (workflow пытается включить это автоматически).
-2. При каждом push сборка публикуется на `https://<username>.github.io/lama/`.
+2. При каждом push в `main` сборка публикуется на `https://amalsabitov98-art.github.io/Iman-Holdings-Presentation/`.
 
-Сайт обслуживается из подпапки `/lama/`, поэтому в `vite.config.ts` задан `base: "/lama/"`.
+Сайт обслуживается из подпапки `/Iman-Holdings-Presentation/`, поэтому в `vite.config.ts` задан соответствующий `base`.
 Для кастомного домена или другого имени репозитория переопределите базовый путь:
 
 ```bash

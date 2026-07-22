@@ -5,6 +5,6 @@ import tailwindcss from "@tailwindcss/vite";
 // GitHub Pages serves a project site from a subpath (https://<user>.github.io/lama/).
 // Override with VITE_BASE for a custom domain or a different repo name.
 export default defineConfig({
-  base: process.env.VITE_BASE ?? "/lama/",
+  base: process.env.VITE_BASE ?? "/Iman-Holdings-Presentation/",
   plugins: [react(), tailwindcss()],
 });
