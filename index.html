@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Калькулятор ROI автоматизации</title>
+<title>Удаление каждого второго листа из PDF</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -15,19 +15,9 @@
     display: flex;
     justify-content: center;
   }
-  .container {
-    width: 100%;
-    max-width: 720px;
-  }
-  h1 {
-    font-size: 24px;
-    margin: 0 0 8px;
-  }
-  .subtitle {
-    color: #6b7280;
-    margin-bottom: 24px;
-    font-size: 14px;
-  }
+  .container { width: 100%; max-width: 620px; }
+  h1 { font-size: 24px; margin: 0 0 8px; }
+  .subtitle { color: #6b7280; margin-bottom: 24px; font-size: 14px; line-height: 1.5; }
   .card {
     background: #fff;
     border-radius: 12px;
@@ -35,196 +25,183 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     margin-bottom: 16px;
   }
-  .section-title {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  .drop {
+    border: 2px dashed #c7cbd4;
+    border-radius: 12px;
+    padding: 40px 24px;
+    text-align: center;
     color: #6b7280;
-    margin: 0 0 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
   }
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  @media (max-width: 520px) {
-    .grid { grid-template-columns: 1fr; }
-  }
-  label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    margin-bottom: 6px;
-  }
-  .hint {
-    font-size: 11px;
-    color: #9ca3af;
-    font-weight: 400;
-  }
-  input[type="number"] {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 15px;
-    font-family: inherit;
-    transition: border-color 0.15s;
-  }
-  input[type="number"]:focus {
-    outline: none;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
-  }
-  .results {
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
-    color: #fff;
-  }
-  .results .section-title {
-    color: rgba(255,255,255,0.75);
-  }
-  .result-row {
+  .drop.drag { border-color: #4f46e5; background: #eef2ff; }
+  .drop strong { color: #4f46e5; }
+  input[type="file"] { display: none; }
+  .file-list { margin-top: 16px; }
+  .file-item {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.15);
-  }
-  .result-row:last-child {
-    border-bottom: none;
-  }
-  .result-label {
+    align-items: center;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 8px;
     font-size: 14px;
-    opacity: 0.9;
   }
-  .result-value {
-    font-size: 22px;
+  .file-item .name { font-weight: 500; word-break: break-all; }
+  .file-item .status { font-size: 13px; white-space: nowrap; margin-left: 12px; }
+  .status.wait { color: #9ca3af; }
+  .status.work { color: #4f46e5; }
+  .status.done { color: #059669; }
+  .status.err { color: #dc2626; }
+  .btn {
+    display: inline-block;
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 15px;
     font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
   }
-  .result-value.big {
-    font-size: 28px;
-  }
-  .currency {
+  .btn:hover { background: #4338ca; }
+  .btn:disabled { background: #c7cbd4; cursor: not-allowed; }
+  .actions { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+  .dl {
+    color: #059669;
+    font-weight: 600;
+    text-decoration: none;
     font-size: 14px;
-    opacity: 0.75;
-    margin-left: 4px;
-    font-weight: 400;
   }
-  .negative .result-value {
-    color: #fecaca;
-  }
+  .dl:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Калькулятор ROI автоматизации</h1>
-  <p class="subtitle">Оцените, сколько времени и денег экономит автоматизация рутины.</p>
+  <h1>Удаление каждого второго листа</h1>
+  <p class="subtitle">
+    Оставляет 1-й лист, убирает 2-й, оставляет 3-й, убирает 4-й и так далее.
+    Из 30 листов получится 15. Всё работает прямо в браузере — файлы никуда не загружаются.
+  </p>
 
   <div class="card">
-    <h2 class="section-title">Параметры</h2>
-    <div class="grid">
-      <div>
-        <label>Время на одну задачу сейчас <span class="hint">(минут)</span>
-          <input type="number" id="timeBefore" value="30" min="0" step="1">
-        </label>
-      </div>
-      <div>
-        <label>Время после внедрения <span class="hint">(минут)</span>
-          <input type="number" id="timeAfter" value="5" min="0" step="1">
-        </label>
-      </div>
-      <div>
-        <label>Задач в неделю <span class="hint">(шт.)</span>
-          <input type="number" id="tasksPerWeek" value="40" min="0" step="1">
-        </label>
-      </div>
-      <div>
-        <label>Стоимость часа работы <span class="hint">(₽)</span>
-          <input type="number" id="hourlyRate" value="1500" min="0" step="50">
-        </label>
-      </div>
-      <div>
-        <label>Стоимость внедрения <span class="hint">(₽, разово)</span>
-          <input type="number" id="implCost" value="100000" min="0" step="1000">
-        </label>
-      </div>
-      <div>
-        <label>Поддержка <span class="hint">(₽ в месяц)</span>
-          <input type="number" id="monthlyCost" value="5000" min="0" step="500">
-        </label>
-      </div>
-    </div>
-  </div>
+    <label class="drop" id="drop">
+      <div>Перетащите PDF сюда или <strong>нажмите, чтобы выбрать</strong></div>
+      <div style="font-size:12px;margin-top:6px;">можно выбрать несколько файлов сразу</div>
+      <input type="file" id="file" accept="application/pdf,.pdf" multiple>
+    </label>
 
-  <div class="card results" id="results">
-    <h2 class="section-title">Результат</h2>
-    <div class="result-row">
-      <span class="result-label">Экономия времени</span>
-      <span><span class="result-value" id="hoursPerMonth">0</span><span class="currency">ч/мес</span></span>
-    </div>
-    <div class="result-row">
-      <span class="result-label">За год</span>
-      <span><span class="result-value" id="hoursPerYear">0</span><span class="currency">ч/год</span></span>
-    </div>
-    <div class="result-row">
-      <span class="result-label">Экономия в деньгах</span>
-      <span><span class="result-value" id="moneyPerMonth">0</span><span class="currency">₽/мес</span></span>
-    </div>
-    <div class="result-row">
-      <span class="result-label">За год (нетто)</span>
-      <span><span class="result-value big" id="moneyPerYear">0</span><span class="currency">₽</span></span>
-    </div>
-    <div class="result-row">
-      <span class="result-label">Срок окупаемости</span>
-      <span><span class="result-value" id="payback">—</span></span>
-    </div>
-    <div class="result-row">
-      <span class="result-label">ROI за год</span>
-      <span><span class="result-value" id="roi">0%</span></span>
+    <div class="file-list" id="list"></div>
+
+    <div class="actions">
+      <button class="btn" id="process" disabled>Обработать</button>
+      <span id="hint" style="font-size:13px;color:#9ca3af;"></span>
     </div>
   </div>
 </div>
 
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script>
-const ids = ["timeBefore","timeAfter","tasksPerWeek","hourlyRate","implCost","monthlyCost"];
+const dropEl = document.getElementById("drop");
+const fileInput = document.getElementById("file");
+const listEl = document.getElementById("list");
+const processBtn = document.getElementById("process");
+const hintEl = document.getElementById("hint");
 
-const fmt = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
-const fmt1 = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 1 });
+let files = [];
 
-function calc() {
-  const v = Object.fromEntries(ids.map(id => [id, parseFloat(document.getElementById(id).value) || 0]));
+function render() {
+  listEl.innerHTML = "";
+  files.forEach((f, i) => {
+    const row = document.createElement("div");
+    row.className = "file-item";
 
-  const minutesSavedPerTask = Math.max(0, v.timeBefore - v.timeAfter);
-  const tasksPerMonth = v.tasksPerWeek * 4.345;
-  const hoursPerMonth = (minutesSavedPerTask * tasksPerMonth) / 60;
-  const hoursPerYear = hoursPerMonth * 12;
+    const left = document.createElement("span");
+    left.className = "name";
+    left.textContent = f.file.name;
 
-  const moneyPerMonthGross = hoursPerMonth * v.hourlyRate;
-  const moneyPerMonthNet = moneyPerMonthGross - v.monthlyCost;
-  const moneyPerYearNet = moneyPerMonthNet * 12 - v.implCost;
+    const right = document.createElement("span");
+    right.className = "status " + f.state;
+    if (f.state === "wait") right.textContent = "ожидает";
+    else if (f.state === "work") right.textContent = "обработка…";
+    else if (f.state === "done") {
+      right.innerHTML = "";
+      const a = document.createElement("a");
+      a.className = "dl";
+      a.href = f.url;
+      a.download = f.outName;
+      a.textContent = "Скачать (" + f.kept + " из " + f.total + " л.)";
+      right.appendChild(a);
+    }
+    else if (f.state === "err") right.textContent = "ошибка: " + f.error;
 
-  document.getElementById("hoursPerMonth").textContent = fmt1.format(hoursPerMonth);
-  document.getElementById("hoursPerYear").textContent = fmt.format(hoursPerYear);
-  document.getElementById("moneyPerMonth").textContent = fmt.format(moneyPerMonthNet);
-  document.getElementById("moneyPerYear").textContent = fmt.format(moneyPerYearNet);
-
-  const paybackEl = document.getElementById("payback");
-  if (moneyPerMonthNet > 0) {
-    const months = v.implCost / moneyPerMonthNet;
-    paybackEl.textContent = months < 1
-      ? "< 1 мес"
-      : fmt1.format(months) + " мес";
-  } else {
-    paybackEl.textContent = "не окупается";
-  }
-
-  const totalCostYear = v.implCost + v.monthlyCost * 12;
-  const grossYear = moneyPerMonthGross * 12;
-  const roi = totalCostYear > 0 ? ((grossYear - totalCostYear) / totalCostYear) * 100 : 0;
-  document.getElementById("roi").textContent = fmt.format(roi) + "%";
+    row.appendChild(left);
+    row.appendChild(right);
+    listEl.appendChild(row);
+  });
+  processBtn.disabled = files.length === 0 || files.every(f => f.state !== "wait");
 }
 
-ids.forEach(id => document.getElementById(id).addEventListener("input", calc));
-calc();
+function addFiles(fileList) {
+  for (const file of fileList) {
+    if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) {
+      files.push({ file, state: "wait" });
+    }
+  }
+  render();
+}
+
+dropEl.addEventListener("dragover", e => { e.preventDefault(); dropEl.classList.add("drag"); });
+dropEl.addEventListener("dragleave", () => dropEl.classList.remove("drag"));
+dropEl.addEventListener("drop", e => {
+  e.preventDefault();
+  dropEl.classList.remove("drag");
+  addFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener("change", e => { addFiles(e.target.files); fileInput.value = ""; });
+
+async function processOne(f) {
+  f.state = "work";
+  render();
+  try {
+    const bytes = await f.file.arrayBuffer();
+    const src = await PDFLib.PDFDocument.load(bytes);
+    const total = src.getPageCount();
+
+    // Индексы страниц, которые оставляем: 1-я, 3-я, 5-я … (чётные по индексу 0,2,4…)
+    const keepIdx = [];
+    for (let i = 0; i < total; i += 2) keepIdx.push(i);
+
+    const out = await PDFLib.PDFDocument.create();
+    const copied = await out.copyPages(src, keepIdx);
+    copied.forEach(p => out.addPage(p));
+
+    const outBytes = await out.save();
+    const blob = new Blob([outBytes], { type: "application/pdf" });
+
+    f.url = URL.createObjectURL(blob);
+    f.outName = f.file.name.replace(/\.pdf$/i, "") + "_odd.pdf";
+    f.total = total;
+    f.kept = keepIdx.length;
+    f.state = "done";
+  } catch (err) {
+    f.state = "err";
+    f.error = err.message || "не удалось прочитать PDF";
+  }
+  render();
+}
+
+processBtn.addEventListener("click", async () => {
+  processBtn.disabled = true;
+  hintEl.textContent = "";
+  for (const f of files) {
+    if (f.state === "wait") await processOne(f);
+  }
+  hintEl.textContent = "Готово. Нажмите «Скачать» напротив файла.";
+});
 </script>
 </body>
 </html>
