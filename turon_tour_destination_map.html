@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f2545">
+  <title>Turon Tour — справочник направлений</title>
+  <style>
+    :root {
+      --gold: #c9a84c;
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.55);
+      --faint: rgba(255,255,255,.34);
+      --glass: rgba(255,255,255,.07);
+      --glass-hover: rgba(255,255,255,.12);
+      --line: rgba(255,255,255,.12);
+      --radius: 20px;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(135deg, #0f2545 0%, #1a1040 52%, #0d2535 100%);
+    }
+    button, a { font: inherit; }
+    button { color: inherit; }
+    .ambient { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .blob { position: absolute; width: 38vw; height: 38vw; border-radius: 50%; filter: blur(80px); opacity: .25; }
+    .blob.gold { left: -10vw; top: -12vw; background: #e1ad37; }
+    .blob.teal { right: -12vw; top: 18vh; background: #1eb6a4; }
+    .blob.purple { left: 38vw; bottom: -20vw; background: #7d48d8; }
+    .blob.blue { right: 22vw; top: -25vw; background: #2e76c9; opacity: .16; }
+    .app { position: relative; z-index: 1; width: min(1240px, calc(100% - 32px)); margin: 0 auto; padding: 46px 0 64px; }
+    .view { animation: view-in 250ms ease both; }
+    @keyframes view-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 1ms !important; transition-duration: 1ms !important; } }
+    .glass {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 18px 60px rgba(0,0,0,.16);
+    }
+    .eyebrow { margin: 0 0 9px; color: var(--gold); font-size: 12px; font-weight: 760; letter-spacing: .15em; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 12px; font-size: clamp(32px, 5vw, 64px); line-height: .98; letter-spacing: -.045em; }
+    .lead { max-width: 690px; margin-bottom: 0; color: var(--muted); font-size: 16px; line-height: 1.65; }
+    .topbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; margin-bottom: 32px; }
+    .brand-mark { display: grid; place-items: center; flex: 0 0 120px; width: 120px; height: 120px; }
+    .brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 14px 24px rgba(0,0,0,.28)) drop-shadow(0 0 16px rgba(201,168,76,.16)); }
+    .intro { display: flex; align-items: flex-start; gap: 18px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat { padding: 18px 20px; }
+    .stat-value { font-size: 28px; font-weight: 780; letter-spacing: -.04em; }
+    .stat-label { margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .control-panel { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px; margin-bottom: 14px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 7px; }
+    .filter-btn, .back-btn {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.055);
+      padding: 9px 13px;
+      cursor: pointer;
+      transition: 180ms ease;
+    }
+    .filter-btn { color: var(--muted); font-size: 12px; }
+    .filter-btn:hover, .filter-btn.active, .back-btn:hover { color: var(--text); border-color: rgba(201,168,76,.46); background: rgba(201,168,76,.13); }
+    .counter { flex: 0 0 auto; padding: 0 8px; color: var(--muted); font-size: 12px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 9px 17px; padding: 0 3px 22px; color: var(--muted); font-size: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 7px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 14px currentColor; }
+    .section-label { margin: 25px 0 10px; }
+    .pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border: 1px solid rgba(255,255,255,.13); border-radius: 999px; font-size: 11px; font-weight: 760; letter-spacing: .03em; }
+    .tier-a { background: rgba(29,158,117,.22); color: #8ee2c5; }
+    .tier-b { background: rgba(55,138,221,.22); color: #9acbfa; }
+    .tier-c { background: rgba(136,135,128,.22); color: #d5d2c6; }
+    .tier-d { background: rgba(239,159,39,.22); color: #ffd08b; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+    .card { position: relative; min-height: 176px; padding: 18px; cursor: pointer; overflow: hidden; transition: 200ms ease; }
+    .card::after { content: "→"; position: absolute; right: 17px; bottom: 14px; color: var(--faint); font-size: 18px; transition: 180ms ease; }
+    .card:hover { background: var(--glass-hover); border-color: rgba(201,168,76,.4); transform: translateY(-2px); }
+    .card:hover::after { color: var(--gold); transform: translateX(3px); }
+    .card:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+    .card-top { display: flex; justify-content: space-between; gap: 12px; }
+    .card-name { max-width: 78%; font-size: 17px; font-weight: 720; line-height: 1.28; }
+    .card-score { color: #f2d77f; font-size: 22px; font-weight: 800; }
+    .card-region { margin: 7px 0 10px; color: var(--muted); font-size: 12px; }
+    .card-program { padding-right: 18px; color: rgba(255,255,255,.72); font-size: 12px; line-height: 1.5; }
+    .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 13px; }
+    .tag { padding: 4px 8px; border: 1px solid rgba(255,255,255,.1); border-radius: 999px; background: rgba(255,255,255,.06); color: var(--muted); font-size: 10px; }
+    .detail-nav { margin-bottom: 14px; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; }
+    .detail-hero { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 20px; padding: clamp(22px, 4vw, 38px); margin-bottom: 14px; }
+    .detail-hero h1 { font-size: clamp(34px, 5vw, 58px); }
+    .detail-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-bottom: 14px; color: var(--muted); font-size: 13px; }
+    .note { max-width: 760px; margin: 0; color: rgba(255,255,255,.7); line-height: 1.6; }
+    .score-block { min-width: 150px; text-align: right; }
+    .score-number { color: #f2d77f; font-size: clamp(58px, 8vw, 90px); font-weight: 820; line-height: .84; letter-spacing: -.07em; }
+    .score-caption { margin-top: 10px; color: var(--muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+    .detail-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
+    .panel { grid-column: span 6; padding: 22px; }
+    .panel.wide { grid-column: 1 / -1; }
+    .panel.third { grid-column: span 4; }
+    .panel h2 { margin-bottom: 18px; font-size: 15px; letter-spacing: -.01em; }
+    .panel h2 span { color: var(--gold); margin-right: 7px; }
+    .criteria { display: grid; gap: 13px; }
+    .criterion-line { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(120px, 2fr) 28px; align-items: center; gap: 12px; }
+    .criterion-name { color: var(--muted); font-size: 12px; }
+    .track { height: 4px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.1); }
+    .fill { height: 100%; border-radius: inherit; background: var(--gold); box-shadow: 0 0 12px rgba(201,168,76,.6); }
+    .criterion-score { text-align: right; font-size: 12px; font-weight: 700; }
+    .facts { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+    .fact-label { margin-bottom: 4px; color: var(--muted); font-size: 11px; }
+    .fact-value { font-size: 13px; line-height: 1.5; }
+    .fact-value a { color: #efd478; text-decoration-color: rgba(239,212,120,.4); }
+    .route { display: grid; gap: 10px; }
+    .route-day { display: grid; grid-template-columns: 62px 1fr; gap: 12px; align-items: start; }
+    .day { color: var(--gold); font-size: 11px; font-weight: 760; text-transform: uppercase; }
+    .day-text { color: rgba(255,255,255,.75); font-size: 13px; line-height: 1.5; }
+    .economics { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .economics th, .economics td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+    .economics th { color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    .economics td:last-child { font-weight: 730; }
+    .months { display: grid; grid-template-columns: repeat(12, minmax(0,1fr)); gap: 7px; }
+    .month { display: grid; place-items: center; min-height: 38px; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; background: rgba(0,0,0,.12); color: var(--faint); font-size: 10px; }
+    .month.active { border-color: rgba(201,168,76,.32); background: rgba(201,168,76,.26); color: #ffe9a9; box-shadow: inset 0 0 18px rgba(201,168,76,.08); }
+    .risks { margin: 0; padding-left: 18px; color: rgba(255,255,255,.72); font-size: 13px; line-height: 1.6; }
+    .risks li + li { margin-top: 8px; }
+    .status-panel { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .status-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
+    .status-value { margin-top: 4px; font-size: 18px; font-weight: 760; }
+    .status-dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 22px currentColor; }
+    .ready { color: #77dfba; } .review { color: #8fc8ff; } .paused { color: #ffc16b; }
+    .muted { color: var(--muted); }
+    .empty { padding: 42px; text-align: center; color: var(--muted); }
+    .sort-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .sort-label { color: var(--muted); font-size: 11px; margin-right: 4px; }
+    .month-filter { display: flex; flex-wrap: wrap; gap: 5px; }
+    .month-btn { border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.055); padding: 7px 10px; cursor: pointer; color: var(--muted); font-size: 11px; transition: 180ms ease; }
+    .month-btn:hover, .month-btn.active { color: var(--text); border-color: rgba(201,168,76,.46); background: rgba(201,168,76,.13); }
+    .compare-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 20px; background: rgba(15,37,69,.95); backdrop-filter: blur(16px); border-top: 1px solid var(--line); transform: translateY(100%); transition: transform 250ms ease; }
+    .compare-bar.visible { transform: translateY(0); }
+    .compare-bar .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--glass); font-size: 12px; }
+    .compare-bar .chip-x { cursor: pointer; color: var(--muted); font-size: 14px; line-height: 1; }
+    .compare-bar .chip-x:hover { color: var(--text); }
+    .compare-btn { border: none; border-radius: 999px; background: var(--gold); color: #0f2545; padding: 9px 18px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 180ms ease; }
+    .compare-btn:hover { background: #e1c060; }
+    .compare-btn:disabled { opacity: .4; cursor: default; }
+    .card-check { position: absolute; top: 12px; right: 12px; width: 22px; height: 22px; border: 2px solid var(--faint); border-radius: 6px; background: transparent; cursor: pointer; display: grid; place-items: center; font-size: 12px; transition: 180ms ease; z-index: 2; }
+    .card-check.checked { border-color: var(--gold); background: var(--gold); color: #0f2545; }
+    .compare-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.7); backdrop-filter: blur(8px); display: grid; place-items: center; animation: view-in 200ms ease; }
+    .compare-sheet { width: min(95vw, 1100px); max-height: 90vh; overflow-y: auto; padding: 28px; border-radius: var(--radius); background: rgba(15,37,69,.97); border: 1px solid var(--line); }
+    .compare-sheet h2 { margin-bottom: 18px; font-size: 18px; }
+    .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .compare-table th, .compare-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; vertical-align: top; }
+    .compare-table th { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+    .compare-table td:first-child { color: var(--muted); font-size: 11px; width: 140px; }
+    .compare-close { position: absolute; top: 16px; right: 20px; background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
+    .compare-close:hover { color: var(--text); }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .panel, .panel.third { grid-column: 1 / -1; }
+      .months { grid-template-columns: repeat(6, minmax(0,1fr)); }
+    }
+    @media (max-width: 620px) {
+      .app { width: min(100% - 20px, 1240px); padding-top: 24px; }
+      .topbar { align-items: flex-start; }
+      .brand-mark { display: grid; flex-basis: 90px; width: 90px; height: 90px; }
+      .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .control-panel { align-items: flex-start; flex-direction: column; }
+      .grid { grid-template-columns: 1fr; }
+      .detail-hero { grid-template-columns: 1fr; }
+      .score-block { text-align: left; }
+      .score-number { font-size: 64px; }
+      .facts { grid-template-columns: 1fr; }
+      .criterion-line { grid-template-columns: 100px 1fr 24px; gap: 8px; }
+      .months { grid-template-columns: repeat(4, minmax(0,1fr)); }
+      .economics { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"><div class="blob gold"></div><div class="blob teal"></div><div class="blob purple"></div><div class="blob blue"></div></div>
+  <main class="app" id="app"></main>
+
+  <script>
+    const destinations = [
+      {
+        id: "pakistan-hunza", name: "Пакистан (Хунза)", region: "Азия", score: 4.55, tier: "A",
+        program: "Исламабад — Каракорум — долина Хунза — Лахор", tags: ["evisa", "direct", "halal"],
+        note: "Сильный вау-продукт с горным маршрутом и низкой конкуренцией.",
+        criteria: { "Вау-эффект": 5, "Доступность": 4.5, "Виза": 4.5, "Конкуренция": 5, "Маржинальность": 4.3, "Операционка": 4 },
+        visa: { status: "eVisa", term: "Обычно 7–10 рабочих дней", cost: "уточняется", url: "https://visa.nadra.gov.pk/" },
+        aviation: { carriers: "Uzbekistan Airways", frequency: "уточняется", price: "от $420 round trip" },
+        route: ["День 1–2 · Исламабад и переезд к Каракоруму", "День 3–6 · Долина Хунза, перевалы и деревни", "День 7–9 · Лахор и возвращение"],
+        economics: { cost: "$1 050", price: "$1 390", margin: "24%", breakeven: "8 туристов" },
+        seasons: [4,5,6,7,8,9,10], risks: ["Горные дороги и зависимость от погоды", "Необходима проверка визовых сроков перед каждым заездом", "Нужен сильный локальный DMC"], status: "ready"
+      },
+      {
+        id: "tajikistan", name: "Таджикистан (Памир/Фаны)", region: "СНГ", score: 4.50, tier: "A",
+        program: "Душанбе — Искандеркуль — Фанские горы — Памирский тракт", tags: ["visafree", "direct", "halal"],
+        note: "Близкое горное направление с понятной логистикой и культурной совместимостью.",
+        criteria: { "Вау-эффект": 4.8, "Доступность": 4.7, "Виза": 5, "Конкуренция": 4.4, "Маржинальность": 4.1, "Операционка": 4 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Somon Air", frequency: "несколько рейсов в неделю", price: "от $220 round trip" },
+        route: ["День 1 · Душанбе", "День 2–4 · Искандеркуль и Фанские горы", "День 5–8 · Фрагмент Памирского тракта", "День 9 · Возвращение"],
+        economics: { cost: "$690", price: "$940", margin: "27%", breakeven: "7 туристов" },
+        seasons: [5,6,7,8,9], risks: ["Сезонность высокогорных дорог", "Длинные переезды", "Ограниченный номерной фонд вне Душанбе"], status: "ready"
+      },
+      {
+        id: "kazan", name: "Казань / Татарстан", region: "Россия", score: 4.70, tier: "A",
+        program: "Казань — Великий Болгар — Свияжск", tags: ["visafree", "direct", "halal"],
+        note: "Городской культурный тур с сильной халяль-инфраструктурой и круглогодичным потенциалом.",
+        criteria: { "Вау-эффект": 4.5, "Доступность": 5, "Виза": 5, "Конкуренция": 4.2, "Маржинальность": 4.5, "Операционка": 5 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways и партнёры", frequency: "уточняется", price: "от $330 round trip" },
+        route: ["День 1–2 · Казанский кремль и Старо-Татарская слобода", "День 3 · Великий Болгар", "День 4 · Свияжск", "День 5 · Свободное время и вылет"],
+        economics: { cost: "$620", price: "$890", margin: "30%", breakeven: "8 туристов" },
+        seasons: [1,2,3,4,5,6,7,8,9,10,11,12], risks: ["Пиковые цены в даты мероприятий", "Нужно заранее фиксировать транспорт на выезды", "Зимняя программа требует отдельного тайминга"], status: "ready"
+      },
+      {
+        id: "dagestan", name: "Дагестан (Кавказ)", region: "Россия", score: 4.40, tier: "A",
+        program: "Махачкала — Дербент — Сулакский каньон — Гамсутль", tags: ["visafree", "direct", "halal"],
+        note: "Насыщенная природно-культурная программа с заметным визуальным потенциалом.",
+        criteria: { "Вау-эффект": 4.8, "Доступность": 4.5, "Виза": 5, "Конкуренция": 4.3, "Маржинальность": 4.1, "Операционка": 3.7 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам", cost: "$0" },
+        aviation: { carriers: "уточняется", frequency: "уточняется", price: "от $310 round trip" },
+        route: ["День 1 · Махачкала", "День 2 · Сулакский каньон", "День 3–4 · Гуниб и Гамсутль", "День 5–6 · Дербент и Каспийское море"],
+        economics: { cost: "$590", price: "$820", margin: "28%", breakeven: "8 туристов" },
+        seasons: [4,5,6,7,8,9,10], risks: ["Сложная дорожная логистика в горах", "Качество сервиса неоднородно", "Нужны проверенные гиды и транспорт"], status: "ready"
+      },
+      { id: "malaysia", name: "Малайзия (КЛ + Лангкави)", region: "Азия", score: 4.30, tier: "A", program: "Куала-Лумпур — Лангкави", tags: ["visafree","direct","halal"],
+        note: "Безвиз 30 дней, прямые рейсы UzAirways и Batik Air, мусульманская страна с тотальным халялем. Круглогодичный продукт — город + пляж в одном туре.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 5, "Конкуренция": 3, "Маржинальность": 4, "Операционка": 4.5 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Batik Air, AirAsia X", frequency: "~6 рейсов в неделю Ташкент–КЛ", price: "от $380 round trip" },
+        route: ["День 1–3 · Куала-Лумпур — башни Петронас, Бату-Кейвз, ночные рынки", "День 4 · Перелёт или паром на Лангкави", "День 5–7 · Лангкави — канатная дорога, пляжи, мангровые леса", "День 8 · Возвращение в КЛ и вылет"],
+        economics: { cost: "~$780", price: "~$1 050", margin: "~26%", breakeven: "10 туристов" },
+        seasons: [1,2,3,6,7,8,12],
+        risks: ["Конкуренция: Talisman Tour уже продаёт Лангкави — нужна авторская отстройка", "Сезон дождей на западном побережье октябрь–март, на восточном март–октябрь", "Внутренний рейс КЛ–Лангкави: AirAsia, ~$30–60"],
+        status: "review" },
+      { id: "saudi", name: "Саудовская Аравия", region: "Ближний Восток", score: 4.15, tier: "A", program: "Джидда — Аль-Ула — Эр-Рияд (+ умра)", tags: ["evisa","direct","halal"],
+        note: "Культурный маршрут с сильной синергией с умрой. Гробницы Хегра в Аль-Уле — аналог Петры без толп. Ни один узбекский оператор системно не продаёт этот маршрут.",
+        criteria: { "Вау-эффект": 5, "Доступность": 4, "Виза": 4, "Конкуренция": 4, "Маржинальность": 3.8, "Операционка": 3.5 },
+        visa: { status: "eVisa (туристическая)", term: "24–48 часов, до 90 дней пребывания", cost: "~$120 включая страховку", url: "https://visa.visitsaudi.com/" },
+        aviation: { carriers: "Uzbekistan Airways (HY336), flynas (XY634), Centrum Air, Qanot Sharq", frequency: "Джидда: UzAirways 6 дн/нед + flynas 3 дн/нед", price: "от $350 round trip" },
+        route: ["День 1–2 · Джидда — старый город Эль-Балад (ЮНЕСКО), набережная Красного моря", "День 3 · Внутренний рейс Джидда → Аль-Ула", "День 4–5 · Аль-Ула — гробницы Хегра, зеркальный зал Maraya, скалы", "День 6 · Перелёт → Эр-Рияд", "День 7–8 · Эр-Рияд — Эд-Диръия (ЮНЕСКО), башня Kingdom Centre", "День 9 · Вылет"],
+        economics: { cost: "~$2 020", price: "~$2 450", margin: "~18%", breakeven: "12 туристов" },
+        seasons: [1,2,3,10,11,12],
+        risks: ["Аль-Ула имеет квоты на посещение — бронировать за 2–3 месяца через AlUla Experience", "Летняя жара +47–50°C: июнь–сентябрь нерабочие", "Нужен принимающий DMC с русскоязычным гидом", "Внутренний рейс Джидда–Аль-Ула сезонный — уточнять расписание"],
+        status: "review" },
+      { id: "baikal", name: "Байкал зимой (Иркутск)", region: "Россия", score: 4.50, tier: "A", program: "Иркутск — Ольхон — ледяные гроты — Листвянка", tags: ["visafree","direct"],
+        note: "Прозрачный лёд, ледяные гроты, суда на воздушной подушке — ни один узбекский оператор это не продаёт. Окно всего 6 недель в году.",
+        criteria: { "Вау-эффект": 5, "Доступность": 5, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 3 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам РФ–Узбекистан", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Ural Airlines", frequency: "несколько рейсов в неделю Ташкент–Иркутск", price: "от $350 round trip" },
+        route: ["День 1 · Прилёт в Иркутск, трансфер в Листвянку", "День 2–3 · Байкальский лёд — суда Хивус, ледяные гроты, фотосессия", "День 4–5 · Остров Ольхон — мыс Хобой, бурятская культура", "День 6 · Иркутск — Байкальский музей, нерпы, вылет"],
+        economics: { cost: "~$750", price: "~$1 050", margin: "~28%", breakeven: "9 туристов" },
+        seasons: [2,3],
+        risks: ["Рабочее окно: середина февраля — конец марта (6 недель)", "Халяль-питание на Ольхоне только рыба и морепродукты — мясо привозить из Иркутска", "Температуры до -30°C — нужен гайд по одежде для клиентов", "Ограниченный номерной фонд на острове — бронировать за 3+ месяца"],
+        status: "ready" },
+      { id: "elbrus", name: "Приэльбрусье / Минводы", region: "Россия", score: 4.55, tier: "A", program: "Пятигорск — Эльбрус — геотермальные источники", tags: ["visafree","direct","halal"],
+        note: "Мусульманский регион, халяль везде. Подъём на Эльбрус на канатке без физподготовки — идеально для семейной аудитории. Горы + SPA в одном туре.",
+        criteria: { "Вау-эффект": 4, "Доступность": 5, "Виза": 5, "Конкуренция": 4, "Маржинальность": 4.5, "Операционка": 4 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам РФ–Узбекистан", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Centrum Air, FlyOne, Azimuth", frequency: "ежедневно Ташкент–Минеральные Воды", price: "от $280 round trip" },
+        route: ["День 1 · Минеральные Воды, переезд в Пятигорск — нарзанные источники", "День 2 · Кисловодск — Долина роз, Замок коварства и любви", "День 3–4 · Приэльбрусье — канатка на 3 847 м, поляна Азау", "День 5 · Геотермальные источники (приватный VIP-бассейн для группы)", "День 6 · Домбай или Архыз — горные виды, вылет"],
+        economics: { cost: "~$560", price: "~$790", margin: "~29%", breakeven: "8 туристов" },
+        seasons: [1,2,3,5,6,7,8,9,12],
+        risks: ["Пиковые периоды (НГ, майские) — цены на отели кратно растут", "Публичные термальные комплексы не подходят — только приватная аренда", "Погода на Эльбрусе непредсказуема — канатка может не работать"],
+        status: "ready" },
+      { id: "chechnya", name: "Чечня (Грозный)", region: "Россия", score: 4.30, tier: "B", program: "Грозный — Кезеной-Ам — Аргунское ущелье", tags: ["visafree","direct","halal"],
+        note: "Мечеть Сердце Чечни, горные озёра. Лучше продавать в связке с Дагестаном как единый 8-дневный кавказский маршрут.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 3.5 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам РФ–Узбекистан", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways (Грозный–Ташкент)", frequency: "несколько рейсов в неделю", price: "от $300 round trip" },
+        route: ["День 1–2 · Грозный — мечеть Сердце Чечни, проспект Путина, смотровые", "День 3 · Аргунское ущелье — башни и водопады", "День 4–5 · Озеро Кезеной-Ам — горный курорт", "День 6 · Вылет или связка с Дагестаном"],
+        economics: { cost: "~$520", price: "~$740", margin: "~30%", breakeven: "8 туристов" },
+        seasons: [4,5,6,7,8,9,10],
+        risks: ["Узкая самостоятельная программа — оптимально как часть кавказского маршрута", "Низкая узнаваемость у узбекской аудитории — нужна работа с возражениями", "Нужен местный гид и проверенный транспорт"],
+        status: "review" },
+      { id: "azerbaijan", name: "Азербайджан", region: "СНГ", score: 4.15, tier: "B", program: "Баку — Гобустан — Шемаха — Габала — Шеки", tags: ["visafree","direct"],
+        note: "Безвиз, ежедневные рейсы, халяль. Рынок частично занят, но региональный маршрут (не только Баку) даёт авторскую отстройку.",
+        criteria: { "Вау-эффект": 3.5, "Доступность": 5, "Виза": 5, "Конкуренция": 3, "Маржинальность": 4, "Операционка": 5 },
+        visa: { status: "Безвизовый въезд", term: "до 90 дней", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, AZAL, FlyOne, Centrum Air", frequency: "ежедневно, несколько рейсов", price: "от $220 round trip" },
+        route: ["День 1–2 · Баку — Старый город (ЮНЕСКО), Пламенные башни, набережная", "День 3 · Гобустан — наскальные рисунки, грязевые вулканы", "День 4 · Шемаха — мечеть Джума, гробница Едди Гюмбяз", "День 5 · Габала — канатная дорога", "День 6 · Шеки — дворец ханов (ЮНЕСКО), вылет"],
+        economics: { cost: "~$480", price: "~$680", margin: "~29%", breakeven: "8 туристов" },
+        seasons: [3,4,5,9,10,11],
+        risks: ["Конкуренция: несколько узбекских операторов продают Баку", "Нужна сильная концепция — региональный маршрут через Шеки даёт отстройку", "Летняя жара в июле–августе снижает комфорт"],
+        status: "review" },
+      { id: "jordan", name: "Иордания", region: "Ближний Восток", score: 4.05, tier: "B", program: "Амман — Петра — Вади-Рам — Мёртвое море", tags: ["evisa","direct","halal"],
+        note: "Прямой рейс Royal Jordanian Амман–Ташкент с 30 июня 2026 (2 раза в неделю). VOA при прилёте. Петра и Вади-Рам — максимальный вау. Ни один узбекский оператор системно не продаёт.",
+        criteria: { "Вау-эффект": 5, "Доступность": 4, "Виза": 4, "Конкуренция": 4, "Маржинальность": 3.5, "Операционка": 3.5 },
+        visa: { status: "Visa on Arrival (VOA)", term: "при прилёте, до 30 дней", cost: "~$56 (JOD 40)", url: "https://www.nia.gov.jo/" },
+        aviation: { carriers: "Royal Jordanian (с 30.06.2026)", frequency: "2 рейса в неделю, ~4.5 ч", price: "от $380 round trip" },
+        route: ["День 1 · Амман — цитадель, Римский театр", "День 2 · Мёртвое море — купание и грязевые процедуры", "День 3–4 · Петра — Сик, Казна, Монастырь (полный день)", "День 5 · Вади-Рам — джип-сафари, ночёвка в пустынном лагере", "День 6 · Вылет из Аммана"],
+        economics: { cost: "~$1 100", price: "~$1 450", margin: "~24%", breakeven: "11 туристов" },
+        seasons: [3,4,5,9,10,11],
+        risks: ["Высокая себестоимость — вход в Петру $75/чел.", "Прямой рейс новый — следить за сохранением расписания", "Летняя жара +40°C делает июнь–август некомфортными"],
+        status: "review" },
+      { id: "china", name: "Китай (Пекин + Шанхай)", region: "Азия", score: 4.10, tier: "B", program: "Пекин — Сиань — Шанхай", tags: ["visafree","direct"],
+        note: "Безвиз 30 дней с 1 июня 2025. Прямые рейсы в Пекин, Шанхай, Гуанчжоу. Мусульманское расширение через Сиань — халяльный квартал и терракотовая армия.",
+        criteria: { "Вау-эффект": 4, "Доступность": 5, "Виза": 5, "Конкуренция": 3, "Маржинальность": 3.5, "Операционка": 3 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней (соглашение от 1 июня 2025)", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, China Southern, Loong Air, Qanot Sharq", frequency: "ежедневно в Пекин и Шанхай", price: "от $400 round trip" },
+        route: ["День 1–3 · Пекин — Великая стена, Запретный город, площадь Тяньаньмэнь", "День 4 · Переезд в Сиань — мечеть Великая Западная, мусульманский квартал, терракотовая армия", "День 5–7 · Шанхай — Бунд, Жемчужина Востока, Юйюань", "День 8 · Вылет"],
+        economics: { cost: "~$900", price: "~$1 200", margin: "~25%", breakeven: "11 туристов" },
+        seasons: [3,4,5,9,10,11],
+        risks: ["Языковой барьер — нужен русско/узбекоязычный гид", "Халяль только в Сиане и мусульманских кварталах", "Визовый статус подвижен — проверять актуальность перед каждым заездом"],
+        status: "review" },
+      { id: "qatar", name: "Катар (Доха)", region: "Ближний Восток", score: 4.05, tier: "B", program: "Доха — Сук-Вакиф — пустыня — Музей исламского искусства", tags: ["evisa","direct","halal"],
+        note: "Компактный 4–5-дневный премиальный продукт. Qatar Airways прямой из Ташкента, халяль везде. Работает как самостоятельный тур или stopover.",
+        criteria: { "Вау-эффект": 3, "Доступность": 5, "Виза": 4, "Конкуренция": 3, "Маржинальность": 3.5, "Операционка": 4.5 },
+        visa: { status: "Visa on Arrival или eVisa", term: "при прилёте, до 30 дней", cost: "~$17 или бесплатно", url: "https://portal.moi.gov.qa/" },
+        aviation: { carriers: "Qatar Airways, Air Samarkand", frequency: "ежедневно Ташкент–Доха", price: "от $320 round trip" },
+        route: ["День 1 · Доха — Сук-Вакиф, набережная Корниш", "День 2 · Музей исламского искусства (один из лучших в мире)", "День 3 · Пустыня — джип-сафари, сэндбординг, закат над дюнами", "День 4 · Жемчужный квартал, шопинг, вылет"],
+        economics: { cost: "~$820", price: "~$1 100", margin: "~25%", breakeven: "10 туристов" },
+        seasons: [1,2,3,10,11,12],
+        risks: ["Летняя жара +45°C — июнь–сентябрь нерабочие", "Talisman Tour уже продаёт Доху — нужна отстройка по формату", "Небольшая страна — программа максимум 4–5 дней"],
+        status: "review" },
+      { id: "thailand", name: "Таиланд", region: "Азия", score: 3.90, tier: "B", program: "Бангкок — Пхукет / Краби", tags: ["visafree","direct"],
+        note: "Безвиз 60 дней, прямые рейсы. Авторский тур оправдан только при нестандартной концепции — рынок перенасыщен узбекскими операторами.",
+        criteria: { "Вау-эффект": 4, "Доступность": 5, "Виза": 5, "Конкуренция": 1, "Маржинальность": 3, "Операционка": 4.5 },
+        visa: { status: "Безвизовый въезд", term: "до 60 дней", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Qanot Sharq, Centrum Air", frequency: "несколько рейсов в неделю", price: "от $420 round trip" },
+        route: ["День 1–3 · Бангкок — Гранд-Палас, Wat Pho, плавучие рынки", "День 4 · Перелёт Бангкок–Пхукет (AirAsia, ~$30)", "День 5–7 · Пхукет / Краби — острова, Phang Nga Bay", "День 8 · Вылет из Пхукета"],
+        economics: { cost: "~$850", price: "~$1 150", margin: "~26%", breakeven: "10 туристов" },
+        seasons: [1,2,3,11,12],
+        risks: ["Сильная конкуренция — Asialuxe, 1travel, 24travel все продают Таиланд", "Халяль частичный — только на юге страны и в мусульманских кварталах", "Сезон дождей май–октябрь закрывает западное побережье"],
+        status: "review" },
+      { id: "vietnam", name: "Вьетнам (Нячанг / Дананг)", region: "Азия", score: 3.65, tier: "B", program: "Нячанг / Дананг — пляж + город", tags: ["evisa","direct"],
+        note: "eVisa. Прямые сезонные рейсы Centrum Air и Qanot Sharq на Нячанг и Дананг (июнь–октябрь). Вне сезона — только стыковки.",
+        criteria: { "Вау-эффект": 3.5, "Доступность": 3, "Виза": 4, "Конкуренция": 3, "Маржинальность": 3.5, "Операционка": 3.5 },
+        visa: { status: "eVisa", term: "3–5 рабочих дней, до 90 дней", cost: "~$25", url: "https://evisa.xuatnhapcanh.gov.vn/" },
+        aviation: { carriers: "Centrum Air, Qanot Sharq, Uzbekistan Airways (сезонные)", frequency: "сезонные чартеры июнь–октябрь", price: "от $350 round trip (в сезон)" },
+        route: ["День 1–2 · Нячанг — набережная, Башни Чам, острова", "День 3 · Далат — горный курорт", "День 4–6 · Дананг — пляжи Мой-Ан, Хойан (ЮНЕСКО)", "День 7 · Вылет"],
+        economics: { cost: "~$720", price: "~$980", margin: "~26%", breakeven: "10 туристов" },
+        seasons: [6,7,8,9,10],
+        risks: ["Прямые рейсы только в сезон — продукт работает 5 месяцев в году", "Халяль минимален — питание организовывать отдельно", "Сезон тайфунов на центральном побережье: сентябрь–ноябрь"],
+        status: "review" },
+      { id: "india", name: "Индия (Раджастан + Гоа)", region: "Азия", score: 3.65, tier: "B", program: "Дели — Джайпур — Агра — пляжи Гоа", tags: ["evisa","direct"],
+        note: "eVisa. Прямые рейсы в Дели, Мумбаи и Гоа. Контрастный культурно-пляжный маршрут с сильным Раджастаном.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 4, "Конкуренция": 3, "Маржинальность": 3.5, "Операционка": 3 },
+        visa: { status: "e-Tourist Visa", term: "72–96 часов, до 90 дней", cost: "~$25–80", url: "https://indianvisaonline.gov.in/" },
+        aviation: { carriers: "Uzbekistan Airways, Centrum Air, IndiGo", frequency: "ежедневно Ташкент–Дели", price: "от $380 round trip" },
+        route: ["День 1–2 · Дели — Красный форт, Джама-Масджид, рынок Чандни Чоук", "День 3 · Агра — Тадж-Махал на рассвете", "День 4–5 · Джайпур — Амберский форт, Дворец ветров", "День 6–8 · Гоа — пляжи, португальское наследие", "День 9 · Вылет из Гоа"],
+        economics: { cost: "~$820", price: "~$1 100", margin: "~25%", breakeven: "11 туристов" },
+        seasons: [10,11,12,1,2,3],
+        risks: ["Халяль только в мусульманских кварталах Дели и Агры", "Санитарные опасения у части узбекской аудитории", "Длинные переезды между точками маршрута"],
+        status: "review" },
+      { id: "bosnia", name: "Босния и Герцеговина", region: "Европа", score: 2.95, tier: "C", program: "Сараево — Мостар — Травник", tags: ["halal"],
+        note: "Исламское наследие и халяль повсеместно. Сильный продукт по содержанию, но нет прямого рейса и нужна виза C.",
+        criteria: { "Вау-эффект": 4, "Доступность": 2, "Виза": 3, "Конкуренция": 4, "Маржинальность": 3, "Операционка": 2.5 },
+        visa: { status: "Виза C (посольство)", term: "7–15 рабочих дней, до 90 дней", cost: "~$45 однократная" },
+        aviation: { carriers: "Стыковка через Стамбул (Turkish Airlines) или Вену", frequency: "нет прямого рейса из Ташкента", price: "от $450 round trip (со стыковкой)" },
+        route: ["День 1–2 · Сараево — Башчаршия, мечеть Гази Хусрев-бег, латинский мост", "День 3 · Травник — средневековая крепость и текке дервишей", "День 4–5 · Мостар — Старый мост (ЮНЕСКО), турецкий квартал", "День 6 · Вылет"],
+        economics: { cost: "~$820", price: "~$1 100", margin: "~25%", breakeven: "11 туристов" },
+        seasons: [4,5,6,7,8,9,10],
+        risks: ["Визовый барьер снижает конверсию продаж", "Нет прямого рейса — стыковка удлиняет дорогу", "Оптимально в связке с Хорватией, но это добавляет шенген"],
+        status: "review" },
+      { id: "belarus", name: "Беларусь (Минск)", region: "Европа", score: 4.10, tier: "C", program: "Минск — Мир — Несвиж — Беловежская пуща", tags: ["visafree","direct"],
+        note: "Безвиз, прямой рейс, отличная инфраструктура. Потенциальный межсезонный городской продукт. Халяль точечный.",
+        criteria: { "Вау-эффект": 3, "Доступность": 5, "Виза": 5, "Конкуренция": 4, "Маржинальность": 4, "Операционка": 5 },
+        visa: { status: "Безвизовый въезд", term: "до 90 дней", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways, Belavia", frequency: "несколько рейсов в неделю Ташкент–Минск", price: "от $280 round trip" },
+        route: ["День 1–2 · Минск — проспект Независимости, площадь Победы, Троицкое предместье", "День 3 · Замок Мир (ЮНЕСКО)", "День 4 · Замок Несвиж (ЮНЕСКО)", "День 5 · Беловежская пуща — зубры, заповедник", "День 6 · Вылет"],
+        economics: { cost: "~$580", price: "~$820", margin: "~29%", breakeven: "9 туристов" },
+        seasons: [4,5,6,7,8,9],
+        risks: ["Халяль-рестораны единичны — питание организовывать отдельно", "Низкий вау-эффект для молодой аудитории 25–35 лет", "Зима ограничивает программу — летний и осенний сезон предпочтительнее"],
+        status: "review" },
+      { id: "moldova", name: "Молдова (Кишинёв)", region: "Европа", score: 3.95, tier: "C", program: "Кишинёв — Орхеюл-Векь — природа", tags: ["visafree"],
+        note: "Безвиз до 90 дней. Прямые рейсы FlyOne Asia с 6 апреля 2026 (3 раза в неделю). Нужно перепроектировать программу без винной доминанты.",
+        criteria: { "Вау-эффект": 3, "Доступность": 4, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 4 },
+        visa: { status: "Безвизовый въезд", term: "до 90 дней", cost: "$0" },
+        aviation: { carriers: "FlyOne Asia (с апреля 2026)", frequency: "пн, ср, сб — ~4ч 40мин", price: "от $240 round trip" },
+        route: ["День 1–2 · Кишинёв — старый город, рынок Центральный, парки", "День 3 · Орхеюл-Векь — скальный монастырь XII века", "День 4 · Сорока — крепость на берегу Днестра", "День 5 · Вылет"],
+        economics: { cost: "~$480", price: "~$680", margin: "~29%", breakeven: "8 туристов" },
+        seasons: [4,5,6,7,8,9],
+        risks: ["Основной продукт Молдовы — вино, несовместимо с халяль-аудиторией", "Близость к зоне конфликта в Украине — воздушное пространство периодически ограничивается", "Низкий вау-эффект без нестандартного концептуального наполнения"],
+        status: "review" },
+      { id: "albania", name: "Албания", region: "Европа", score: 3.70, tier: "C", program: "Тирана — Берат — Ривьера", tags: ["evisa"],
+        note: "eVisa через e-visa.al (~15 рабочих дней, €30). Мусульманская страна, нулевая конкуренция. Балканский халяль-маршрут без прямого рейса.",
+        criteria: { "Вау-эффект": 3.5, "Доступность": 2, "Виза": 4, "Конкуренция": 4, "Маржинальность": 3.5, "Операционка": 3 },
+        visa: { status: "eVisa", term: "минимум 15 рабочих дней", cost: "€30 однократная / €50 многократная", url: "https://e-visa.al/" },
+        aviation: { carriers: "Стыковка через Стамбул или Дубай", frequency: "нет прямого рейса из Ташкента", price: "от $420 round trip (со стыковкой)" },
+        route: ["День 1–2 · Тирана — мечеть Этем-Бей, Национальный музей", "День 3 · Берат — город тысячи окон (ЮНЕСКО)", "День 4–6 · Ривьера — Саранда, Ксамиль (Ионическое море)", "День 7 · Вылет"],
+        economics: { cost: "~$780", price: "~$1 050", margin: "~26%", breakeven: "10 туристов" },
+        seasons: [5,6,7,8,9],
+        risks: ["Нет прямого рейса — стыковка 1–2 ч в Стамбуле или Дубае", "eVisa требует подачи за 3–4 недели — строгое планирование", "Черногорию (безвиз отменён с 10.2025) нельзя включать в связку без визы"],
+        status: "review" },
+      { id: "italy", name: "Италия (Рим + Флоренция)", region: "Европа", score: 3.55, tier: "C", program: "Рим — Флоренция — Венеция", tags: ["direct"],
+        note: "Прямой UzAirways в Милан и Рим. Шенгенская виза — одобрение 87.29% по Узбекистану в 2024. Плотная конкуренция, авторское позиционирование только через халяль-формат.",
+        criteria: { "Вау-эффект": 4.5, "Доступность": 4, "Виза": 2, "Конкуренция": 2, "Маржинальность": 3, "Операционка": 3.5 },
+        visa: { status: "Шенгенская виза (тип C)", term: "подача за 6–8 недель, одобрение 87.29%", cost: "€90 + сервисный сбор визового центра (~€25)" },
+        aviation: { carriers: "Uzbekistan Airways (Рим FCO, Милан MXP), Qanot Sharq", frequency: "несколько рейсов в неделю", price: "от $480 round trip" },
+        route: ["День 1–2 · Рим — Колизей, Ватикан, фонтан Треви", "День 3 · Флоренция — Уффици, Давид, Понте-Веккьо", "День 4 · Пиза — Падающая башня", "День 5–6 · Венеция — Сан-Марко, Гранд-канал", "День 7 · Вылет"],
+        economics: { cost: "~$1 350", price: "~$1 750", margin: "~23%", breakeven: "12 туристов" },
+        seasons: [4,5,6,9,10],
+        risks: ["Шенгенская виза — 15.76% отказов, нужна помощь с документами", "Сильная конкуренция: продукт нужно отстраивать халяль-форматом", "EES на шенгенской границе с 10.04.2026 — возможные очереди"],
+        status: "review" },
+      { id: "spain", name: "Испания (Андалусия)", region: "Европа", score: 3.55, tier: "C", program: "Мадрид — Кордова — Гранада — Севилья", tags: ["direct","halal"],
+        note: "Прямой UzAirways в Мадрид. Шенген. Исламское наследие Аль-Андалус — Альгамбра, Большая мечеть Кордовы — сильнейшее халяль-позиционирование для узбекской аудитории.",
+        criteria: { "Вау-эффект": 4.5, "Доступность": 4, "Виза": 2, "Конкуренция": 3, "Маржинальность": 3, "Операционка": 3.5 },
+        visa: { status: "Шенгенская виза (тип C)", term: "подача за 6–8 недель, одобрение ~87%", cost: "€90 + сервисный сбор (~€25)" },
+        aviation: { carriers: "Uzbekistan Airways (Мадрид MAD)", frequency: "несколько рейсов в неделю", price: "от $500 round trip" },
+        route: ["День 1–2 · Мадрид — Прадо, Ретиро, Гран-Виа", "День 3 · Толедо — средневековый город, мечеть Христа Света", "День 4 · Кордова — Большая мечеть-собор (ЮНЕСКО)", "День 5 · Гранада — Альгамбра (бронировать за 2+ мес.)", "День 6 · Севилья — Алькасар, Хиральда", "День 7 · Вылет"],
+        economics: { cost: "~$1 400", price: "~$1 800", margin: "~22%", breakeven: "12 туристов" },
+        seasons: [4,5,9,10],
+        risks: ["Шенгенская виза снижает конверсию продаж", "Альгамбра — билеты бронировать за 2+ месяца, лимит строгий", "Лето в Андалусии +40°C — июнь–август некомфортны"],
+        status: "review" },
+      { id: "kenya", name: "Кения (Сафари)", region: "Африка", score: 3.25, tier: "C", program: "Масаи-Мара — Момбаса", tags: ["evisa"],
+        note: "eVisa. Нет прямого рейса — стыковка через Дубай или Найроби. Уникальное сафари + пляж Занзибар. Нулевая конкуренция среди узбекских операторов.",
+        criteria: { "Вау-эффект": 5, "Доступность": 2, "Виза": 4, "Конкуренция": 4, "Маржинальность": 3, "Операционка": 2 },
+        visa: { status: "eVisa (ETA)", term: "2–5 рабочих дней", cost: "~$30 однократная", url: "https://etakenya.go.ke/" },
+        aviation: { carriers: "Стыковка через Дубай (flydubai) или Доху (Qatar Airways)", frequency: "нет прямого рейса из Ташкента", price: "от $600 round trip (со стыковкой)" },
+        route: ["День 1 · Найроби — трансфер, отель", "День 2–4 · Масаи-Мара — сафари на рассвете и закате", "День 5 · Перелёт Найроби–Момбаса", "День 6–7 · Момбаса — пляжи Диани, Форт Иисуса", "День 8 · Вылет"],
+        economics: { cost: "~$1 400", price: "~$1 850", margin: "~24%", breakeven: "11 туристов" },
+        seasons: [7,8,9,10],
+        risks: ["Сложная логистика: 2 внутренних перелёта + стыковка из Ташкента", "Халяль частичный — прибрежные районы (мусульманское побережье) лучше", "Пик сафари (Большая миграция) июль–октябрь — цены на лоджи максимальные"],
+        status: "review" },
+      { id: "iran", name: "Иран (Исфахан / Шираз)", region: "Ближний Восток", score: 4.70, tier: "D", program: "Тегеран — Исфахан — Йезд — Шираз — Персеполь", tags: ["visafree","halal","pause"], note: "Исключительно сильный маршрут, поставленный на паузу из-за внешних рисков.", seasons: [3,4,5,9,10,11], risks: ["Геополитическая обстановка", "Платёжная инфраструктура", "Оперативные изменения авиапрограмм"], status: "paused" },
+      { id: "oman", name: "Оман (Маскат / Фьорды)", region: "Ближний Восток", score: 3.80, tier: "B", program: "Маскат — Низва — Вахиба — фьорды Мусандам",
+        tags: ["halal","direct"],
+        note: "Премиальный природный продукт. Прямой рейс Oman Air на Маскат. Условный безвиз — только для держателей визы США/UK/Шенгена. Обычному узбекскому туристу нужна виза через посольство.",
+        criteria: { "Вау-эффект": 5, "Доступность": 3, "Виза": 3, "Конкуренция": 5, "Маржинальность": 3.5, "Операционка": 3 },
+        visa: { status: "Условный безвиз / виза посольство", term: "Безвиз до 14 дн. только при наличии шенген/US/UK визы; иначе — посольство, 5–10 раб. дней", cost: "~$50 консульский сбор", url: "https://evisa.rop.gov.om/" },
+        aviation: { carriers: "Oman Air (прямой с июля 2026), Centrum Air", frequency: "несколько рейсов в неделю Ташкент–Маскат", price: "от $380 round trip" },
+        route: ["День 1–2 · Маскат — Большая мечеть Кабус, рынок Муттра, дворец", "День 3 · Низва — форт и традиционный рынок пятницы", "День 4–5 · Пустыня Вахиба — верблюды, барханы, ночёвка в лагере", "День 6 · Фьорды Мусандам — лодочная экскурсия (дхоу)", "День 7 · Вылет"],
+        economics: { cost: "~$1 050", price: "~$1 400", margin: "~25%", breakeven: "11 туристов" },
+        seasons: [1,2,3,10,11,12],
+        risks: ["Визовый статус для узбекских паспортов конфликтующий — обязательна проверка перед запуском", "Летняя жара +45–50°C: июнь–сентябрь нерабочие", "Высокая стоимость отелей и экскурсий в Омане"],
+        status: "review" },
+      { id: "ethiopia", name: "Эфиопия (Данакиль + Лалибела)", region: "Африка", score: 4.45, tier: "A",
+        program: "Аддис-Абеба — Лалибела — Данакиль — долина Омо", tags: ["evisa","halal"],
+        note: "Три Эфиопии в одном туре: церкви ЮНЕСКО в скалах, инопланетный вулкан Эрта-Але и племена Омо. Максимальный вау, нулевая конкуренция.",
+        criteria: { "Вау-эффект": 5, "Доступность": 4, "Виза": 4, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 3 },
+        visa: { status: "eVisa", term: "онлайн, до 30 дней", cost: "~$82 (30 дней) / ~$202 (90 дней)", url: "https://evisa.gov.et/" },
+        aviation: { carriers: "Ethiopian Airlines через Аддис-Абебу", frequency: "ежедневно из Ташкента с 1 стыковкой", price: "от $500 round trip" },
+        route: ["День 1–2 · Аддис-Абеба — рынок Меркато, музей Люси", "День 3–4 · Лалибела — высеченные в скале церкви XII в. (ЮНЕСКО)", "День 5 · Гондэр — замки и купальни Фасил-Гиби", "День 6–7 · Данакиль — вулкан Эрта-Але, кислотные озёра (экстрим)", "День 8–9 · Долина Омо — племена мурси, хамер", "День 10 · Вылет"],
+        economics: { cost: "~$1 400", price: "~$1 900", margin: "~26%", breakeven: "10 туристов" },
+        seasons: [10,11,12,1,2,3],
+        risks: ["Безопасность в регионах Тыграй/Афар — уточнять перед каждым заездом", "Данакиль: жара +50°C, только октябрь–март", "Логистика сложная — нужен опытный местный DMC", "eVisa стоимость меняется — проверять перед продажей"],
+        status: "review" },
+      { id: "borneo", name: "Борнео / Сабах (Малайзия)", region: "Азия", score: 4.20, tier: "A",
+        program: "Кота-Кинабалу — Сепилок — Кинабатанган — Сипадан", tags: ["visafree","halal"],
+        note: "Орангутаны в Сепилоке, дождевые леса, лучший дайвинг на Сипадане. Безвиз через Малайзию, халяль везде, стыковка через КЛ.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 5, "Конкуренция": 4, "Маржинальность": 4, "Операционка": 4 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней (Малайзия)", cost: "$0" },
+        aviation: { carriers: "UzAirways в КЛ, далее AirAsia в Кота-Кинабалу", frequency: "ежедневно через КЛ, ~30 мин внутренний рейс", price: "от $420 round trip" },
+        route: ["День 1 · Кота-Кинабалу — набережная, закат", "День 2 · Сепилок — реабилитационный центр орангутанов", "День 3–4 · Река Кинабатанган — лодочный сафари, хоботные слоны, пробоскисы", "День 5–6 · Сипадан — дайвинг или снорклинг (мирового класса)", "День 7 · Возвращение в КЛ, вылет"],
+        economics: { cost: "~$900", price: "~$1 200", margin: "~25%", breakeven: "10 туристов" },
+        seasons: [3,4,5,6,7,8],
+        risks: ["Сипадан лимитирован — 120 дайверов/день, разрешения бронировать за 3+ мес.", "Высокая влажность круглый год", "Длинный общий перелёт из Ташкента (~10–12 ч суммарно)"],
+        status: "review" },
+      { id: "namibia", name: "Намибия (Соссусфлей + Этоша)", region: "Африка", score: 4.20, tier: "B",
+        program: "Виндхук — Соссусфлей — Свакопмунд — Этоша", tags: ["evisa"],
+        note: "Красные дюны Соссусфлея, мёртвая роща Дедвлей, белые носороги в Этоше — фотографический тур высшего класса. Нулевая конкуренция.",
+        criteria: { "Вау-эффект": 5, "Доступность": 3, "Виза": 4, "Конкуренция": 5, "Маржинальность": 3.5, "Операционка": 3 },
+        visa: { status: "Виза по прибытии (VOA)", term: "до 90 дней", cost: "~$88 (N$1 600) с 01.04.2025" },
+        aviation: { carriers: "Стыковка через Йоханнесбург (SAA/Emirates) или Аддис-Абебу", frequency: "2 стыковки из Ташкента", price: "от $750 round trip" },
+        route: ["День 1–2 · Виндхук — колониальная архитектура, рынок", "День 3–4 · Соссусфлей — дюна 45, Дедвлей (фотосессия на рассвете)", "День 5 · Свакопмунд — Атлантика, сэндбординг, квадроциклы", "День 6–7 · Этоша — сафари на белых носорогов и слонов", "День 8 · Виндхук, вылет"],
+        economics: { cost: "~$1 600", price: "~$2 100", margin: "~24%", breakeven: "10 туристов" },
+        seasons: [6,7,8,9,10],
+        risks: ["Халяль-питание сложно — нужно прорабатывать через оператора", "Самостоятельная логистика тяжёлая — нужен DMC в Намибии", "Длинный перелёт (2 стыковки, ~16–18 ч)"],
+        status: "review" },
+      { id: "madagascar", name: "Мадагаскар", region: "Африка", score: 4.20, tier: "B",
+        program: "Антананариву — Андасибе — Морондава (баобабы) — Нуси-Бе", tags: ["evisa"],
+        note: "Лемуры, аллея баобабов, известняковые цинги — 90% фауны эндемична. Самый уникальный природный продукт на планете. Виза по прилёту.",
+        criteria: { "Вау-эффект": 5, "Доступность": 3, "Виза": 4, "Конкуренция": 5, "Маржинальность": 3.5, "Операционка": 2.5 },
+        visa: { status: "Виза по прибытии (VOA)", term: "до 30 дней (продляется)", cost: "~$35 однократная" },
+        aviation: { carriers: "Ethiopian Airlines через Аддис-Абебу (лучший хаб)", frequency: "2 стыковки, ~16–18 ч суммарно", price: "от $700 round trip" },
+        route: ["День 1 · Антананариву — базары, дворец Ройял Хилл", "День 2–3 · Андасибе — лемуры, дождевой лес", "День 4–5 · Морондава — аллея баобабов (закат обязателен)", "День 6–7 · Цинги-де-Бемараха — известняковые лабиринты (ЮНЕСКО)", "День 8–9 · Нуси-Бе — пляж, киты (июль–сент.)", "День 10 · Вылет"],
+        economics: { cost: "~$1 500", price: "~$2 000", margin: "~25%", breakeven: "10 туристов" },
+        seasons: [4,5,6,7,8,9,10,11],
+        risks: ["Слабая инфраструктура вне Антананариву", "Зависимость от внутренних рейсов (часто задерживаются)", "Нет халяль-ресторанов — питание прорабатывать через оператора"],
+        status: "review" },
+      { id: "rwanda", name: "Руанда (гориллы)", region: "Африка", score: 4.20, tier: "B",
+        program: "Кигали — нацпарк Вулканов — озеро Киву — Ньюнгве", tags: ["evisa"],
+        note: "Трекинг к горным гориллам — самое статусное wildlife-впечатление планеты. Кигали — самый чистый и безопасный город Африки. VOA для всех.",
+        criteria: { "Вау-эффект": 5, "Доступность": 3, "Виза": 4, "Конкуренция": 5, "Маржинальность": 3, "Операционка": 3.5 },
+        visa: { status: "Виза по прибытии (VOA) или онлайн", term: "до 30 дней", cost: "~$50 однократная", url: "https://migration.gov.rw/" },
+        aviation: { carriers: "RwandAir через Найроби/Аддис или Ethiopian прямо в Кигали", frequency: "2 стыковки из Ташкента", price: "от $650 round trip" },
+        route: ["День 1 · Кигали — мемориал геноцида, рынок, Nyamirambo", "День 2 · Переезд на озеро Киву — лодочная прогулка", "День 3–4 · Нацпарк Вулканов — трекинг к гориллам (4–7 часов)", "День 5 · Ньюнгве — шимпанзе и canopy walk", "День 6 · Вылет"],
+        economics: { cost: "~$2 200", price: "~$2 900", margin: "~24%", breakeven: "8 туристов" },
+        seasons: [6,7,8,12,1,2],
+        risks: ["Пермит на горилл $1 500/чел. — основная статья стоимости", "Физическая нагрузка трекинга (4–7 ч в горах 2 500–4 500 м)", "Высокая итоговая цена тура — только для премиум-сегмента"],
+        status: "review" },
+      { id: "mongolia", name: "Монголия (Гоби + Хархорум)", region: "Азия", score: 4.05, tier: "B",
+        program: "Улан-Батор — Гоби — дюны Хонгорын-Элс — Орхонская долина", tags: ["visafree"],
+        note: "Безвиз. Прямой рейс Hunnu Air Ташкент–Улан-Батор запускается май 2026 (2 раза в неделю). Степи, поющие дюны, кости динозавров, юрты.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 5, "Конкуренция": 4, "Маржинальность": 4, "Операционка": 3.5 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней", cost: "$0" },
+        aviation: { carriers: "Hunnu Air (прямой Ташкент–Улан-Батор с мая 2026, 2 раза/нед.)", frequency: "прямой рейс ~3.5 ч", price: "от $320 round trip (оценка)" },
+        route: ["День 1–2 · Улан-Батор — Чингис-хан, монастырь Гандан", "День 3 · Перелёт + переезд в Гоби", "День 4–5 · Поющие дюны Хонгорын-Элс, скалы Баянзаг (кости динозавров)", "День 6 · Орхонская долина — руины Хархорума (столица монгольской империи)", "День 7 · Ночевка в юрте, верблюды", "День 8 · Вылет"],
+        economics: { cost: "~$850", price: "~$1 150", margin: "~26%", breakeven: "9 туристов" },
+        seasons: [6,7,8,9],
+        risks: ["Прямой рейс новый — следить за расписанием и загрузкой", "Короткий сезон (июнь–сентябрь)", "Базовая инфраструктура в Гоби — только юрты"],
+        status: "review" },
+      { id: "bhutan", name: "Бутан (Королевство счастья)", region: "Азия", score: 4.00, tier: "C",
+        program: "Паро — Тхимпху — Пунакха — Гнездо Тигра", tags: ["evisa"],
+        note: "Закрытое королевство, монастырь Гнездо Тигра на скале 3 120 м. Обязательный сбор $100/ночь + виза $40 — самопозиционирующийся премиум.",
+        criteria: { "Вау-эффект": 5, "Доступность": 3, "Виза": 4, "Конкуренция": 4, "Маржинальность": 3, "Операционка": 3 },
+        visa: { status: "eVisa + обязательный турпакет через лицензированного оператора", term: "Виза $40; SDF (Sustainable Development Fee) $100/ночь до 31.08.2027", cost: "$40 виза + $100/ночь SDF + $180–245/ночь наземка", url: "https://www.tourism.gov.bt/" },
+        aviation: { carriers: "Druk Air или Bhutan Airlines через Дели, Колкату или Бангкок", frequency: "2 стыковки из Ташкента", price: "от $600 round trip" },
+        route: ["День 1 · Паро — аэропорт в горах, монастырь Кийчу Лакханг", "День 2 · Тхимпху — дзонг, рынок, смотровая", "День 3 · Перевал Доклха-Ла — вид на Гималаи", "День 4 · Пунакха — летний дворец, подвесной мост", "День 5 · Гнездо Тигра (Trek 4 ч подъём/спуск)", "День 6 · Вылет"],
+        economics: { cost: "~$2 100", price: "~$2 700", margin: "~22%", breakeven: "8 туристов" },
+        seasons: [3,4,5,9,10,11],
+        risks: ["Высокая итоговая стоимость — только премиум-сегмент", "Обязательный лицензированный оператор — нужен местный партнёр", "Физическая нагрузка трека к Гнезду (4 ч)"],
+        status: "review" },
+      { id: "bolivia", name: "Боливия (Солончак Уюни)", region: "Латинская Америка", score: 3.75, tier: "C",
+        program: "Ла-Пас — Уюни — Потоси — Озеро Титикака", tags: ["evisa"],
+        note: "Самый большой солончак планеты — зеркальный эффект после дождей. Вирусный №1 Латинской Америки. Виза по прибытии для узбеков.",
+        criteria: { "Вау-эффект": 5, "Доступность": 1, "Виза": 3, "Конкуренция": 5, "Маржинальность": 3, "Операционка": 2 },
+        visa: { status: "Виза по прибытию (VOA)", term: "до 30 дней", cost: "~$30" },
+        aviation: { carriers: "Стыковки через Мадрид/Лиссабон + Богота/Лима → Ла-Пас", frequency: "2–3 стыковки, ~22–26 ч суммарно", price: "от $1 100 round trip" },
+        route: ["День 1–2 · Ла-Пас (3 600 м) — акклиматизация, Луна-Парк", "День 3 · Потоси — серебряные шахты 16 в.", "День 4–6 · Уюни — джип-тур по солончаку (зеркало, острова кактусов)", "День 7 · Озеро Титикака — острова тростниковых людей", "День 8 · Вылет"],
+        economics: { cost: "~$2 500", price: "~$3 200", margin: "~22%", breakeven: "8 туристов" },
+        seasons: [11,12,1,2,3],
+        risks: ["Перелёт дорогой и длинный — только премиум-экспедиции", "Высота 3 600–4 900 м — горная болезнь обязательный брифинг", "Halal минимален"],
+        status: "review" },
+      { id: "ecuador", name: "Эквадор (Галапагосы)", region: "Латинская Америка", score: 3.75, tier: "C",
+        program: "Кито — Галапагосские острова — Амазония", tags: ["evisa"],
+        note: "Галапагосы — Дарвиновская лаборатория эволюции, морские игуаны, голубоногие олуши. eVisa. 2–3 стыковки из Ташкента.",
+        criteria: { "Вау-эффект": 5, "Доступность": 1, "Виза": 3, "Конкуренция": 5, "Маржинальность": 3, "Операционка": 2 },
+        visa: { status: "eVisa", term: "онлайн оформление", cost: "~$50", url: "https://visaenlinea.cancilleria.gob.ec/" },
+        aviation: { carriers: "Через Мадрид или Майами → Кито → внутренний рейс Галапагосы", frequency: "2–3 стыковки, ~20–24 ч суммарно", price: "от $1 200 round trip" },
+        route: ["День 1–2 · Кито — исторический центр (ЮНЕСКО), экватор", "День 3 · Перелёт Кито–Санта-Крус (Галапагосы)", "День 4–6 · Галапагосы — морские игуаны, черепахи, олуши, снорклинг с морскими львами", "День 7 · Амазония Эквадора — первичный лес, каноэ", "День 8 · Вылет"],
+        economics: { cost: "~$3 000", price: "~$3 800", margin: "~21%", breakeven: "8 туристов" },
+        seasons: [12,1,2,3,4],
+        risks: ["Очень дорогой и длинный перелёт — только премиум-экспедиции", "Галапагосы лимитированы — нацпарк-пермит ~$200/чел.", "Halal практически отсутствует"],
+        status: "review" },
+      { id: "socotra", name: "Сокотра (Йемен)", region: "Ближний Восток", score: 4.40, tier: "D",
+        program: "Хадибо — Дихсамма — Хомхил — лагуна Детва", tags: ["halal","pause"],
+        note: "Остров драконовых деревьев — другая планета. Объект ЮНЕСКО, 37% видов растений эндемичны. Халяль везде. На паузе: ЧП и закрытие портов с 30.12.2025.",
+        criteria: { "Вау-эффект": 5, "Доступность": 3, "Виза": 3, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 1 },
+        visa: { status: "Разрешение острова через оператора", term: "организует принимающий оператор", cost: "~€200 через оператора (напр. CultureRoad Travel)" },
+        aviation: { carriers: "Yemenia: Джидда–Сокотра (1 раз/нед.) — единственный рейс после закрытия портов Абу-Даби", frequency: "Аварийный режим с 30.12.2025 — ЧС на острове", price: "от $800 round trip (оценка при открытых портах)" },
+        route: ["День 1–2 · Хадибо — столица, рыбный рынок, адаптация", "День 3 · Дихсамма — лес драконовых деревьев", "День 4 · Плато Хомхил — горный лагерь", "День 5 · Лагуна Детва — белые дюны, бирюза", "День 6 · Пещера Хок — самая большая пещера Аравии", "День 7 · Вылет"],
+        economics: { cost: "~$2 300", price: "~$2 900", margin: "~21%", breakeven: "8 туристов" },
+        seasons: [10,11,12,1,2,3,4],
+        risks: ["КРИТИЧНО: ЧС с 30.12.2025, порты закрыты, чартеры из Абу-Даби приостановлены", "Политическая нестабильность Йемена — военные риски", "Запускать только при полном открытии портов и снятии предупреждений МИД"],
+        status: "paused" },
+      { id: "samarkand-xian", name: "Самарканд → Сиань (Шёлковый путь)", region: "Азия", score: 4.60, tier: "A",
+        program: "Самарканд — Сиань — мусульманский квартал — терракотовая армия", tags: ["visafree","direct","halal"],
+        note: "Прямой рейс Loong Air Самарканд–Сиань. Два конца Великого Шёлкового пути в одном туре. Безвиз 30 дней. Ни один узбекский оператор не делает.",
+        criteria: { "Вау-эффект": 5, "Доступность": 5, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 4 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней (макс. 90 за полгода)", cost: "$0" },
+        aviation: { carriers: "Loong Air (прямой SKD–XIY)", frequency: "~12 рейсов в месяц", price: "от $280 round trip" },
+        route: ["День 1 · Самарканд — Регистан, мечеть Биби-Ханым, базар", "День 2 · Перелёт Самарканд → Сиань (~5 ч)", "День 3 · Сиань — мусульманский квартал, мечеть Великая Западная, базар Хуэйминь", "День 4 · Терракотовая армия — тысячи глиняных воинов Цинь Шихуанди", "День 5 · Стена Сианя — велопрогулка по периметру, пагода Диких Гусей", "День 6 · Вылет домой"],
+        economics: { cost: "~$650", price: "~$900", margin: "~28%", breakeven: "9 туристов" },
+        seasons: [3,4,5,9,10,11],
+        risks: ["Расписание Loong Air сезонное — уточнять частоту перед продажей", "Халяль в Сиане органичный (уйгурский квартал), но вне квартала требует планирования", "Урумчи–Самарканд (China Southern) отменён на лето 2026 — не путать с этим маршрутом"],
+        status: "ready" },
+      { id: "goa", name: "Гоа (Индия)", region: "Азия", score: 4.10, tier: "A",
+        program: "Дели — Гоа (пляжи) — мусульманский север", tags: ["evisa","direct"],
+        note: "Прямой рейс UzAirways в Гоа + Air India codeshare. Мусульманский север Гоа (Панаджи, Калангут) как халяль-нотка. Почти нет узбекских операторов.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 4, "Конкуренция": 4, "Маржинальность": 4, "Операционка": 3.5 },
+        visa: { status: "e-Tourist Visa", term: "72–96 часов, до 90 дней", cost: "~$25–80", url: "https://indianvisaonline.gov.in/" },
+        aviation: { carriers: "Uzbekistan Airways (прямой TAS–GOI), Air India (codeshare)", frequency: "сезонно (октябрь–апрель)", price: "от $350 round trip" },
+        route: ["День 1 · Прилёт в Гоа, заселение на пляжный курорт", "День 2 · Северный Гоа — Бага, Кандолим, форт Aguada", "День 3 · Старый Гоа — соборы и португальское наследие", "День 4 · Панаджи — рынок, мусульманский квартал, мечеть Сикваль", "День 5–6 · Пляжи юга — Палолем, Агонда (тихие, семейные)", "День 7 · Вылет"],
+        economics: { cost: "~$680", price: "~$950", margin: "~28%", breakeven: "9 туристов" },
+        seasons: [10,11,12,1,2,3],
+        risks: ["Сезон муссонов июнь–сентябрь — не продавать", "Халяль на юге Гоа слабый — акцентировать север", "Береговая охрана: съёмка дронами запрещена на пляжах"],
+        status: "review" },
+      { id: "vladivostok", name: "Владивосток", region: "Россия", score: 4.20, tier: "A",
+        program: "Владивосток — Японское море — остров Русский — сопки", tags: ["visafree","direct"],
+        note: "Прямой UzAirways. Тихоокеанская Россия: японское море, корейская и китайская кухня, морепродукты, современный кампус ДВФУ на острове Русский. «Край земли» нарратив. Ни один узбекский оператор не делает.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 4 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам РФ–Узбекистан", cost: "$0" },
+        aviation: { carriers: "Uzbekistan Airways (прямой TAS–VVO)", frequency: "несколько рейсов в неделю", price: "от $380 round trip" },
+        route: ["День 1 · Владивосток — набережная Спортивной гавани, фуникулёр, видовые", "День 2 · Остров Русский — мост, ДВФУ, бухты", "День 3 · Японское море — пляжи бухты Стеклянной (пляж из морского стекла)", "День 4 · Морепродукты — краб, гребешок, трепанг; рыбный рынок", "День 5 · Форт Поспелова, Ботанический сад", "День 6 · Вылет"],
+        economics: { cost: "~$620", price: "~$880", margin: "~30%", breakeven: "8 туристов" },
+        seasons: [6,7,8,9],
+        risks: ["Халяль слабый — организовывать питание отдельно", "Короткий летний сезон (июнь–сентябрь)", "Муссонная погода — туман и дожди"],
+        status: "review" },
+      { id: "astana", name: "Астана (Казахстан)", region: "СНГ", score: 4.10, tier: "A",
+        program: "Астана — Байтерек — мечеть Хазрет-Султан — Нур-Астана", tags: ["visafree","direct"],
+        note: "Прямой рейс из Самарканда (Vietjet Qazaqstan). Один из самых футуристичных городов мира — архитектура Нормана Фостера, купол хана Шатыр, крупнейшая мечеть ЦА. Безвиз. Почти никого из узбекских туроператоров.",
+        criteria: { "Вау-эффект": 4, "Доступность": 5, "Виза": 5, "Конкуренция": 4, "Маржинальность": 4, "Операционка": 5 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам КЗ–Узбекистан", cost: "$0" },
+        aviation: { carriers: "Vietjet Qazaqstan (SKD–NQZ), Air Astana, FlyArystan (TAS–NQZ)", frequency: "несколько раз в неделю", price: "от $180 round trip" },
+        route: ["День 1 · Астана — Байтерек (вид на город), площадь Нур-Астана", "День 2 · Мечеть Хазрет-Султан — крупнейшая в ЦА, Дворец мира и согласия", "День 3 · Хан Шатыр — торговый купол Нормана Фостера, набережная Есиля", "День 4 · Музей Первого Президента, EXPO 2017 парк", "День 5 · Вылет"],
+        economics: { cost: "~$380", price: "~$550", margin: "~31%", breakeven: "7 туристов" },
+        seasons: [5,6,7,8,9],
+        risks: ["Зима экстремальная (-40°C) — ноябрь–март нерабочие", "Продукт недорогой — работает как entry-level или weekend тур", "Конкуренция может вырасти быстро из-за низкого барьера входа"],
+        status: "review" },
+      { id: "busan", name: "Пусан (Южная Корея)", region: "Азия", score: 3.90, tier: "A",
+        program: "Пусан — рыбный рынок Ягси — деревня Камчхон — пляжи — Кёнджу", tags: ["direct"],
+        note: "Прямой Qanot Sharq в Пусан. Другая Корея — портовый город без толп туристов как в Сеуле. Рыбный рынок, арт-деревня, храмы Кёнджу (ЮНЕСКО). Виза требуется.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 2, "Конкуренция": 4, "Маржинальность": 3.5, "Операционка": 4 },
+        visa: { status: "Виза через посольство", term: "7–15 рабочих дней", cost: "~$50–80" },
+        aviation: { carriers: "Qanot Sharq (прямой TAS–PUS)", frequency: "сезонно", price: "от $420 round trip" },
+        route: ["День 1 · Пусан — рыбный рынок Ягси (самый большой в Корее)", "День 2 · Деревня Камчхон — арт-кварталы на сопках", "День 3 · Храм Хэдонг Ёнгунса — на скалах над морем", "День 4 · Кёнджу — гробницы Силла, храм Пулькукса (ЮНЕСКО)", "День 5–6 · Пляжи Хэундэ и Кванган", "День 7 · Вылет"],
+        economics: { cost: "~$820", price: "~$1 100", margin: "~25%", breakeven: "10 туристов" },
+        seasons: [4,5,6,9,10],
+        risks: ["Корейская виза через посольство — барьер", "Халяль слабый — только в мусульманских кварталах Пусана", "Сезонность ограничена"],
+        status: "review" },
+      { id: "mangistau", name: "Мангистау / Актау (Казахстан)", region: "СНГ", score: 4.15, tier: "B",
+        program: "Актау — подземные мечети Бекет-Ата — меловые каньоны — Каспий", tags: ["visafree","direct","halal"],
+        note: "Centrum Air летит из Нукуса в Актау. Сакральный Казахстан — некрополи, подземные мечети высечены в скалах, меловые каньоны Босжыра. Халяль органичный. Ни один узбекский оператор не делает.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4.5, "Операционка": 3.5 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам КЗ–Узбекистан", cost: "$0" },
+        aviation: { carriers: "Centrum Air (NCU–SCO), далее внутренний рейс или наземный", frequency: "несколько раз в неделю", price: "от $220 round trip" },
+        route: ["День 1 · Актау — набережная Каспия, закат над морем", "День 2 · Некрополь Шопан-Ата — подземные мечети в меловых скалах", "День 3 · Бекет-Ата — главная святыня Мангистау (паломничество)", "День 4 · Каньоны Босжыра — меловые столбы, «Долина замков»", "День 5 · Мыс Тюб-Караган, маяк, Каспийское побережье", "День 6 · Вылет"],
+        economics: { cost: "~$480", price: "~$700", margin: "~31%", breakeven: "7 туристов" },
+        seasons: [4,5,9,10],
+        risks: ["Летняя жара +45°C — июнь–август нерабочие", "Логистика по плато требует внедорожников и местного гида", "Паломнические места требуют уважительного дресс-кода"],
+        status: "review" },
+      { id: "izmir", name: "Измир + Эгейское побережье", region: "Ближний Восток", score: 3.80, tier: "B",
+        program: "Измир — Эфес — Памуккале — Бодрум", tags: ["visafree","direct"],
+        note: "SunExpress летит прямым рейсом из Самарканда в Измир 3 раза в неделю. Другая Турция — не Стамбул и не Анталья. Эфес (ЮНЕСКО), белые травертины Памуккале, Эгейское море. Безвиз.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 5, "Конкуренция": 3, "Маржинальность": 3.5, "Операционка": 4.5 },
+        visa: { status: "Безвизовый въезд", term: "до 90 дней", cost: "$0" },
+        aviation: { carriers: "SunExpress (прямой SKD–ADB, 3/нед)", frequency: "3 рейса в неделю", price: "от $220 round trip" },
+        route: ["День 1 · Измир — набережная Корнальтъери, базар Кемералты", "День 2 · Эфес — один из лучших античных городов мира (ЮНЕСКО)", "День 3 · Памуккале — белые кальцитовые террасы, термальные бассейны", "День 4 · Бодрум — замок Святого Петра, яхт-марина, рыбный рынок", "День 5 · Пляжи Эгейского побережья", "День 6 · Вылет"],
+        economics: { cost: "~$520", price: "~$750", margin: "~31%", breakeven: "8 туристов" },
+        seasons: [4,5,6,9,10],
+        risks: ["Летний пик (июль–август) — перегруженность туристами и жара", "Халяль органичный (Турция), но пляжная среда консервативной аудитории требует отбора отеля", "Рейс из Самарканда — клиенты из Ташкента едут в Самарканд сначала"],
+        status: "review" },
+      { id: "ladakh", name: "Ладакх / Кашмир (Индия)", region: "Азия", score: 3.80, tier: "B",
+        program: "Дели — Леh — озеро Пангонг — монастыри", tags: ["evisa","direct"],
+        note: "Через прямой рейс в Дели. Высокогорье 3 500+ м, бирюзовое озеро Пангонг, буддийские монастыри, мусульманское наследие Кашмира. Визуально один из сильнейших продуктов Азии.",
+        criteria: { "Вау-эффект": 5, "Доступность": 3, "Виза": 4, "Конкуренция": 4, "Маржинальность": 3.5, "Операционка": 2.5 },
+        visa: { status: "e-Tourist Visa", term: "72–96 часов, до 90 дней", cost: "~$25–80", url: "https://indianvisaonline.gov.in/" },
+        aviation: { carriers: "UzAirways/Centrum Air в Дели, далее IndiGo/Air India в Лех", frequency: "ежедневно в Дели, Лех — несколько раз в нед.", price: "от $480 round trip" },
+        route: ["День 1–2 · Дели — акклиматизация, Красный форт, Джама-Масджид", "День 3 · Перелёт Дели → Лех (3 500 м)", "День 4 · Акклиматизация в Лехе — дворец, монастырь Тхикси", "День 5–6 · Озеро Пангонг — бирюзовое на границе с Китаем", "День 7 · Монастырь Хемис, долина Нубра — верблюды Бактрианы", "День 8 · Вылет"],
+        economics: { cost: "~$950", price: "~$1 300", margin: "~27%", breakeven: "10 туристов" },
+        seasons: [6,7,8,9],
+        risks: ["Горная болезнь — обязательный медицинский брифинг", "Разрешение на посещение приграничных зон (Inner Line Permit)", "Рейсы в Лех часто задерживают из-за погоды"],
+        status: "review" },
+      { id: "harbin", name: "Харбин (Китай) зимой", region: "Азия", score: 3.85, tier: "B",
+        program: "Харбин — фестиваль ледяных скульптур — парк снега — русское наследие", tags: ["visafree","direct"],
+        note: "Через прямые рейсы в Китай. Крупнейший в мире фестиваль ледяных скульптур (январь). Конкурент Байкала зимой — другой вау, китайский. Безвиз 30 дней.",
+        criteria: { "Вау-эффект": 5, "Доступность": 3, "Виза": 5, "Конкуренция": 4, "Маржинальность": 3.5, "Операционка": 3 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней", cost: "$0" },
+        aviation: { carriers: "UzAirways/China Southern через Пекин или Шанхай, далее внутренний рейс в Харбин", frequency: "ежедневно в хаб + несколько раз в нед. в Харбин", price: "от $500 round trip" },
+        route: ["День 1 · Прилёт в Харбин, центральная улица Чжунъян — русская архитектура", "День 2 · Ледовый город Сунхуацзян — подсвеченные ледяные замки (главный аттракцион)", "День 3 · Парк снежных скульптур Тайянский остров", "День 4 · Музей тигра и леопарда, сибирские тигры", "День 5 · Вылет"],
+        economics: { cost: "~$780", price: "~$1 050", margin: "~26%", breakeven: "9 туристов" },
+        seasons: [1,2],
+        risks: ["Очень узкий сезон — только январь-февраль", "Мороз -25°C...-35°C — нужна подготовка клиентов", "Халяль слабый — организовывать питание через халяль-рестораны уйгурской кухни"],
+        status: "review" },
+      { id: "copenhagen", name: "Копенгаген / Скандинавия", region: "Европа", score: 3.40, tier: "C",
+        program: "Копенгаген — Осло (фьорды) — Стокгольм", tags: ["direct"],
+        note: "Centrum Air запустил прямой рейс Ташкент–Копенгаген с 31 марта 2026 (2 раза в неделю). Совершенно незанятое поле для узбекских операторов. Шенген нужен.",
+        criteria: { "Вау-эффект": 4, "Доступность": 4, "Виза": 2, "Конкуренция": 5, "Маржинальность": 3, "Операционка": 4 },
+        visa: { status: "Шенгенская виза (тип C)", term: "подача за 6–8 недель, одобрение ~87%", cost: "€90 + сервисный сбор" },
+        aviation: { carriers: "Centrum Air (прямой TAS–CPH, 2/нед, с 31.03.2026)", frequency: "2 раза в неделю", price: "от $480 round trip" },
+        route: ["День 1–2 · Копенгаген — Русалочка, Тиволи, Нюхавн", "День 3 · Поезд/паром в Осло", "День 4–5 · Норвегия — фьорд Согнефьорд или Гейрангер", "День 6 · Стокгольм — Старый город Гамла Стан", "День 7 · Вылет"],
+        economics: { cost: "~$1 450", price: "~$1 900", margin: "~24%", breakeven: "11 туристов" },
+        seasons: [5,6,7,8],
+        risks: ["Шенгенская виза — главный барьер для массового спроса", "Высокая стоимость проживания в Скандинавии", "Халяль слабый — организовывать через халяль-рестораны крупных городов"],
+        status: "review" },
+      { id: "warsaw", name: "Варшава + Краков (Польша)", region: "Европа", score: 3.20, tier: "C",
+        program: "Варшава — Краков — соляные шахты Величка — Татры", tags: ["direct"],
+        note: "LOT Airlines летит прямым рейсом Ташкент–Варшава. Краков — один из красивейших средневековых городов Европы. Соляные шахты Величка (ЮНЕСКО). Шенген нужен.",
+        criteria: { "Вау-эффект": 3.5, "Доступность": 4, "Виза": 2, "Конкуренция": 5, "Маржинальность": 3, "Операционка": 4 },
+        visa: { status: "Шенгенская виза (тип C)", term: "подача за 6–8 недель", cost: "€90 + сервисный сбор" },
+        aviation: { carriers: "LOT Polish Airlines (прямой TAS–WAW)", frequency: "несколько раз в неделю", price: "от $420 round trip" },
+        route: ["День 1–2 · Варшава — Старый город (ЮНЕСКО), Королевский замок, Мемориал Варшавского восстания", "День 3 · Поезд Варшава → Краков (~2.5 ч)", "День 4 · Краков — Вавельский замок, Рыночная площадь, еврейский квартал Казимеж", "День 5 · Соляные шахты Величка (ЮНЕСКО) — 9 этажей под землёй", "День 6 · Татры — горы на границе Польши и Словакии", "День 7 · Вылет"],
+        economics: { cost: "~$980", price: "~$1 350", margin: "~27%", breakeven: "10 туристов" },
+        seasons: [4,5,6,9,10],
+        risks: ["Шенгенская виза — барьер", "Халяль слабый — есть в крупных городах, но требует планирования", "Зима холодная, летом толпы туристов в Кракове"],
+        status: "review" },
+      { id: "kashgar", name: "Кашгар / Синьцзян (Китай)", region: "Азия", score: 3.60, tier: "C",
+        program: "Урумчи — Кашгар — базар — Каракорумское шоссе (китайская сторона)", tags: ["visafree","halal"],
+        note: "Через рейсы в Урумчи (UzAirways). Уйгурская культура, крупнейший базар Центральной Азии, мечеть Ид Ках. Безвиз 30 дней. Политически чувствительно — требует осторожной подачи.",
+        criteria: { "Вау-эффект": 4, "Доступность": 3, "Виза": 5, "Конкуренция": 5, "Маржинальность": 3, "Операционка": 2 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней", cost: "$0" },
+        aviation: { carriers: "UzAirways в Урумчи, далее внутренний рейс в Кашгар (1.5 ч)", frequency: "несколько раз в неделю в Урумчи", price: "от $380 round trip" },
+        route: ["День 1 · Урумчи — уйгурский рынок, мечеть Баытулла, музей Синьцзяна", "День 2 · Перелёт Урумчи → Кашгар", "День 3 · Базар Кашгара — один из крупнейших в ЦА (воскресный скот)", "День 4 · Мечеть Ид Ках, старый город Кашгара, ремёсла", "День 5 · Озеро Каракуль — на Каракорумском шоссе, пик Конгур 7 719 м", "День 6 · Вылет"],
+        economics: { cost: "~$680", price: "~$950", margin: "~28%", breakeven: "9 туристов" },
+        seasons: [5,6,9,10],
+        risks: ["Политическая чувствительность Синьцзяна — тщательно выбирать формулировки в маркетинге", "Возможны проверки документов туристов в регионе", "Съёмка в некоторых местах ограничена"],
+        status: "review" },
+      { id: "nyc", name: "Нью-Йорк / США", region: "Америка", score: 3.10, tier: "C",
+        program: "Нью-Йорк — Вашингтон — Ниагара", tags: ["direct"],
+        note: "Прямой рейс из Ташкента теперь у двух перевозчиков (UzAirways + Qanot Sharq). Для аудитории с американской визой — сильный продукт. Визовый барьер высокий.",
+        criteria: { "Вау-эффект": 5, "Доступность": 4, "Виза": 1, "Конкуренция": 4, "Маржинальность": 3, "Операционка": 4 },
+        visa: { status: "Виза B1/B2 (посольство США)", term: "запись 6–12 мес., собеседование, высокий процент отказов", cost: "$185 невозвратный сбор" },
+        aviation: { carriers: "Uzbekistan Airways (TAS–JFK, до 5/нед), Qanot Sharq (с мая 2026, 2/нед)", frequency: "до 7 рейсов в неделю суммарно", price: "от $680 round trip" },
+        route: ["День 1–3 · Нью-Йорк — Манхэттен, Статуя Свободы, Центральный парк, Таймс-сквер", "День 4 · Поезд в Вашингтон (3 ч) — Капитолий, Монументы, Смитсоновские музеи (бесплатно)", "День 5 · Ниагарский водопад (~7 ч на машине/автобусе)", "День 6 · Нью-Йорк — шопинг, Бруклин", "День 7 · Вылет"],
+        economics: { cost: "~$1 800", price: "~$2 400", margin: "~25%", breakeven: "10 туристов" },
+        seasons: [4,5,6,9,10],
+        risks: ["Американская виза — главный стоп-фактор для большинства клиентов", "Продукт только для уже визированной аудитории", "Высокая себестоимость (отели Нью-Йорка дорогие)"],
+        status: "review" },
+      { id: "worldcup2026", name: "ЧМ по футболу 2026 (США)", region: "Америка", score: 3.50, tier: "C",
+        program: "Нью-Йорк / Лос-Анджелес — матчи — достопримечательности", tags: ["direct"],
+        note: "Прямой борт Ташкент–Нью-Йорк (2 перевозчика). Для футбольной аудитории с американской визой. Июнь–июль 2026. Уникальное событие раз в 4 года.",
+        criteria: { "Вау-эффект": 5, "Доступность": 4, "Виза": 1, "Конкуренция": 3, "Маржинальность": 3, "Операционка": 3 },
+        visa: { status: "Виза B1/B2 (посольство США)", term: "запись заранее", cost: "$185" },
+        aviation: { carriers: "Uzbekistan Airways, Qanot Sharq (прямой TAS–JFK)", frequency: "до 7/нед суммарно", price: "от $750 round trip (в сезон ЧМ)" },
+        route: ["Маршрут зависит от групп и расписания матчей", "Базовая программа: прилёт за 2 дня до матча, 1–2 игры, экскурсионная программа", "Гибкий формат под конкретные матчи"],
+        economics: { cost: "~$2 200", price: "~$2 900", margin: "~24%", breakeven: "8 туристов" },
+        seasons: [6,7],
+        risks: ["Визовый барьер США", "Билеты на матчи раскупаются за месяцы", "Высокие цены на отели в период ЧМ"],
+        status: "review" },
+      { id: "naadam", name: "Фестиваль Наадам (Монголия)", region: "Азия", score: 4.20, tier: "B",
+        program: "Улан-Батор — Наадам — степи — Гоби", tags: ["visafree","direct"],
+        note: "Hunnu Air запустил прямой рейс Ташкент–Улан-Батор с мая 2026. Наадам (11–13 июля) — главное кочевое шоу: конный спорт, борьба, стрельба из лука. Безвиз. Нулевая конкуренция.",
+        criteria: { "Вау-эффект": 5, "Доступность": 5, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 3.5 },
+        visa: { status: "Безвизовый въезд", term: "до 30 дней", cost: "$0" },
+        aviation: { carriers: "Hunnu Air (прямой TAS–ULN, с мая 2026, 2/нед)", frequency: "2 раза в неделю", price: "от $320 round trip (оценка)" },
+        route: ["День 1–2 · Улан-Батор — Чингис-хан, монастырь Гандан, подготовка к фестивалю", "День 3 · Наадам — торжественное открытие, конные скачки (40 км!)", "День 4 · Наадам — борьба и стрельба из лука, народные гуляния", "День 5–6 · Степи — юрточный лагерь, лошади, аутентичный быт кочевников", "День 7 · Гоби — поющие дюны Хонгорын-Элс (опционально)", "День 8 · Вылет"],
+        economics: { cost: "~$900", price: "~$1 250", margin: "~28%", breakeven: "9 туристов" },
+        seasons: [7],
+        risks: ["Наадам строго 11–13 июля — даты жёсткие, группу собирать за 3+ мес.", "Прямой рейс новый — следить за расписанием Hunnu Air", "Отели в УБ в период Наадама выкупаются заранее"],
+        status: "ready" },
+      { id: "sakura", name: "Сакура в Японии", region: "Азия", score: 3.50, tier: "C",
+        program: "Токио — Киото — Нара — Осака (март–апрель)", tags: ["direct"],
+        note: "Прямой UzAirways Ташкент–Токио. Сезон сакуры — самый вирусный природный контент Азии. Виза через посольство (бесплатная для граждан Узбекистана).",
+        criteria: { "Вау-эффект": 5, "Доступность": 4, "Виза": 3, "Конкуренция": 3, "Маржинальность": 3, "Операционка": 3.5 },
+        visa: { status: "Виза через посольство (бесплатная)", term: "подача без предзаписи с января 2026", cost: "$0 (консульский сбор не взимается)" },
+        aviation: { carriers: "Uzbekistan Airways (прямой TAS–NRT)", frequency: "несколько раз в неделю", price: "от $480 round trip" },
+        route: ["День 1–3 · Токио — Синдзюку, Асакуса, Сиба-парк (сакура у Токийской башни)", "День 4 · Синкансэн Токио → Киото (2.5 ч)", "День 5 · Киото — храм Кинкакудзи, парк Маруяма (лучшая сакура)", "День 6 · Нара — олени и Тодай-дзи", "День 7 · Осака — замок Осака (сакура), Дотонбори", "День 8 · Вылет"],
+        economics: { cost: "~$1 150", price: "~$1 550", margin: "~26%", breakeven: "10 туристов" },
+        seasons: [3,4],
+        risks: ["Узкий сезон — 2–3 недели в марте-апреле", "Отели в сезон сакуры выкупаются за полгода", "Халяль слабый — мусульманские рестораны только в Токио и Осаке"],
+        status: "review" },
+      { id: "f1abudhabi", name: "Формула-1 Абу-Даби", region: "Ближний Восток", score: 3.80, tier: "C",
+        program: "Абу-Даби — Гран-при — Дубай", tags: ["evisa","direct","halal"],
+        note: "Etihad запускает прямой рейс в Абу-Даби с июля 2026. Гран-при ноябрь. VOA для узбеков. Халяль. Комбо: гонки + Лувр Абу-Даби + Дубай.",
+        criteria: { "Вау-эффект": 4, "Доступность": 5, "Виза": 4, "Конкуренция": 3, "Маржинальность": 3.5, "Операционка": 4.5 },
+        visa: { status: "Visa on Arrival / eVisa", term: "при прилёте или онлайн", cost: "~$60–90" },
+        aviation: { carriers: "Etihad (прямой TAS–AUH, с июля 2026), UzAirways + стыковка", frequency: "несколько раз в неделю", price: "от $350 round trip" },
+        route: ["День 1 · Абу-Даби — Большая мечеть шейха Зайда", "День 2 · Лувр Абу-Даби — исламское и мировое искусство", "День 3 · Гран-при Формула-1 — гонка на острове Яс", "День 4 · Дубай — Бурдж-Халифа, золотой рынок, Дубай Молл", "День 5 · Вылет"],
+        economics: { cost: "~$1 400", price: "~$1 900", margin: "~26%", breakeven: "10 туристов" },
+        seasons: [11],
+        risks: ["Билеты на Гран-при дорогие и раскупаются заранее (~$200–600/чел.)", "Узкий событийный сезон — только ноябрь", "Нужно бронировать всё за 6+ месяцев"],
+        status: "review" },
+      { id: "turkestan", name: "Туркестан (Казахстан)", region: "СНГ", score: 4.50, tier: "A",
+        program: "Туркестан — мавзолей Ясауи — Бухара — Самарканд (суфийский коридор)", tags: ["visafree","direct","halal"],
+        note: "Прямые рейсы из Самарканда, Бухары и Ургенча (Qazaq Air, SCAT). Мавзолей Ходжи Ахмеда Ясауи — объект ЮНЕСКО, главная суфийская святыня ЦА. Суфийский коридор: Туркестан → Бухара (Накшбанди) → Самарканд. Ни один оператор не упаковал это как авторский тур.",
+        criteria: { "Вау-эффект": 4, "Доступность": 5, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4.5, "Операционка": 5 },
+        visa: { status: "Безвизовый въезд", term: "по действующим правилам КЗ–Узбекистан", cost: "$0" },
+        aviation: { carriers: "Qazaq Air, SCAT Airlines (SKD–HSA, BHK–HSA, UGC–HSA)", frequency: "2–3 раза в неделю из каждого аэропорта", price: "от $120 round trip" },
+        route: ["День 1 · Самарканд — Регистан, прощание с Шёлковым путём", "День 2 · Перелёт в Туркестан — мавзолей Ходжи Ахмеда Ясауи (ЮНЕСКО, XIV в.)", "День 3 · Некрополь Азрет-Султан, подземная мечеть Хильвет", "День 4 · Возвращение через Бухару — мавзолей Бахауддина Накшбанди", "День 5 · Самарканд — вылет"],
+        economics: { cost: "~$320", price: "~$490", margin: "~35%", breakeven: "6 туристов" },
+        seasons: [3,4,5,9,10,11],
+        risks: ["Инфраструктура Туркестана активно строится — проверять отельную базу", "Продукт требует грамотного религиозного нарратива от гида", "Короткий маршрут — лучше как часть более широкого тура по ЦА"],
+        status: "ready" },
+      { id: "salalah", name: "Салала / Хариф (Оман)", region: "Ближний Восток", score: 3.90, tier: "B",
+        program: "Салала — хариф (зелёные горы) — водопады — пляжи Аравийского моря", tags: ["halal"],
+        note: "Centrum Air летит Ташкент–Салала сезонно (ноябрь–март). Уникальный феномен: в июле–августе муссон делает Салалу единственным зелёным местом на Аравийском полуострове (+25°C пока весь регион горит). Два продукта: зимний пляж и летний хариф.",
+        criteria: { "Вау-эффект": 5, "Доступность": 3, "Виза": 3, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 3.5 },
+        visa: { status: "Условный безвиз / виза посольство", term: "Безвиз до 14 дн. только при наличии шенген/US/UK визы; иначе — посольство", cost: "~$50 консульский сбор" },
+        aviation: { carriers: "Centrum Air (прямой TAS–SLL, сезонно ноябрь–март)", frequency: "сезонные рейсы", price: "от $340 round trip" },
+        route: ["День 1 · Прилёт в Салалу, заселение у моря", "День 2 · Водопады Айн Разат и Айн Хамран — зелёные оазисы в горах (хариф)", "День 3 · Пляж Эль-Мугсаил — дыхальца скал, белый песок", "День 4 · Горы Дхофара — туман, зелёные пастбища, верблюды", "День 5 · Старый рынок Салалы — ладан, специи, рыба", "День 6 · Вылет"],
+        economics: { cost: "~$820", price: "~$1 100", margin: "~25%", breakeven: "10 туристов" },
+        seasons: [7,8,11,12,1,2,3],
+        risks: ["Визовый статус для узбекского паспорта — условный безвиз, уточнять", "Прямой рейс только зимой — летний хариф требует стыковки через Маскат", "Слабая узнаваемость направления — нужна работа с аудиторией"],
+        status: "review" },
+      { id: "sufi-corridor", name: "Суфийский коридор ЦА", region: "СНГ", score: 4.40, tier: "A",
+        program: "Самарканд — Туркестан — Бухара — святыни Накшбанди и Ясауи", tags: ["visafree","direct","halal"],
+        note: "Тематический маршрут объединяющий главные суфийские святыни ЦА. Три объекта ЮНЕСКО, два государства, одна религиозная идея. Безвиз, прямые рейсы. Глубоко мусульманский продукт без конкурентов.",
+        criteria: { "Вау-эффект": 4, "Доступность": 5, "Виза": 5, "Конкуренция": 5, "Маржинальность": 4.5, "Операционка": 4 },
+        visa: { status: "Безвизовый въезд", term: "Узбекистан + Казахстан — взаимный безвиз", cost: "$0" },
+        aviation: { carriers: "Qazaq Air / SCAT из Самарканда в Туркестан; наземный транспорт внутри маршрута", frequency: "2–3 раза в неделю", price: "от $150 round trip" },
+        route: ["День 1–2 · Самарканд — Регистан, мечеть Биби-Ханым, мавзолей Тамерлана Гур-Эмир", "День 3 · Перелёт Самарканд → Туркестан", "День 4 · Мавзолей Ходжи Ахмеда Ясауи (ЮНЕСКО) — духовная столица тюркского ислама", "День 5 · Возвращение в Бухару наземно", "День 6 · Мавзолей Бахауддина Накшбанди — основателя ордена Накшбандийя", "День 7 · Бухара — Пои-Калон, мавзолей Исмаила Самани", "День 8 · Вылет"],
+        economics: { cost: "~$480", price: "~$720", margin: "~33%", breakeven: "7 туристов" },
+        seasons: [3,4,5,9,10,11],
+        risks: ["Продукт требует гида с глубокими знаниями суфийской философии", "Паломническая аудитория — особые требования к формату (тихо, без развлечений)", "Логистика двух стран — нужна координация с казахстанским DMC"],
+        status: "ready" },
+      { id: "turkmenistan", name: "Туркменистан (Дарваза)", region: "СНГ", score: 3.80, tier: "B",
+        program: "Ашхабад — кратер Дарваза (Врата ада) — пустыня Каракум", tags: ["halal"],
+        note: "Прямой рейс UzAirways Ташкент–Ашхабад. Горящий газовый кратер Дарваза — один из самых вирусных природных феноменов планеты. Мусульманская страна, халяль. Визовый барьер (приглашение), но туроператор оформляет за группу.",
+        criteria: { "Вау-эффект": 5, "Доступность": 4, "Виза": 2, "Конкуренция": 5, "Маржинальность": 4, "Операционка": 2.5 },
+        visa: { status: "Виза через посольство + приглашение от принимающего туроператора", term: "10–15 рабочих дней", cost: "~$55 + стоимость оформления приглашения" },
+        aviation: { carriers: "Uzbekistan Airways (прямой TAS–ASB)", frequency: "несколько раз в неделю", price: "от $280 round trip" },
+        route: ["День 1 · Ашхабад — белый мраморный город, монумент Нейтралитета", "День 2 · Переезд в пустыню Каракум (~270 км, внедорожник)", "День 3 · Кратер Дарваза — закат и ночёвка у огня (глэмпинг в пустыне)", "День 4 · Рассвет над кратером — лучший контент для соцсетей", "День 5 · Возвращение в Ашхабад, вылет"],
+        economics: { cost: "~$850", price: "~$1 200", margin: "~29%", breakeven: "8 туристов" },
+        seasons: [10,11,12,1,2,3,4],
+        risks: ["Приглашение от туроператора — нужен надёжный партнёр в Ашхабаде", "Закрытость страны — маршрут строго по согласованной программе", "Правительство периодически ограничивает въезд к кратеру — мониторить статус"],
+        status: "review" },
+      { id: "ras-al-khaimah", name: "Рас-эль-Хайма (ОАЭ)", region: "Ближний Восток", score: 3.85, tier: "B",
+        program: "Рас-эль-Хайма — горы Хаджар — зиплайн Jebel Jais — пляжи", tags: ["evisa","direct","halal"],
+        note: "Air Arabia летит прямым рейсом TAS–RAK. Самый бюджетный эмират: горы Хаджар, самый длинный в мире зиплайн (2.8 км), пляжи без дубайских цен. Халяль, безвиз. Альтернатива Дубаю для семей с бюджетом.",
+        criteria: { "Вау-эффект": 3.5, "Доступность": 5, "Виза": 4, "Конкуренция": 4, "Маржинальность": 4, "Операционка": 5 },
+        visa: { status: "Visa on Arrival / eVisa", term: "при прилёте или онлайн", cost: "~$60–90" },
+        aviation: { carriers: "Air Arabia (прямой TAS–RAK)", frequency: "несколько раз в неделю", price: "от $280 round trip" },
+        route: ["День 1 · Рас-эль-Хайма — заселение, набережная", "День 2 · Горы Хаджар — каньон Вади-Нагаб, панорамные виды", "День 3 · Зиплайн Jebel Jais (2.8 км) — самый длинный в мире", "День 4 · Пляжи и отдых — Al Hamra, Marjan Island", "День 5 · Опционально: экскурсия в Дубай (40 мин от РАК)", "День 6 · Вылет"],
+        economics: { cost: "~$580", price: "~$820", margin: "~29%", breakeven: "8 туристов" },
+        seasons: [10,11,12,1,2,3,4],
+        risks: ["Летняя жара +45°C — май–сентябрь нерабочие", "Невысокий вау-эффект по сравнению с другими направлениями", "Конкуренция: некоторые операторы уже включают РАК в ОАЭ-туры"],
+        status: "review" }
+    ];
+
+    const tiers = {
+      A: { label: "Tier A · запуск 2026", className: "tier-a", color: "#1d9e75" },
+      B: { label: "Tier B · вторая волна 2027", className: "tier-b", color: "#378add" },
+      C: { label: "Tier C · резерв", className: "tier-c", color: "#888780" },
+      D: { label: "Tier D · на паузе", className: "tier-d", color: "#ef9f27" }
+    };
+    const tagLabels = { visafree: "безвиз", evisa: "eVisa", halal: "халяль", direct: "прямой рейс", pause: "на паузе" };
+    const criterionNames = ["Вау-эффект", "Доступность", "Виза", "Конкуренция", "Маржинальность", "Операционка"];
+    const monthNames = ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"];
+    const statusLabels = { ready: "готов к запуску", review: "требует проверки", paused: "на паузе" };
+    const app = document.getElementById("app");
+    let activeFilter = "all";
+    let activeTag = "all";
+    let activeMonth = 0;
+    let activeSort = "score";
+    let compareSet = new Set();
+    const sortOptions = { score: "по скору", price: "по цене ↑", margin: "по марже ↓", alpha: "по алфавиту" };
+    const parseNum = s => parseFloat(String(s).replace(/[^0-9.]/g, "")) || 0;
+
+    const valueOrPending = value => value ?? "уточняется";
+    const safeCriteria = destination => criterionNames.reduce((all, name) => ({ ...all, [name]: destination.criteria?.[name] ?? null }), {});
+    const fallbackRoute = destination => destination.route ?? destination.program.split(" — ").map((place, i) => `День ${i + 1} · ${place}`);
+    const fallbackRisks = destination => destination.risks ?? ["Проверить актуальные правила въезда", "Подтвердить авиапрограмму и тарифы", "Провести аудит локальных партнёров"];
+    const money = destination => destination.economics ?? { cost: "уточняется", price: "уточняется", margin: "уточняется", breakeven: "уточняется" };
+
+    function renderList() {
+      document.title = "Turon Tour — справочник направлений";
+      const regions = ["all", ...new Set(destinations.map(d => d.region))];
+      const tagKeys = ["all", "visafree", "evisa", "halal", "direct", "pause"];
+      let filtered = activeFilter === "all" ? destinations : destinations.filter(d => d.region === activeFilter);
+      if (activeTag !== "all") filtered = filtered.filter(d => d.tags.includes(activeTag));
+      if (activeMonth > 0) filtered = filtered.filter(d => (d.seasons ?? []).includes(activeMonth));
+      const avg = filtered.length ? (filtered.reduce((sum, d) => sum + d.score, 0) / filtered.length).toFixed(2) : "—";
+      app.innerHTML = `
+        <section class="view" aria-labelledby="page-title">
+          <header class="topbar">
+            <div class="intro"><div class="brand-mark"><img src="data:image/png;base64,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" alt="Логотип Turon Tour"></div><div><p class="eyebrow">Turon Tour · Product Lab</p><h1 id="page-title">Карта направлений</h1><p class="lead">Рабочий справочник авторских туров: потенциал, доступность и готовность продукта — в одном месте.</p></div></div>
+          </header>
+          <div class="stats">
+            ${stat(filtered.length, "направлений")}${stat(filtered.filter(d => d.tier === "A").length, "к запуску в 2026")}${stat(filtered.filter(d => d.tier === "B").length, "во второй волне")}${stat(avg, "средний балл")}
+          </div>
+          <div class="control-panel glass"><div class="filters" role="group" aria-label="Фильтр по регионам">${regions.map(region => `<button class="filter-btn ${activeFilter === region ? "active" : ""}" data-region="${region}">${region === "all" ? "Все направления" : region}</button>`).join("")}</div><div class="counter">Показано: ${filtered.length}</div></div>
+          <div class="control-panel glass"><div class="filters" role="group" aria-label="Фильтр по тегам">${tagKeys.map(tag => `<button class="filter-btn ${activeTag === tag ? "active" : ""}" data-tag="${tag}">${tag === "all" ? "Все теги" : tagLabels[tag] ?? tag}</button>`).join("")}</div></div>
+          <div class="control-panel glass"><span class="sort-label">Сезон:</span><div class="month-filter">${[{v:0,l:"Все"},...monthNames.map((m,i)=>({v:i+1,l:m}))].map(m => `<button class="month-btn ${activeMonth === m.v ? "active" : ""}" data-month="${m.v}">${m.l}</button>`).join("")}</div></div>
+          <div class="control-panel glass"><span class="sort-label">Сортировка:</span><div class="sort-row">${Object.entries(sortOptions).map(([k,v]) => `<button class="filter-btn ${activeSort === k ? "active" : ""}" data-sort="${k}">${v}</button>`).join("")}</div></div>
+          <div class="legend" aria-label="Легенда">${Object.values(tiers).map(t => `<span class="legend-item"><i class="legend-dot" style="color:${t.color};background:${t.color}"></i>${t.label}</span>`).join("")}</div>
+          <div id="board">${renderBoard(filtered)}</div>
+        </section>
+        <div class="compare-bar ${compareSet.size > 0 ? "visible" : ""}" id="compareBar">
+          ${[...compareSet].map(id => { const d = destinations.find(x => x.id === id); return d ? `<span class="chip">${d.name}<span class="chip-x" data-remove="${id}">✕</span></span>` : ""; }).join("")}
+          <button class="compare-btn" ${compareSet.size < 2 ? "disabled" : ""} id="compareGo">Сравнить (${compareSet.size})</button>
+        </div>`;
+      app.querySelectorAll("[data-region]").forEach(button => button.addEventListener("click", () => { activeFilter = button.dataset.region; renderList(); }));
+      app.querySelectorAll("[data-tag]").forEach(button => button.addEventListener("click", () => { activeTag = button.dataset.tag; renderList(); }));
+      app.querySelectorAll("[data-month]").forEach(button => button.addEventListener("click", () => { activeMonth = parseInt(button.dataset.month); renderList(); }));
+      app.querySelectorAll("[data-sort]").forEach(button => button.addEventListener("click", () => { activeSort = button.dataset.sort; renderList(); }));
+      app.querySelectorAll("[data-destination]").forEach(card => {
+        const open = () => showDetail(card.dataset.destination);
+        card.addEventListener("click", e => { if (e.target.closest(".card-check")) return; open(); });
+        card.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); } });
+      });
+      app.querySelectorAll(".card-check").forEach(cb => cb.addEventListener("click", e => {
+        e.stopPropagation();
+        const id = cb.dataset.compare;
+        if (compareSet.has(id)) compareSet.delete(id);
+        else if (compareSet.size < 3) compareSet.add(id);
+        renderList();
+      }));
+      document.querySelectorAll("[data-remove]").forEach(x => x.addEventListener("click", () => { compareSet.delete(x.dataset.remove); renderList(); }));
+      const goBtn = document.getElementById("compareGo");
+      if (goBtn) goBtn.addEventListener("click", () => { if (compareSet.size >= 2) showCompare(); });
+    }
+
+    function stat(value, label) { return `<div class="stat glass"><div class="stat-value">${value}</div><div class="stat-label">${label}</div></div>`; }
+    function sortItems(items) {
+      const arr = [...items];
+      switch (activeSort) {
+        case "price": return arr.sort((a,b) => parseNum(money(a).cost) - parseNum(money(b).cost));
+        case "margin": return arr.sort((a,b) => parseNum(money(b).margin) - parseNum(money(a).margin));
+        case "alpha": return arr.sort((a,b) => a.name.localeCompare(b.name, "ru"));
+        default: return arr.sort((a,b) => b.score - a.score);
+      }
+    }
+    function renderBoard(items) {
+      if (!items.length) return `<div class="empty glass">Направлений по этим фильтрам не найдено.</div>`;
+      if (activeSort !== "score") {
+        const sorted = sortItems(items);
+        return `<div class="grid">${sorted.map(cardMarkup).join("")}</div>`;
+      }
+      return ["A","B","C","D"].map(tier => {
+        const group = sortItems(items.filter(d => d.tier === tier));
+        if (!group.length) return "";
+        return `<section><div class="section-label"><span class="pill ${tiers[tier].className}">${tiers[tier].label}</span></div><div class="grid">${group.map(cardMarkup).join("")}</div></section>`;
+      }).join("");
+    }
+    function cardMarkup(d) {
+      const checked = compareSet.has(d.id);
+      return `<article class="card glass" role="button" tabindex="0" data-destination="${d.id}" aria-label="Открыть ${d.name}"><div class="card-check ${checked ? "checked" : ""}" data-compare="${d.id}" title="Сравнить">${checked ? "✓" : ""}</div><div class="card-top"><div class="card-name">${d.name}</div><div class="card-score">${d.score.toFixed(2)}</div></div><div class="card-region">${d.region}</div><div class="card-program">${d.program}</div><div class="tags">${d.tags.map(tag => `<span class="tag">${tagLabels[tag] ?? tag}</span>`).join("")}</div></article>`;
+    }
+
+    function showDetail(id, pushState = true) {
+      const d = destinations.find(item => item.id === id);
+      if (!d) return renderList();
+      if (pushState) history.pushState({ destination: id }, "", `#${id}`);
+      document.title = `${d.name} — Turon Tour`;
+      const criteria = safeCriteria(d);
+      const visa = d.visa ?? {};
+      const aviation = d.aviation ?? {};
+      const economics = money(d);
+      const activeMonths = d.seasons ?? [];
+      app.innerHTML = `
+        <article class="view">
+          <nav class="detail-nav"><button class="back-btn glass" id="backButton" type="button">← Назад к направлениям</button></nav>
+          <header class="detail-hero glass">
+            <div><p class="eyebrow">Карточка направления</p><div class="detail-meta"><span>${d.region}</span><span>·</span><span class="pill ${tiers[d.tier].className}">${tiers[d.tier].label}</span></div><h1>${d.name}</h1><p class="note">${valueOrPending(d.note)}</p></div>
+            <div class="score-block"><div class="score-number">${d.score.toFixed(2)}</div><div class="score-caption">итоговый скор · из 5</div></div>
+          </header>
+          <div class="detail-grid">
+            <section class="panel glass"><h2><span>01</span> Критерии</h2><div class="criteria">${Object.entries(criteria).map(([name, value]) => criterionMarkup(name, value)).join("")}</div></section>
+            <section class="panel glass"><h2><span>02</span> Виза и авиа</h2><div class="facts">${fact("Статус визы", valueOrPending(visa.status))}${fact("Срок / пребывание", valueOrPending(visa.term))}${fact("Стоимость визы", valueOrPending(visa.cost))}${fact("Официальная ссылка", visa.url ? `<a href="${visa.url}" target="_blank" rel="noopener">Открыть источник ↗</a>` : "уточняется")}${fact("Перевозчики", valueOrPending(aviation.carriers))}${fact("Частота", valueOrPending(aviation.frequency))}${fact("Билет туда-обратно", valueOrPending(aviation.price))}</div></section>
+            <section class="panel glass"><h2><span>03</span> Программа</h2><div class="route">${fallbackRoute(d).map((row, i) => { const parts = row.split("·"); return `<div class="route-day"><span class="day">${parts.length > 1 ? parts.shift() : `Этап ${i+1}`}</span><span class="day-text">${parts.join("·") || row}</span></div>`; }).join("")}</div></section>
+            <section class="panel glass"><h2><span>04</span> Экономика</h2><table class="economics"><thead><tr><th>Показатель</th><th>Значение</th></tr></thead><tbody><tr><td>Себестоимость / чел.</td><td>${economics.cost}</td></tr><tr><td>Цена продажи / чел.</td><td>${economics.price}</td></tr><tr><td>Валовая маржа</td><td>${economics.margin}</td></tr><tr><td>Точка безубыточности</td><td>${economics.breakeven}</td></tr></tbody></table></section>
+            <section class="panel wide glass"><h2><span>05</span> Сезонный календарь</h2><div class="months">${monthNames.map((month, index) => `<div class="month ${activeMonths.includes(index+1) ? "active" : ""}" title="${activeMonths.length ? (activeMonths.includes(index+1) ? "Рабочий месяц" : "Вне сезона") : "Сезон уточняется"}">${month}</div>`).join("")}</div>${activeMonths.length ? "" : `<p class="muted" style="font-size:12px;margin:12px 0 0">Рабочие месяцы уточняются</p>`}</section>
+            <section class="panel wide glass"><h2><span>06</span> Риски</h2><ul class="risks">${fallbackRisks(d).slice(0,4).map(risk => `<li>${risk}</li>`).join("")}</ul></section>
+            <footer class="panel wide glass status-panel"><div><div class="status-label">Статус продукта</div><div class="status-value ${d.status ?? "review"}">${statusLabels[d.status] ?? statusLabels.review}</div></div><i class="status-dot ${d.status ?? "review"}" aria-hidden="true"></i></footer>
+          </div>
+        </article>`;
+      document.getElementById("backButton").addEventListener("click", () => history.back());
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+
+    function criterionMarkup(name, value) {
+      const score = typeof value === "number" ? Math.max(0, Math.min(5, value)) : 0;
+      return `<div class="criterion-line"><span class="criterion-name">${name}</span><div class="track"><div class="fill" style="width:${score * 20}%"></div></div><span class="criterion-score">${typeof value === "number" ? value.toFixed(1) : "—"}</span></div>`;
+    }
+    function fact(label, value) { return `<div><div class="fact-label">${label}</div><div class="fact-value">${value}</div></div>`; }
+
+    function showCompare() {
+      const items = [...compareSet].map(id => destinations.find(d => d.id === id)).filter(Boolean);
+      if (items.length < 2) return;
+      const rows = [
+        ["Регион", d => d.region],
+        ["Тир", d => tiers[d.tier].label],
+        ["Скор", d => d.score.toFixed(2)],
+        ["Программа", d => d.program],
+        ["Виза", d => d.visa?.status ?? "—"],
+        ["Стоимость визы", d => d.visa?.cost ?? "—"],
+        ["Перевозчики", d => d.aviation?.carriers ?? "—"],
+        ["Билет RT", d => d.aviation?.price ?? "—"],
+        ["Себестоимость", d => money(d).cost],
+        ["Цена продажи", d => money(d).price],
+        ["Маржа", d => money(d).margin],
+        ["Безубыточность", d => money(d).breakeven],
+        ["Сезон", d => (d.seasons ?? []).map(m => monthNames[m-1]).join(", ") || "—"],
+        ["Статус", d => statusLabels[d.status] ?? "—"],
+        ...criterionNames.map(c => [c, d => d.criteria?.[c]?.toFixed(1) ?? "—"])
+      ];
+      const overlay = document.createElement("div");
+      overlay.className = "compare-overlay";
+      overlay.innerHTML = `<div class="compare-sheet" style="position:relative"><button class="compare-close" id="closeCompare">✕</button><h2>Сравнение направлений</h2><table class="compare-table"><thead><tr><th></th>${items.map(d => `<th>${d.name}</th>`).join("")}</tr></thead><tbody>${rows.map(([label, fn]) => `<tr><td>${label}</td>${items.map(d => `<td>${fn(d)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      document.body.appendChild(overlay);
+      overlay.addEventListener("click", e => { if (e.target === overlay || e.target.id === "closeCompare") overlay.remove(); });
+    }
+
+    window.addEventListener("popstate", event => event.state?.destination ? showDetail(event.state.destination, false) : renderList());
+    const initialId = location.hash.replace("#", "");
+    if (destinations.some(d => d.id === initialId)) {
+      history.replaceState({ destination: initialId }, "", `#${initialId}`);
+      showDetail(initialId, false);
+    } else {
+      history.replaceState({}, "", location.pathname);
+      renderList();
+    }
+  </script>
+</body>
+</html>
