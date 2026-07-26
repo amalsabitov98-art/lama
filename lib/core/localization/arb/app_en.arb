@@ -1,0 +1,94 @@
+{
+  "@@locale": "en",
+  "appName": "Turon Tour",
+  "@appName": {
+    "description": "Application name / brand"
+  },
+
+  "loginTitle": "Welcome to Turon Tour",
+  "@loginTitle": {},
+  "loginSubtitle": "Choose a role to continue",
+  "@loginSubtitle": {},
+
+  "roleTourist": "Tourist",
+  "@roleTourist": {},
+  "roleAgent": "Agent",
+  "@roleAgent": {},
+  "roleOperator": "Operator",
+  "@roleOperator": {},
+
+  "roleTouristDesc": "Browse and book tours",
+  "@roleTouristDesc": {},
+  "roleAgentDesc": "Manage agency bookings and credit",
+  "@roleAgentDesc": {},
+  "roleOperatorDesc": "Run tours and back-office",
+  "@roleOperatorDesc": {},
+
+  "navHome": "Home",
+  "@navHome": {},
+  "navProfile": "Profile",
+  "@navProfile": {},
+
+  "sectionInDevelopment": "{role} — section under development",
+  "@sectionInDevelopment": {
+    "description": "Placeholder shown on each role's home screen",
+    "placeholders": {
+      "role": {
+        "type": "String",
+        "example": "Tourist"
+      }
+    }
+  },
+  "comingInNextPhases": "The full experience arrives in the next phases.",
+  "@comingInNextPhases": {},
+
+  "greeting": "Hello, {name}",
+  "@greeting": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aziza"
+      }
+    }
+  },
+
+  "profileTitle": "Profile",
+  "@profileTitle": {},
+  "account": "Account",
+  "@account": {},
+  "roleLabel": "Role",
+  "@roleLabel": {},
+
+  "agencyInfo": "Agency",
+  "@agencyInfo": {},
+  "creditLimit": "Credit limit",
+  "@creditLimit": {},
+  "creditUsed": "Credit used",
+  "@creditUsed": {},
+  "creditAvailable": "Available",
+  "@creditAvailable": {},
+  "commission": "Commission",
+  "@commission": {},
+
+  "settings": "Settings",
+  "@settings": {},
+  "language": "Language",
+  "@language": {},
+  "appearance": "Appearance",
+  "@appearance": {},
+  "themeLight": "Light",
+  "@themeLight": {},
+  "themeDark": "Dark",
+  "@themeDark": {},
+  "themeSystem": "System",
+  "@themeSystem": {},
+  "languageUzbek": "O‘zbekcha",
+  "@languageUzbek": {},
+  "languageRussian": "Русский",
+  "@languageRussian": {},
+  "languageEnglish": "English",
+  "@languageEnglish": {},
+
+  "logout": "Log out",
+  "@logout": {}
+}

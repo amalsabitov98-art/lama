@@ -1,0 +1,45 @@
+{
+  "@@locale": "uz",
+  "appName": "Turon Tour",
+
+  "loginTitle": "Turon Tour’ga xush kelibsiz",
+  "loginSubtitle": "Davom etish uchun rolni tanlang",
+
+  "roleTourist": "Sayyoh",
+  "roleAgent": "Agent",
+  "roleOperator": "Operator",
+
+  "roleTouristDesc": "Turlarni ko‘rish va band qilish",
+  "roleAgentDesc": "Agentlik bandlovlari va kreditini boshqarish",
+  "roleOperatorDesc": "Turlarni tashkil qilish va back-ofis",
+
+  "navHome": "Bosh sahifa",
+  "navProfile": "Profil",
+
+  "sectionInDevelopment": "{role} — bo‘lim ishlab chiqilmoqda",
+  "comingInNextPhases": "To‘liq imkoniyatlar keyingi bosqichlarda paydo bo‘ladi.",
+
+  "greeting": "Salom, {name}",
+
+  "profileTitle": "Profil",
+  "account": "Hisob",
+  "roleLabel": "Rol",
+
+  "agencyInfo": "Agentlik",
+  "creditLimit": "Kredit limiti",
+  "creditUsed": "Ishlatilgan",
+  "creditAvailable": "Mavjud",
+  "commission": "Komissiya",
+
+  "settings": "Sozlamalar",
+  "language": "Til",
+  "appearance": "Ko‘rinish",
+  "themeLight": "Yorug‘",
+  "themeDark": "Qorong‘i",
+  "themeSystem": "Tizim",
+  "languageUzbek": "O‘zbekcha",
+  "languageRussian": "Русский",
+  "languageEnglish": "English",
+
+  "logout": "Chiqish"
+}

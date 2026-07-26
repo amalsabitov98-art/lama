@@ -1,0 +1,45 @@
+{
+  "@@locale": "ru",
+  "appName": "Turon Tour",
+
+  "loginTitle": "Добро пожаловать в Turon Tour",
+  "loginSubtitle": "Выберите роль, чтобы продолжить",
+
+  "roleTourist": "Турист",
+  "roleAgent": "Агент",
+  "roleOperator": "Оператор",
+
+  "roleTouristDesc": "Просмотр и бронирование туров",
+  "roleAgentDesc": "Управление бронированиями и кредитом агентства",
+  "roleOperatorDesc": "Проведение туров и бэк-офис",
+
+  "navHome": "Главная",
+  "navProfile": "Профиль",
+
+  "sectionInDevelopment": "{role} — раздел в разработке",
+  "comingInNextPhases": "Полный функционал появится в следующих фазах.",
+
+  "greeting": "Здравствуйте, {name}",
+
+  "profileTitle": "Профиль",
+  "account": "Аккаунт",
+  "roleLabel": "Роль",
+
+  "agencyInfo": "Агентство",
+  "creditLimit": "Кредитный лимит",
+  "creditUsed": "Использовано",
+  "creditAvailable": "Доступно",
+  "commission": "Комиссия",
+
+  "settings": "Настройки",
+  "language": "Язык",
+  "appearance": "Оформление",
+  "themeLight": "Светлая",
+  "themeDark": "Тёмная",
+  "themeSystem": "Системная",
+  "languageUzbek": "O‘zbekcha",
+  "languageRussian": "Русский",
+  "languageEnglish": "English",
+
+  "logout": "Выйти"
+}
