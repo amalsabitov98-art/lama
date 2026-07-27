@@ -128,7 +128,7 @@ class MockBooking {
 }
 
 /// The seeded tour catalogue — real Uzbek destinations, prices in UZS.
-const List<MockTour> kMockTours = [
+final List<MockTour> kMockTours = [
   // 0 — Samarkand
   MockTour(
     title: _t('Samarqand: Registon va Ipak yoʻli',
