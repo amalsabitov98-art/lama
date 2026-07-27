@@ -20,10 +20,12 @@ body = body.replace(/<script src="([^"]+)"><\/script>/g, (m, s) => {
   return '<script>\n' + code + '\n<\/script>';
 });
 
+const stamp = process.env.BUILD_STAMP || new Date().toISOString();
 const out =
   '<!doctype html>\n<html lang="ru">\n<head>\n' +
   '<meta charset="utf-8">\n' +
   '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+  '<!-- build ' + stamp + ' -->\n' +
   '<title>Etihad — Генератор ваучеров</title>\n' +
   style + '\n</head>\n<body>\n' +
   body + '\n</body>\n</html>\n';
