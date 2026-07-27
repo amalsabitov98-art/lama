@@ -106,7 +106,7 @@ class DatabaseSeeder {
                 tourId: tourId,
                 author: review.author,
                 rating: review.rating,
-                text: review.text,
+                body: review.text,
                 date: now.subtract(Duration(days: review.daysAgo)),
               ),
             );

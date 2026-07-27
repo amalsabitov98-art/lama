@@ -150,7 +150,7 @@ class Reviews extends Table {
 
   TextColumn get author => text()();
   RealColumn get rating => real()();
-  TextColumn get text => text()();
+  TextColumn get body => text()();
   DateTimeColumn get date => dateTime()();
 }
 
