@@ -90,5 +90,87 @@
   "@languageEnglish": {},
 
   "logout": "Log out",
-  "@logout": {}
+  "@logout": {},
+
+  "sectionPopular": "Popular tours",
+  "@sectionPopular": {},
+  "sectionUpcoming": "Upcoming departures",
+  "@sectionUpcoming": {},
+  "sectionByCategory": "Browse by category",
+  "@sectionByCategory": {},
+
+  "categoryAll": "All",
+  "@categoryAll": {},
+  "categoryCultural": "Cultural",
+  "@categoryCultural": {},
+  "categoryNature": "Nature",
+  "@categoryNature": {},
+  "categoryAdventure": "Adventure",
+  "@categoryAdventure": {},
+  "categoryCity": "City",
+  "@categoryCity": {},
+
+  "fromPrice": "from",
+  "@fromPrice": {},
+  "perPerson": "per person",
+  "@perPerson": {},
+  "badgeHit": "Popular",
+  "@badgeHit": {},
+
+  "seatsLeft": "{count} seats left",
+  "@seatsLeft": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "seatsLeftShort": "{count} left",
+  "@seatsLeftShort": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "soldOut": "Sold out",
+  "@soldOut": {},
+  "durationDaysLabel": "{count} days",
+  "@durationDaysLabel": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "navSearch": "Search",
+  "@navSearch": {},
+  "navMyTrips": "My Trips",
+  "@navMyTrips": {},
+
+  "aboutTitle": "About this tour",
+  "@aboutTitle": {},
+  "highlightsTitle": "Highlights",
+  "@highlightsTitle": {},
+  "includedTitle": "What's included",
+  "@includedTitle": {},
+  "notIncludedTitle": "Not included",
+  "@notIncludedTitle": {},
+  "meetingPointTitle": "Meeting point",
+  "@meetingPointTitle": {},
+  "reviewsTitle": "Reviews",
+  "@reviewsTitle": {},
+  "aiSummaryTitle": "What travellers say",
+  "@aiSummaryTitle": {},
+  "departuresTitle": "Choose a departure",
+  "@departuresTitle": {},
+  "bookNow": "Book now",
+  "@bookNow": {},
+
+  "statusRecruiting": "Recruiting",
+  "@statusRecruiting": {},
+  "statusConfirmed": "Confirmed",
+  "@statusConfirmed": {},
+  "statusClosed": "Closed",
+  "@statusClosed": {},
+
+  "savedTitle": "Saved",
+  "@savedTitle": {},
+  "emptyWishlistTitle": "No saved tours yet",
+  "@emptyWishlistTitle": {},
+  "emptyWishlistMessage": "Tap the heart on a tour to save it here.",
+  "@emptyWishlistMessage": {},
+  "noToursTitle": "No tours found",
+  "@noToursTitle": {},
+  "bookingComingSoon": "Booking arrives in the next sub-step.",
+  "@bookingComingSoon": {}
 }

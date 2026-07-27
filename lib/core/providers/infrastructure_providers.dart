@@ -4,7 +4,9 @@ import 'package:turon_tour/data/db/app_database.dart';
 import 'package:turon_tour/data/local/preferences_store.dart';
 import 'package:turon_tour/data/local/session_store.dart';
 import 'package:turon_tour/data/repositories/auth_repository_impl.dart';
+import 'package:turon_tour/data/repositories/tour_repository_impl.dart';
 import 'package:turon_tour/domain/repositories/auth_repository.dart';
+import 'package:turon_tour/domain/repositories/tour_repository.dart';
 import 'package:turon_tour/domain/usecases/get_current_user.dart';
 import 'package:turon_tour/domain/usecases/sign_in_with_role.dart';
 import 'package:turon_tour/domain/usecases/sign_out.dart';
@@ -34,6 +36,10 @@ final authRepositoryProvider = Provider<AuthRepository>(
     database: ref.watch(appDatabaseProvider),
     sessionStore: ref.watch(sessionStoreProvider),
   ),
+);
+
+final tourRepositoryProvider = Provider<TourRepository>(
+  (ref) => TourRepositoryImpl(ref.watch(appDatabaseProvider)),
 );
 
 // Use cases.

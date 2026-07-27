@@ -41,5 +41,47 @@
   "languageRussian": "Русский",
   "languageEnglish": "English",
 
-  "logout": "Chiqish"
+  "logout": "Chiqish",
+
+  "sectionPopular": "Ommabop turlar",
+  "sectionUpcoming": "Yaqin vylotlar",
+  "sectionByCategory": "Turkumlar boʻyicha",
+
+  "categoryAll": "Barchasi",
+  "categoryCultural": "Madaniyat",
+  "categoryNature": "Tabiat",
+  "categoryAdventure": "Sarguzasht",
+  "categoryCity": "Shahar",
+
+  "fromPrice": "dan",
+  "perPerson": "bir kishi uchun",
+  "badgeHit": "Xit",
+
+  "seatsLeft": "{count} ta joy qoldi",
+  "seatsLeftShort": "{count} ta qoldi",
+  "soldOut": "Joy yoʻq",
+  "durationDaysLabel": "{count} kun",
+
+  "navSearch": "Qidiruv",
+  "navMyTrips": "Sayohatlarim",
+
+  "aboutTitle": "Tur haqida",
+  "highlightsTitle": "Asosiy jihatlar",
+  "includedTitle": "Nimalar kiradi",
+  "notIncludedTitle": "Kirmaydi",
+  "meetingPointTitle": "Uchrashuv joyi",
+  "reviewsTitle": "Sharhlar",
+  "aiSummaryTitle": "Sayohatchilar nima deydi",
+  "departuresTitle": "Vylot sanasini tanlang",
+  "bookNow": "Band qilish",
+
+  "statusRecruiting": "Guruh toʻplanmoqda",
+  "statusConfirmed": "Tasdiqlangan",
+  "statusClosed": "Yopilgan",
+
+  "savedTitle": "Saqlanganlar",
+  "emptyWishlistTitle": "Hozircha saqlangan turlar yoʻq",
+  "emptyWishlistMessage": "Turdagi yurakcha belgisini bosib, uni bu yerga saqlang.",
+  "noToursTitle": "Turlar topilmadi",
+  "bookingComingSoon": "Band qilish keyingi bosqichda paydo boʻladi."
 }

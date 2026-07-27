@@ -197,8 +197,25 @@ data is mock data stored in Drift — there is no backend.
 > dart run build_runner build --delete-conflicting-outputs
 > ```
 
-Upcoming sub-steps: 2.2 storefront + tour details · 2.3 search & filters ·
-2.4 booking + mock payment · 2.5 voucher (QR/PDF) + My Trips · 2.6 polish.
+**Sub-step 2.2 — Storefront + tour details (done):**
+- Tourist shell with 4 tabs: **Home / Search / My Trips / Profile** (Search &
+  My Trips are placeholders until 2.3 / 2.5).
+- **Home storefront**: greeting, "Popular tours" and "Upcoming departures"
+  carousels, category chips (All / Cultural / Nature / Adventure / City) that
+  filter the catalogue.
+- **Tour details**: photo gallery, highlights, description, included / not
+  included, meeting point (photo + address + coordinates), reviews with an "AI
+  summary" block, and a departures list with per-date price, seats-left and
+  status chips.
+- **Wishlist**: tap the heart on any card or the details screen; saved tours
+  live under the Home ❤ action.
+- New reusable widgets in `core/widgets`: `TourCard`, `RatingStars`,
+  `PriceTag`, `SectionHeader`, `StatusChip`, `TourImage`.
+
+> The "Book now" button is a placeholder until sub-step 2.4.
+
+Upcoming sub-steps: 2.3 search & filters · 2.4 booking + mock payment ·
+2.5 voucher (QR/PDF) + My Trips · 2.6 polish.
 
 ## What's next (later phases)
 

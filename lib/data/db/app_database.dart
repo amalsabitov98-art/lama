@@ -8,6 +8,7 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
 import 'package:turon_tour/data/db/converters.dart';
 import 'package:turon_tour/data/db/daos/agent_dao.dart';
+import 'package:turon_tour/data/db/daos/tour_dao.dart';
 import 'package:turon_tour/data/db/daos/user_dao.dart';
 import 'package:turon_tour/data/db/tables.dart';
 import 'package:turon_tour/domain/entities/localized.dart';
@@ -28,7 +29,7 @@ part 'app_database.g.dart';
     Reviews,
     Wishlists,
   ],
-  daos: [UserDao, AgentDao],
+  daos: [UserDao, AgentDao, TourDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());

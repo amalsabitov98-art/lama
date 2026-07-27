@@ -41,5 +41,47 @@
   "languageRussian": "Русский",
   "languageEnglish": "English",
 
-  "logout": "Выйти"
+  "logout": "Выйти",
+
+  "sectionPopular": "Популярные туры",
+  "sectionUpcoming": "Ближайшие вылеты",
+  "sectionByCategory": "По категориям",
+
+  "categoryAll": "Все",
+  "categoryCultural": "Культура",
+  "categoryNature": "Природа",
+  "categoryAdventure": "Приключения",
+  "categoryCity": "Город",
+
+  "fromPrice": "от",
+  "perPerson": "за человека",
+  "badgeHit": "Хит",
+
+  "seatsLeft": "осталось {count} мест",
+  "seatsLeftShort": "осталось {count}",
+  "soldOut": "Мест нет",
+  "durationDaysLabel": "{count} дн.",
+
+  "navSearch": "Поиск",
+  "navMyTrips": "Мои поездки",
+
+  "aboutTitle": "Об этом туре",
+  "highlightsTitle": "Хайлайты",
+  "includedTitle": "Что включено",
+  "notIncludedTitle": "Не включено",
+  "meetingPointTitle": "Точка встречи",
+  "reviewsTitle": "Отзывы",
+  "aiSummaryTitle": "Что говорят туристы",
+  "departuresTitle": "Выберите дату вылета",
+  "bookNow": "Забронировать",
+
+  "statusRecruiting": "Набор группы",
+  "statusConfirmed": "Подтверждён",
+  "statusClosed": "Закрыт",
+
+  "savedTitle": "Сохранённые",
+  "emptyWishlistTitle": "Пока нет сохранённых туров",
+  "emptyWishlistMessage": "Нажмите на сердечко у тура, чтобы сохранить его здесь.",
+  "noToursTitle": "Туры не найдены",
+  "bookingComingSoon": "Бронирование появится в следующем под-шаге."
 }
