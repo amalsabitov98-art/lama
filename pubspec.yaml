@@ -42,6 +42,13 @@ dev_dependencies:
   drift_dev: ^2.18.0
   build_runner: ^2.4.11
 
+# path_provider_android >= 2.3.0 pulls in the `jni` package, whose Android
+# Gradle script is incompatible with current Gradle/AGP (build fails with
+# "Could not find method kotlin()"). Pin to the 2.2.x line, which uses plain
+# platform channels and no jni.
+dependency_overrides:
+  path_provider_android: ">=2.2.0 <2.3.0"
+
 flutter:
   uses-material-design: true
   generate: true
