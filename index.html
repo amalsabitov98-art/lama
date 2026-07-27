@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- build 2026-07-27T10:31:00.151Z -->
+<!-- build 2026-07-27T11:17:13.249Z -->
 <title>Etihad — Генератор ваучеров</title>
 <style>
   :root{
@@ -340,7 +340,7 @@
           <span class="dicon"><svg viewBox="0 0 24 24"><path d="M19 13v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4h2v4h10v-4h2zM11 3h2v8.17l2.59-2.58L17 10l-5 5-5-5 1.41-1.41L11 11.17V3z"/></svg></span>
           <strong>Выберите Excel-файл</strong> или перетащите сюда
           <small>Колонки: № · Full Name · Date of Birth · Passport № · Expiry · Room.
-          Номера DBL / TWIN / TRPL подсвечены цветом — смена цвета в колонке Room начинает новый ваучер.</small>
+          Номера SGL / DBL / TWIN / TRPL подсвечены цветом — смена цвета в колонке Room начинает новый ваучер.</small>
           <input type="file" id="file" accept=".xlsx,.xls" hidden>
         </div>
         <p class="hint" style="margin-top:10px">Нет готовой таблицы? <button class="linkbtn" id="dlTemplate" type="button">Скачать шаблон Excel</button> — заполните его и загрузите обратно.</p>
@@ -967,7 +967,7 @@ function readExcel(buf){
 // ---- build voucher data list ----
 function buildVouchers(groups,c){
   const ref=parseDate(c.depDate)||new Date();
-  const cap={DBL:2,TWIN:2,TRPL:3};
+  const cap={SGL:1,DBL:2,TWIN:2,TRPL:3};
   return groups.map((g,i)=>{
     const no='EVB-'+String(c.startNo+i).padStart(4,'0');
     const pax=g.map(p=>({name:p.name,passport:p.passport,dob:fmtDate(p.dob),
@@ -1063,7 +1063,7 @@ function addManualRow(p={}){
      '<input class="m_name" placeholder="ФАМИЛИЯ ИМЯ" autocomplete="off">'
     +'<input class="m_dob code" placeholder="дд.мм.гггг" autocomplete="off">'
     +'<input class="m_pass code" placeholder="напр. FA1234567" autocomplete="off">'
-    +'<select class="m_room"><option>DBL</option><option>TWIN</option><option>TRPL</option></select>'
+    +'<select class="m_room"><option>DBL</option><option>TWIN</option><option>TRPL</option><option>SGL</option></select>'
     +'<button class="mini" type="button" title="Удалить">×</button>';
   div.querySelector('.m_name').value=p.name||'';
   div.querySelector('.m_dob').value=p.dob||'';
