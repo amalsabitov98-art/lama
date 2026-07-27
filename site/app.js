@@ -165,7 +165,7 @@ function readExcel(buf){
 // ---- build voucher data list ----
 function buildVouchers(groups,c){
   const ref=parseDate(c.depDate)||new Date();
-  const cap={DBL:2,TWIN:2,TRPL:3};
+  const cap={SGL:1,DBL:2,TWIN:2,TRPL:3};
   return groups.map((g,i)=>{
     const no='EVB-'+String(c.startNo+i).padStart(4,'0');
     const pax=g.map(p=>({name:p.name,passport:p.passport,dob:fmtDate(p.dob),
@@ -261,7 +261,7 @@ function addManualRow(p={}){
      '<input class="m_name" placeholder="ФАМИЛИЯ ИМЯ" autocomplete="off">'
     +'<input class="m_dob code" placeholder="дд.мм.гггг" autocomplete="off">'
     +'<input class="m_pass code" placeholder="напр. FA1234567" autocomplete="off">'
-    +'<select class="m_room"><option>DBL</option><option>TWIN</option><option>TRPL</option></select>'
+    +'<select class="m_room"><option>DBL</option><option>TWIN</option><option>TRPL</option><option>SGL</option></select>'
     +'<button class="mini" type="button" title="Удалить">×</button>';
   div.querySelector('.m_name').value=p.name||'';
   div.querySelector('.m_dob').value=p.dob||'';
