@@ -171,6 +171,35 @@ providers in `core/providers` wire the concrete implementations together.
 
 ---
 
+## Phase 2 — Tourist role (in progress)
+
+Phase 2 fills in the **Tourist** experience, built sub-step by sub-step. All
+data is mock data stored in Drift — there is no backend.
+
+**Sub-step 2.1 — Data layer (done):**
+- New Drift tables: `Tours`, `SeriesDepartures`, `Bookings`,
+  `PaymentInstallments`, `Vouchers`, `Reviews`, `Wishlists`.
+- Localized tour content (uz/ru/en) via `LocalizedText` / `LocalizedList`
+  type converters (`lib/data/db/converters.dart`).
+- Mock catalogue of **12 real Uzbek destinations** (Samarkand, Bukhara, Khiva,
+  Nurata & Aydarkul, Chimgan, Tashkent, Aral Sea, Fergana, Shakhrisabz,
+  Sentyab, Charvak, Termez) with 2–4 departures and reviews each, realistic
+  UZS prices, and mock AI review summaries — see `lib/data/mock/mock_tours.dart`.
+- For the mock tourist **Aziza Karimova**: 3 pre-made bookings (confirmed /
+  pending-with-overdue / completed) with payment plans and vouchers, plus 2
+  wishlisted tours.
+
+> **Schema upgrade note:** the database `schemaVersion` is now `2`. Because this
+> is a mock/demo app, the migration is destructive — on upgrade it drops and
+> recreates all tables, and the seeder repopulates on next launch. After
+> pulling, always re-run code generation:
+> ```bash
+> dart run build_runner build --delete-conflicting-outputs
+> ```
+
+Upcoming sub-steps: 2.2 storefront + tour details · 2.3 search & filters ·
+2.4 booking + mock payment · 2.5 voucher (QR/PDF) + My Trips · 2.6 polish.
+
 ## What's next (later phases)
 
 Phase 1 stops at the skeleton. Planned for subsequent phases:

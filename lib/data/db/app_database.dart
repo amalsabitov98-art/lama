@@ -14,7 +14,20 @@ import 'package:turon_tour/data/db/tables.dart';
 //   dart run build_runner build --delete-conflicting-outputs
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Users, Agents], daos: [UserDao, AgentDao])
+@DriftDatabase(
+  tables: [
+    Users,
+    Agents,
+    Tours,
+    SeriesDepartures,
+    Bookings,
+    PaymentInstallments,
+    Vouchers,
+    Reviews,
+    Wishlists,
+  ],
+  daos: [UserDao, AgentDao],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -22,7 +35,23 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forExecutor(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          // This is a mock/demo app whose data comes entirely from the seeder.
+          // Rather than write incremental migrations, wipe and recreate on any
+          // upgrade — the seeder repopulates on next launch.
+          await customStatement('PRAGMA foreign_keys = OFF');
+          for (final entity in allSchemaEntities) {
+            await m.drop(entity);
+          }
+          await m.createAll();
+          await customStatement('PRAGMA foreign_keys = ON');
+        },
+      );
 }
 
 LazyDatabase _openConnection() {
