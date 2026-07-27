@@ -26,8 +26,8 @@ jobs:
           node site/build.js dist/index.html
       - name: Publish to gh-pages branch (root only, preserve sibling subpaths)
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           REMOTE="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           # Work in a clean checkout of the existing gh-pages so we keep
           # whatever other projects have published under subdirectories.
