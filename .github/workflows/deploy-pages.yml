@@ -1,0 +1,58 @@
+name: Deploy voucher app to GitHub Pages
+
+on:
+  push:
+    branches: ["claude/pdf-voucher-layout-edceg5"]
+    paths: ["site/**", ".github/workflows/deploy-pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "pages-deploy"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Build single-file app
+        run: |
+          node site/build.js dist/index.html
+      - name: Publish to gh-pages branch (root only, preserve sibling subpaths)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          REMOTE="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          # Work in a clean checkout of the existing gh-pages so we keep
+          # whatever other projects have published under subdirectories.
+          rm -rf ghp && mkdir ghp && cd ghp
+          git init -q -b gh-pages
+          git remote add origin "$REMOTE"
+          if git fetch -q --depth=1 origin gh-pages 2>/dev/null; then
+            git reset -q --hard origin/gh-pages
+          fi
+          # Update only the root index.html — never touch insta/, cleaner/, etc.
+          cp ../dist/index.html index.html
+          touch .nojekyll
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No change to publish."
+          else
+            git commit -q -m "Deploy voucher app ${GITHUB_SHA::7}"
+            for i in 1 2 3 4; do
+              git push origin gh-pages && break
+              echo "push failed, refetch+retry ($i)"; sleep $((i*2))
+              git fetch -q --depth=1 origin gh-pages && git stash -q || true
+              git reset -q --soft origin/gh-pages || true
+              cp ../dist/index.html index.html; git add -A
+              git commit -q -m "Deploy voucher app ${GITHUB_SHA::7}" || true
+            done
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
