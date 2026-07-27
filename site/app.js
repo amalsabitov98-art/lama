@@ -253,6 +253,44 @@ $('dlTemplate').onclick=()=>{
   saveBlob(new Blob([arr],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'Etihad_template.xlsx');
 };
 
+// ---- manual entry: build one voucher straight in the app (no Excel) ----
+function addManualRow(p={}){
+  const list=$('manualList');
+  const div=document.createElement('div'); div.className='mrow';
+  div.innerHTML=
+     '<input class="m_name" placeholder="ФАМИЛИЯ ИМЯ" autocomplete="off">'
+    +'<input class="m_dob code" placeholder="дд.мм.гггг" autocomplete="off">'
+    +'<input class="m_pass code" placeholder="напр. FA1234567" autocomplete="off">'
+    +'<select class="m_room"><option>DBL</option><option>TWIN</option><option>TRPL</option></select>'
+    +'<button class="mini" type="button" title="Удалить">×</button>';
+  div.querySelector('.m_name').value=p.name||'';
+  div.querySelector('.m_dob').value=p.dob||'';
+  div.querySelector('.m_pass').value=p.pass||'';
+  if(p.room) div.querySelector('.m_room').value=p.room;
+  div.querySelector('.mini').onclick=()=>div.remove();
+  list.append(div);
+}
+addManualRow(); addManualRow();               // start with two blank rows
+$('manualAdd').onclick=()=>addManualRow();
+// collect the manual rows into a single group (= one voucher)
+function readManual(){
+  const rows=[...document.querySelectorAll('#manualList .mrow')].map(r=>({
+    name:r.querySelector('.m_name').value.trim(),
+    dob:parseDate(r.querySelector('.m_dob').value.trim()),
+    passport:r.querySelector('.m_pass').value.trim(),
+    room:r.querySelector('.m_room').value.trim(),
+    color:null,
+  })).filter(p=>p.name);
+  return rows.length?[rows]:null;
+}
+$('manualGo').onclick=()=>{
+  const g=readManual();
+  if(!g){ alert('Впишите хотя бы одного пассажира — ФИО обязательно.'); return; }
+  GROUPS=g;
+  $('go').disabled=false;
+  $('go').click();   // reuse the full generate + preview + download pipeline
+};
+
 // ---- continue numbering across sessions ----
 try{ const n=localStorage.getItem('etihad_nextNo'); if(n) $('startNo').value=n; }catch(e){}
 
